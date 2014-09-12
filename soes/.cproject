@@ -1,0 +1,524 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<?fileVersion 4.0.0?>
+
+<cproject storage_type_id="org.eclipse.cdt.core.XmlProjectDescriptionStorage">
+	<storageModule moduleId="org.eclipse.cdt.core.settings">
+		<cconfiguration id="rtlabs.config.armeabi.lib.debug.2131034717">
+			<storageModule buildSystemId="org.eclipse.cdt.managedbuilder.core.configurationDataProvider" id="rtlabs.config.armeabi.lib.debug.2131034717" moduleId="org.eclipse.cdt.core.settings" name="Debug">
+				<externalSettings/>
+				<extensions>
+					<extension id="org.eclipse.cdt.core.ELF" point="org.eclipse.cdt.core.BinaryParser"/>
+					<extension id="org.eclipse.cdt.core.MakeErrorParser" point="org.eclipse.cdt.core.ErrorParser"/>
+					<extension id="org.eclipse.cdt.core.GCCErrorParser" point="org.eclipse.cdt.core.ErrorParser"/>
+					<extension id="org.eclipse.cdt.core.GASErrorParser" point="org.eclipse.cdt.core.ErrorParser"/>
+				</extensions>
+			</storageModule>
+			<storageModule moduleId="cdtBuildSystem" version="4.0.0">
+				<configuration artifactExtension="a" artifactName="soes" buildArtefactType="rtlabs.buildArtefactType.lib" buildProperties="org.eclipse.cdt.build.core.buildType=org.eclipse.cdt.build.core.buildType.debug,org.eclipse.cdt.build.core.buildArtefactType=rtlabs.buildArtefactType.lib" cleanCommand="rm -rf" description="" id="rtlabs.config.armeabi.lib.debug.2131034717" name="Debug" parent="rtlabs.config.armeabi.lib.debug">
+					<folderInfo id="rtlabs.config.armeabi.lib.debug.2131034717." name="/" resourcePath="">
+						<toolChain id="rtlabs.toolchain.armeabi.lib.debug.366687097" name="arm-eabi-gcc" superClass="rtlabs.toolchain.armeabi.lib.debug">
+							<targetPlatform id="rtlabs.target.armeabi.platform.lib.debug.1535129639" name="Debug Platform" superClass="rtlabs.target.armeabi.platform.lib.debug"/>
+							<builder buildPath="${workspace_loc:/soes/Debug}" id="rtlabs.target.armeabi.builder.lib.debug.1689617093" keepEnvironmentInBuildfile="false" managedBuildOn="true" name="Gnu Make Builder" superClass="rtlabs.target.armeabi.builder.lib.debug"/>
+							<tool id="rtlabs.tool.armeabi.archiver.lib.debug.829952529" name="GCC Archiver" superClass="rtlabs.tool.armeabi.archiver.lib.debug"/>
+							<tool id="rtlabs.tool.armeabi.cpp.compiler.lib.debug.696853570" name="GCC C++ Compiler" superClass="rtlabs.tool.armeabi.cpp.compiler.lib.debug">
+								<option id="rtlabs.cpp.compiler.option.optimization.level.1022589365" name="Optimization Level" superClass="rtlabs.cpp.compiler.option.optimization.level" value="rtlabs.cpp.compiler.optimization.level.none" valueType="enumerated"/>
+								<option id="rtlabs.cpp.compiler.option.debugging.level.583885497" name="Debug Level" superClass="rtlabs.cpp.compiler.option.debugging.level" value="rtlabs.cpp.compiler.debugging.level.max" valueType="enumerated"/>
+								<option id="rtlabs.cpp.compiler.option.cputype.1765663704" name="CPU type" superClass="rtlabs.cpp.compiler.option.cputype" value="cortex-m3" valueType="string"/>
+								<option id="rtlabs.cpp.compiler.option.fputype.23562784" name="FPU type" superClass="rtlabs.cpp.compiler.option.fputype" value="vfp" valueType="string"/>
+								<option id="rtlabs.cpp.compiler.option.include.paths.521945166" name="Include paths (-I)" superClass="rtlabs.cpp.compiler.option.include.paths" valueType="includePath">
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/ove}/include&quot;"/>
+									<listOptionValue builtIn="false" value="${RT_TOOLS}/rt-kernel-kinetis/include"/>
+									<listOptionValue builtIn="false" value="${RT_TOOLS}/rt-kernel-kinetis/include/arch/kinetis"/>
+									<listOptionValue builtIn="false" value="${RT_TOOLS}/rt-kernel-kinetis/include/kern"/>
+									<listOptionValue builtIn="false" value="${RT_TOOLS}/rt-kernel-kinetis/include/drivers"/>
+									<listOptionValue builtIn="false" value="${RT_TOOLS}/rt-kernel-kinetis/lwip/src/include"/>
+									<listOptionValue builtIn="false" value="${RT_TOOLS}/rt-kernel-kinetis/lwip/src/include/ipv4"/>
+								</option>
+							</tool>
+							<tool id="rtlabs.tool.armeabi.c.compiler.lib.debug.938503971" name="GCC C Compiler" superClass="rtlabs.tool.armeabi.c.compiler.lib.debug">
+								<option defaultValue="rtlabs.c.optimization.level.none" id="rtlabs.c.compiler.option.optimization.level.244978858" name="Optimization Level" superClass="rtlabs.c.compiler.option.optimization.level" value="rtlabs.c.optimization.level.size" valueType="enumerated"/>
+								<option id="rtlabs.c.compiler.option.debugging.level.579079689" name="Debug Level" superClass="rtlabs.c.compiler.option.debugging.level" value="rtlabs.c.debugging.level.max" valueType="enumerated"/>
+								<option id="rtlabs.c.compiler.option.cputype.1548902665" name="CPU type" superClass="rtlabs.c.compiler.option.cputype" value="cortex-m3" valueType="string"/>
+								<option id="rtlabs.c.compiler.option.fputype.855635193" name="FPU type" superClass="rtlabs.c.compiler.option.fputype" value="vfp" valueType="string"/>
+								<option id="rtlabs.c.compiler.option.include.paths.79398892" name="Include paths (-I)" superClass="rtlabs.c.compiler.option.include.paths" valueType="includePath">
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/k60/include}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/rtl_slavedemo}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/soes_hw}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${RT_TOOLS}/rt-kernel-kinetis/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${RT_TOOLS}/rt-kernel-kinetis/include/kern&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${RT_TOOLS}/rt-kernel-kinetis/include/arch/kinetis&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${RT_TOOLS}/rt-kernel-kinetis/include/drivers&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${RT_TOOLS}/rt-kernel-kinetis/lwip/src/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${RT_TOOLS}/rt-kernel-kinetis/lwip/src/include/ipv4&quot;"/>
+								</option>
+								<option id="rtlabs.c.compiler.option.optimization.flags.2063580394" name="Other optimization flags" superClass="rtlabs.c.compiler.option.optimization.flags" value="-fno-strict-aliasing" valueType="string"/>
+								<option id="rtlabs.c.compiler.option.misc.other.1141698962" name="Other flags" superClass="rtlabs.c.compiler.option.misc.other" value="-c -fmessage-length=0 -fshort-wchar -Wno-unused-parameter" valueType="string"/>
+								<inputType id="rtlabs.tool.armeabi.c.compiler.input.1929320179" superClass="rtlabs.tool.armeabi.c.compiler.input"/>
+							</tool>
+							<tool id="rtlabs.tool.armeabi.c.linker.base.552988201" name="GCC C Linker" superClass="rtlabs.tool.armeabi.c.linker.base">
+								<option id="rtlabs.c.link.option.ldflags.1688252900" name="Linker flags" superClass="rtlabs.c.link.option.ldflags" value="-Wl,--no-wchar-size-warning" valueType="string"/>
+								<option id="rtlabs.c.link.option.cputype.868858032" name="CPU type" superClass="rtlabs.c.link.option.cputype" value="cortex-m3" valueType="string"/>
+								<option id="rtlabs.c.link.option.fputype.1498768764" name="FPU type" superClass="rtlabs.c.link.option.fputype" value="vfp" valueType="string"/>
+							</tool>
+							<tool id="rtlabs.tool.armeabi.cpp.linker.base.375778992" name="GCC C++ Linker" superClass="rtlabs.tool.armeabi.cpp.linker.base">
+								<option id="rtlabs.cpp.link.option.ldflags.1083174954" name="Linker flags" superClass="rtlabs.cpp.link.option.ldflags" value="-Wl,--no-wchar-size-warning" valueType="string"/>
+								<option id="rtlabs.cpp.link.option.cputype.1244125937" name="CPU type" superClass="rtlabs.cpp.link.option.cputype" value="cortex-m3" valueType="string"/>
+								<option id="rtlabs.cpp.link.option.fputype.1864254724" name="FPU type" superClass="rtlabs.cpp.link.option.fputype" value="vfp" valueType="string"/>
+							</tool>
+							<tool id="rtlabs.tool.armeabi.assembler.lib.debug.1840892184" name="GCC Assembler" superClass="rtlabs.tool.armeabi.assembler.lib.debug">
+								<inputType id="rtlabs.tool.gnu.assembler.input.1425591986" superClass="rtlabs.tool.gnu.assembler.input"/>
+							</tool>
+							<tool id="rtlabs.tool.armeabi.tt_parse.base.217197981" name="tt_parse" superClass="rtlabs.tool.armeabi.tt_parse.base"/>
+							<tool id="rtlabs.tool.armeabi.objcopy.base.267770674" name="GNU Objcopy" superClass="rtlabs.tool.armeabi.objcopy.base"/>
+							<tool id="rtlabs.tool.armeabi.report.base.1417864797" name="Report" superClass="rtlabs.tool.armeabi.report.base"/>
+						</toolChain>
+					</folderInfo>
+				</configuration>
+			</storageModule>
+			<storageModule moduleId="org.eclipse.cdt.core.externalSettings"/>
+		</cconfiguration>
+		<cconfiguration id="rtlabs.config.armeabi.lib.release.1175849548">
+			<storageModule buildSystemId="org.eclipse.cdt.managedbuilder.core.configurationDataProvider" id="rtlabs.config.armeabi.lib.release.1175849548" moduleId="org.eclipse.cdt.core.settings" name="Release">
+				<externalSettings/>
+				<extensions>
+					<extension id="org.eclipse.cdt.core.ELF" point="org.eclipse.cdt.core.BinaryParser"/>
+					<extension id="org.eclipse.cdt.core.MakeErrorParser" point="org.eclipse.cdt.core.ErrorParser"/>
+					<extension id="org.eclipse.cdt.core.GCCErrorParser" point="org.eclipse.cdt.core.ErrorParser"/>
+					<extension id="org.eclipse.cdt.core.GASErrorParser" point="org.eclipse.cdt.core.ErrorParser"/>
+				</extensions>
+			</storageModule>
+			<storageModule moduleId="cdtBuildSystem" version="4.0.0">
+				<configuration artifactExtension="a" artifactName="soes" buildArtefactType="rtlabs.buildArtefactType.lib" buildProperties="org.eclipse.cdt.build.core.buildType=org.eclipse.cdt.build.core.buildType.release,org.eclipse.cdt.build.core.buildArtefactType=rtlabs.buildArtefactType.lib" cleanCommand="rm -rf" description="" id="rtlabs.config.armeabi.lib.release.1175849548" name="Release" parent="rtlabs.config.armeabi.lib.release">
+					<folderInfo id="rtlabs.config.armeabi.lib.release.1175849548." name="/" resourcePath="">
+						<toolChain id="rtlabs.toolchain.armeabi.lib.release.1927487379" name="arm-eabi-gcc" superClass="rtlabs.toolchain.armeabi.lib.release">
+							<targetPlatform id="rtlabs.target.armeabi.platform.lib.release.1359681473" name="Debug Platform" superClass="rtlabs.target.armeabi.platform.lib.release"/>
+							<builder buildPath="${workspace_loc:/soes/Release}" id="rtlabs.target.armeabi.builder.lib.release.1076903497" keepEnvironmentInBuildfile="false" managedBuildOn="true" name="Gnu Make Builder" superClass="rtlabs.target.armeabi.builder.lib.release"/>
+							<tool id="rtlabs.tool.armeabi.archiver.lib.release.294026764" name="GCC Archiver" superClass="rtlabs.tool.armeabi.archiver.lib.release"/>
+							<tool id="rtlabs.tool.armeabi.cpp.compiler.lib.release.1726368298" name="GCC C++ Compiler" superClass="rtlabs.tool.armeabi.cpp.compiler.lib.release">
+								<option id="rtlabs.cpp.compiler.option.optimization.level.1733582146" name="Optimization Level" superClass="rtlabs.cpp.compiler.option.optimization.level" value="rtlabs.cpp.compiler.optimization.level.size" valueType="enumerated"/>
+								<option id="rtlabs.cpp.compiler.option.debugging.level.1270169161" name="Debug Level" superClass="rtlabs.cpp.compiler.option.debugging.level" value="rtlabs.cpp.compiler.debugging.level.none" valueType="enumerated"/>
+								<option id="rtlabs.cpp.compiler.option.cputype.401799170" name="CPU type" superClass="rtlabs.cpp.compiler.option.cputype" value="cortex-m3" valueType="string"/>
+								<option id="rtlabs.cpp.compiler.option.fputype.1528027500" name="FPU type" superClass="rtlabs.cpp.compiler.option.fputype" value="vfp" valueType="string"/>
+								<option id="rtlabs.cpp.compiler.option.include.paths.1711984968" name="Include paths (-I)" superClass="rtlabs.cpp.compiler.option.include.paths" valueType="includePath">
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/ove}/include&quot;"/>
+									<listOptionValue builtIn="false" value="${RT_TOOLS}/rt-kernel-kinetis/include"/>
+									<listOptionValue builtIn="false" value="${RT_TOOLS}/rt-kernel-kinetis/include/arch/kinetis"/>
+									<listOptionValue builtIn="false" value="${RT_TOOLS}/rt-kernel-kinetis/include/kern"/>
+									<listOptionValue builtIn="false" value="${RT_TOOLS}/rt-kernel-kinetis/include/drivers"/>
+									<listOptionValue builtIn="false" value="${RT_TOOLS}/rt-kernel-kinetis/lwip/src/include"/>
+									<listOptionValue builtIn="false" value="${RT_TOOLS}/rt-kernel-kinetis/lwip/src/include/ipv4"/>
+								</option>
+							</tool>
+							<tool id="rtlabs.tool.armeabi.c.compiler.lib.release.406234290" name="GCC C Compiler" superClass="rtlabs.tool.armeabi.c.compiler.lib.release">
+								<option defaultValue="rtlabs.c.optimization.level.size" id="rtlabs.c.compiler.option.optimization.level.1952413531" name="Optimization Level" superClass="rtlabs.c.compiler.option.optimization.level" valueType="enumerated"/>
+								<option id="rtlabs.c.compiler.option.debugging.level.1132242450" name="Debug Level" superClass="rtlabs.c.compiler.option.debugging.level" value="rtlabs.c.debugging.level.none" valueType="enumerated"/>
+								<option id="rtlabs.c.compiler.option.cputype.1478344429" name="CPU type" superClass="rtlabs.c.compiler.option.cputype" value="cortex-m3" valueType="string"/>
+								<option id="rtlabs.c.compiler.option.fputype.1170053808" name="FPU type" superClass="rtlabs.c.compiler.option.fputype" value="vfp" valueType="string"/>
+								<option id="rtlabs.c.compiler.option.include.paths.2130047993" name="Include paths (-I)" superClass="rtlabs.c.compiler.option.include.paths" valueType="includePath">
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/ove}/include&quot;"/>
+									<listOptionValue builtIn="false" value="${RT_TOOLS}/rt-kernel-kinetis/include"/>
+									<listOptionValue builtIn="false" value="${RT_TOOLS}/rt-kernel-kinetis/include/arch/kinetis"/>
+									<listOptionValue builtIn="false" value="${RT_TOOLS}/rt-kernel-kinetis/include/kern"/>
+									<listOptionValue builtIn="false" value="${RT_TOOLS}/rt-kernel-kinetis/include/drivers"/>
+									<listOptionValue builtIn="false" value="${RT_TOOLS}/rt-kernel-kinetis/lwip/src/include"/>
+									<listOptionValue builtIn="false" value="${RT_TOOLS}/rt-kernel-kinetis/lwip/src/include/ipv4"/>
+								</option>
+								<inputType id="rtlabs.tool.armeabi.c.compiler.input.2143338800" superClass="rtlabs.tool.armeabi.c.compiler.input"/>
+							</tool>
+							<tool id="rtlabs.tool.armeabi.c.linker.base.915242624" name="GCC C Linker" superClass="rtlabs.tool.armeabi.c.linker.base">
+								<option id="rtlabs.c.link.option.ldflags.1647058270" name="Linker flags" superClass="rtlabs.c.link.option.ldflags" value="-Wl,--no-wchar-size-warning" valueType="string"/>
+								<option id="rtlabs.c.link.option.cputype.1708628671" name="CPU type" superClass="rtlabs.c.link.option.cputype" value="cortex-m3" valueType="string"/>
+								<option id="rtlabs.c.link.option.fputype.618692293" name="FPU type" superClass="rtlabs.c.link.option.fputype" value="vfp" valueType="string"/>
+							</tool>
+							<tool id="rtlabs.tool.armeabi.cpp.linker.base.2128529981" name="GCC C++ Linker" superClass="rtlabs.tool.armeabi.cpp.linker.base">
+								<option id="rtlabs.cpp.link.option.ldflags.2075920446" name="Linker flags" superClass="rtlabs.cpp.link.option.ldflags" value="-Wl,--no-wchar-size-warning" valueType="string"/>
+								<option id="rtlabs.cpp.link.option.cputype.1356692523" name="CPU type" superClass="rtlabs.cpp.link.option.cputype" value="cortex-m3" valueType="string"/>
+								<option id="rtlabs.cpp.link.option.fputype.662228326" name="FPU type" superClass="rtlabs.cpp.link.option.fputype" value="vfp" valueType="string"/>
+							</tool>
+							<tool id="rtlabs.tool.armeabi.assembler.lib.release.587275398" name="GCC Assembler" superClass="rtlabs.tool.armeabi.assembler.lib.release">
+								<inputType id="rtlabs.tool.gnu.assembler.input.1602381483" superClass="rtlabs.tool.gnu.assembler.input"/>
+							</tool>
+							<tool id="rtlabs.tool.armeabi.tt_parse.base.16224567" name="tt_parse" superClass="rtlabs.tool.armeabi.tt_parse.base"/>
+							<tool id="rtlabs.tool.armeabi.objcopy.base.1221609684" name="GNU Objcopy" superClass="rtlabs.tool.armeabi.objcopy.base"/>
+							<tool id="rtlabs.tool.armeabi.report.base.27510431" name="Report" superClass="rtlabs.tool.armeabi.report.base"/>
+						</toolChain>
+					</folderInfo>
+				</configuration>
+			</storageModule>
+			<storageModule moduleId="org.eclipse.cdt.core.externalSettings"/>
+		</cconfiguration>
+	</storageModule>
+	<storageModule moduleId="cdtBuildSystem" version="4.0.0">
+		<project id="soes.rtlabs.target.armeabi.lib.1628841477" name="Library" projectType="rtlabs.target.armeabi.lib"/>
+	</storageModule>
+	<storageModule moduleId="refreshScope"/>
+	<storageModule moduleId="scannerConfiguration">
+		<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId=""/>
+		<profile id="com.rtlabs.workbench.armeabi.armeabiManagedMakePerProjectProfile">
+			<buildOutputProvider>
+				<openAction enabled="true" filePath=""/>
+				<parser enabled="true"/>
+			</buildOutputProvider>
+			<scannerInfoProvider id="specsFile">
+				<runAction arguments="-E -P -v -dD ${plugin_state_location}/${specs_file}" command="${_COMPILERS}/arm-eabi/bin/arm-eabi-gcc" useDefault="true"/>
+				<parser enabled="true"/>
+			</scannerInfoProvider>
+		</profile>
+		<profile id="com.rtlabs.workbench.bfinelf.BfinElfManagedMakePerProjectProfile">
+			<buildOutputProvider>
+				<openAction enabled="true" filePath=""/>
+				<parser enabled="true"/>
+			</buildOutputProvider>
+			<scannerInfoProvider id="specsFile">
+				<runAction arguments="-E -P -v -dD ${plugin_state_location}/${specs_file}" command="${_COMPILERS}/bfin-elf/bin/bfin-elf-gcc" useDefault="true"/>
+				<parser enabled="true"/>
+			</scannerInfoProvider>
+		</profile>
+		<profile id="com.rtlabs.workbench.powerpceabi.PowerPCEABIManagedMakePerProjectProfile">
+			<buildOutputProvider>
+				<openAction enabled="true" filePath=""/>
+				<parser enabled="true"/>
+			</buildOutputProvider>
+			<scannerInfoProvider id="specsFile">
+				<runAction arguments="-E -P -v -dD ${plugin_state_location}/${specs_file}" command="${_COMPILERS}/powerpc-eabi/bin/powerpc-eabi-gcc" useDefault="true"/>
+				<parser enabled="true"/>
+			</scannerInfoProvider>
+		</profile>
+		<profile id="com.rtlabs.workbench.powerpceabispe.PowerPCEABISPEManagedMakePerProjectProfile">
+			<buildOutputProvider>
+				<openAction enabled="true" filePath=""/>
+				<parser enabled="true"/>
+			</buildOutputProvider>
+			<scannerInfoProvider id="specsFile">
+				<runAction arguments="-E -P -v -dD ${plugin_state_location}/${specs_file}" command="${_COMPILERS}/powerpc-eabispe/bin/powerpc-eabispe-gcc" useDefault="true"/>
+				<parser enabled="true"/>
+			</scannerInfoProvider>
+		</profile>
+		<profile id="org.eclipse.cdt.make.core.GCCStandardMakePerProjectProfile">
+			<buildOutputProvider>
+				<openAction enabled="true" filePath=""/>
+				<parser enabled="true"/>
+			</buildOutputProvider>
+			<scannerInfoProvider id="specsFile">
+				<runAction arguments="-E -P -v -dD ${plugin_state_location}/${specs_file}" command="gcc" useDefault="true"/>
+				<parser enabled="true"/>
+			</scannerInfoProvider>
+		</profile>
+		<profile id="org.eclipse.cdt.make.core.GCCStandardMakePerFileProfile">
+			<buildOutputProvider>
+				<openAction enabled="true" filePath=""/>
+				<parser enabled="true"/>
+			</buildOutputProvider>
+			<scannerInfoProvider id="makefileGenerator">
+				<runAction arguments="-E -P -v -dD" command="" useDefault="true"/>
+				<parser enabled="true"/>
+			</scannerInfoProvider>
+		</profile>
+		<profile id="org.eclipse.cdt.managedbuilder.core.GCCManagedMakePerProjectProfile">
+			<buildOutputProvider>
+				<openAction enabled="true" filePath=""/>
+				<parser enabled="true"/>
+			</buildOutputProvider>
+			<scannerInfoProvider id="specsFile">
+				<runAction arguments="-E -P -v -dD ${plugin_state_location}/${specs_file}" command="gcc" useDefault="true"/>
+				<parser enabled="true"/>
+			</scannerInfoProvider>
+		</profile>
+		<profile id="org.eclipse.cdt.managedbuilder.core.GCCManagedMakePerProjectProfileCPP">
+			<buildOutputProvider>
+				<openAction enabled="true" filePath=""/>
+				<parser enabled="true"/>
+			</buildOutputProvider>
+			<scannerInfoProvider id="specsFile">
+				<runAction arguments="-E -P -v -dD ${plugin_state_location}/specs.cpp" command="g++" useDefault="true"/>
+				<parser enabled="true"/>
+			</scannerInfoProvider>
+		</profile>
+		<profile id="org.eclipse.cdt.managedbuilder.core.GCCManagedMakePerProjectProfileC">
+			<buildOutputProvider>
+				<openAction enabled="true" filePath=""/>
+				<parser enabled="true"/>
+			</buildOutputProvider>
+			<scannerInfoProvider id="specsFile">
+				<runAction arguments="-E -P -v -dD ${plugin_state_location}/specs.c" command="gcc" useDefault="true"/>
+				<parser enabled="true"/>
+			</scannerInfoProvider>
+		</profile>
+		<profile id="org.eclipse.cdt.managedbuilder.core.GCCWinManagedMakePerProjectProfile">
+			<buildOutputProvider>
+				<openAction enabled="true" filePath=""/>
+				<parser enabled="true"/>
+			</buildOutputProvider>
+			<scannerInfoProvider id="specsFile">
+				<runAction arguments="-c 'gcc -E -P -v -dD &quot;${plugin_state_location}/${specs_file}&quot;'" command="sh" useDefault="true"/>
+				<parser enabled="true"/>
+			</scannerInfoProvider>
+		</profile>
+		<profile id="org.eclipse.cdt.managedbuilder.core.GCCWinManagedMakePerProjectProfileCPP">
+			<buildOutputProvider>
+				<openAction enabled="true" filePath=""/>
+				<parser enabled="true"/>
+			</buildOutputProvider>
+			<scannerInfoProvider id="specsFile">
+				<runAction arguments="-c 'g++ -E -P -v -dD &quot;${plugin_state_location}/specs.cpp&quot;'" command="sh" useDefault="true"/>
+				<parser enabled="true"/>
+			</scannerInfoProvider>
+		</profile>
+		<profile id="org.eclipse.cdt.managedbuilder.core.GCCWinManagedMakePerProjectProfileC">
+			<buildOutputProvider>
+				<openAction enabled="true" filePath=""/>
+				<parser enabled="true"/>
+			</buildOutputProvider>
+			<scannerInfoProvider id="specsFile">
+				<runAction arguments="-c 'gcc -E -P -v -dD &quot;${plugin_state_location}/specs.c&quot;'" command="sh" useDefault="true"/>
+				<parser enabled="true"/>
+			</scannerInfoProvider>
+		</profile>
+		<scannerConfigBuildInfo instanceId="rtlabs.config.armeabi.lib.release.1175849548;rtlabs.config.armeabi.lib.release.1175849548.;rtlabs.tool.armeabi.c.compiler.lib.release.406234290;rtlabs.tool.armeabi.c.compiler.input.2143338800">
+			<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId="com.rtlabs.workbench.armeabi.armeabiManagedMakePerProjectProfile"/>
+			<profile id="com.rtlabs.workbench.armeabi.armeabiManagedMakePerProjectProfile">
+				<buildOutputProvider>
+					<openAction enabled="true" filePath=""/>
+					<parser enabled="true"/>
+				</buildOutputProvider>
+				<scannerInfoProvider id="specsFile">
+					<runAction arguments="-E -P -v -dD ${plugin_state_location}/${specs_file}" command="${_COMPILERS}/arm-eabi/bin/arm-eabi-gcc" useDefault="true"/>
+					<parser enabled="true"/>
+				</scannerInfoProvider>
+			</profile>
+			<profile id="com.rtlabs.workbench.bfinelf.BfinElfManagedMakePerProjectProfile">
+				<buildOutputProvider>
+					<openAction enabled="true" filePath=""/>
+					<parser enabled="true"/>
+				</buildOutputProvider>
+				<scannerInfoProvider id="specsFile">
+					<runAction arguments="-E -P -v -dD ${plugin_state_location}/${specs_file}" command="${_COMPILERS}/bfin-elf/bin/bfin-elf-gcc" useDefault="true"/>
+					<parser enabled="true"/>
+				</scannerInfoProvider>
+			</profile>
+			<profile id="com.rtlabs.workbench.powerpceabi.PowerPCEABIManagedMakePerProjectProfile">
+				<buildOutputProvider>
+					<openAction enabled="true" filePath=""/>
+					<parser enabled="true"/>
+				</buildOutputProvider>
+				<scannerInfoProvider id="specsFile">
+					<runAction arguments="-E -P -v -dD ${plugin_state_location}/${specs_file}" command="${_COMPILERS}/powerpc-eabi/bin/powerpc-eabi-gcc" useDefault="true"/>
+					<parser enabled="true"/>
+				</scannerInfoProvider>
+			</profile>
+			<profile id="com.rtlabs.workbench.powerpceabispe.PowerPCEABISPEManagedMakePerProjectProfile">
+				<buildOutputProvider>
+					<openAction enabled="true" filePath=""/>
+					<parser enabled="true"/>
+				</buildOutputProvider>
+				<scannerInfoProvider id="specsFile">
+					<runAction arguments="-E -P -v -dD ${plugin_state_location}/${specs_file}" command="${_COMPILERS}/powerpc-eabispe/bin/powerpc-eabispe-gcc" useDefault="true"/>
+					<parser enabled="true"/>
+				</scannerInfoProvider>
+			</profile>
+			<profile id="org.eclipse.cdt.make.core.GCCStandardMakePerProjectProfile">
+				<buildOutputProvider>
+					<openAction enabled="true" filePath=""/>
+					<parser enabled="true"/>
+				</buildOutputProvider>
+				<scannerInfoProvider id="specsFile">
+					<runAction arguments="-E -P -v -dD ${plugin_state_location}/${specs_file}" command="gcc" useDefault="true"/>
+					<parser enabled="true"/>
+				</scannerInfoProvider>
+			</profile>
+			<profile id="org.eclipse.cdt.make.core.GCCStandardMakePerFileProfile">
+				<buildOutputProvider>
+					<openAction enabled="true" filePath=""/>
+					<parser enabled="true"/>
+				</buildOutputProvider>
+				<scannerInfoProvider id="makefileGenerator">
+					<runAction arguments="-E -P -v -dD" command="" useDefault="true"/>
+					<parser enabled="true"/>
+				</scannerInfoProvider>
+			</profile>
+			<profile id="org.eclipse.cdt.managedbuilder.core.GCCManagedMakePerProjectProfile">
+				<buildOutputProvider>
+					<openAction enabled="true" filePath=""/>
+					<parser enabled="true"/>
+				</buildOutputProvider>
+				<scannerInfoProvider id="specsFile">
+					<runAction arguments="-E -P -v -dD ${plugin_state_location}/${specs_file}" command="gcc" useDefault="true"/>
+					<parser enabled="true"/>
+				</scannerInfoProvider>
+			</profile>
+			<profile id="org.eclipse.cdt.managedbuilder.core.GCCManagedMakePerProjectProfileCPP">
+				<buildOutputProvider>
+					<openAction enabled="true" filePath=""/>
+					<parser enabled="true"/>
+				</buildOutputProvider>
+				<scannerInfoProvider id="specsFile">
+					<runAction arguments="-E -P -v -dD ${plugin_state_location}/specs.cpp" command="g++" useDefault="true"/>
+					<parser enabled="true"/>
+				</scannerInfoProvider>
+			</profile>
+			<profile id="org.eclipse.cdt.managedbuilder.core.GCCManagedMakePerProjectProfileC">
+				<buildOutputProvider>
+					<openAction enabled="true" filePath=""/>
+					<parser enabled="true"/>
+				</buildOutputProvider>
+				<scannerInfoProvider id="specsFile">
+					<runAction arguments="-E -P -v -dD ${plugin_state_location}/specs.c" command="gcc" useDefault="true"/>
+					<parser enabled="true"/>
+				</scannerInfoProvider>
+			</profile>
+			<profile id="org.eclipse.cdt.managedbuilder.core.GCCWinManagedMakePerProjectProfile">
+				<buildOutputProvider>
+					<openAction enabled="true" filePath=""/>
+					<parser enabled="true"/>
+				</buildOutputProvider>
+				<scannerInfoProvider id="specsFile">
+					<runAction arguments="-c 'gcc -E -P -v -dD &quot;${plugin_state_location}/${specs_file}&quot;'" command="sh" useDefault="true"/>
+					<parser enabled="true"/>
+				</scannerInfoProvider>
+			</profile>
+			<profile id="org.eclipse.cdt.managedbuilder.core.GCCWinManagedMakePerProjectProfileCPP">
+				<buildOutputProvider>
+					<openAction enabled="true" filePath=""/>
+					<parser enabled="true"/>
+				</buildOutputProvider>
+				<scannerInfoProvider id="specsFile">
+					<runAction arguments="-c 'g++ -E -P -v -dD &quot;${plugin_state_location}/specs.cpp&quot;'" command="sh" useDefault="true"/>
+					<parser enabled="true"/>
+				</scannerInfoProvider>
+			</profile>
+			<profile id="org.eclipse.cdt.managedbuilder.core.GCCWinManagedMakePerProjectProfileC">
+				<buildOutputProvider>
+					<openAction enabled="true" filePath=""/>
+					<parser enabled="true"/>
+				</buildOutputProvider>
+				<scannerInfoProvider id="specsFile">
+					<runAction arguments="-c 'gcc -E -P -v -dD &quot;${plugin_state_location}/specs.c&quot;'" command="sh" useDefault="true"/>
+					<parser enabled="true"/>
+				</scannerInfoProvider>
+			</profile>
+		</scannerConfigBuildInfo>
+		<scannerConfigBuildInfo instanceId="rtlabs.config.armeabi.lib.debug.2131034717;rtlabs.config.armeabi.lib.debug.2131034717.;rtlabs.tool.armeabi.c.compiler.lib.debug.938503971;rtlabs.tool.armeabi.c.compiler.input.1929320179">
+			<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId="com.rtlabs.workbench.armeabi.armeabiManagedMakePerProjectProfile"/>
+			<profile id="com.rtlabs.workbench.armeabi.armeabiManagedMakePerProjectProfile">
+				<buildOutputProvider>
+					<openAction enabled="true" filePath=""/>
+					<parser enabled="true"/>
+				</buildOutputProvider>
+				<scannerInfoProvider id="specsFile">
+					<runAction arguments="-E -P -v -dD ${plugin_state_location}/${specs_file}" command="${_COMPILERS}/arm-eabi/bin/arm-eabi-gcc" useDefault="true"/>
+					<parser enabled="true"/>
+				</scannerInfoProvider>
+			</profile>
+			<profile id="com.rtlabs.workbench.bfinelf.BfinElfManagedMakePerProjectProfile">
+				<buildOutputProvider>
+					<openAction enabled="true" filePath=""/>
+					<parser enabled="true"/>
+				</buildOutputProvider>
+				<scannerInfoProvider id="specsFile">
+					<runAction arguments="-E -P -v -dD ${plugin_state_location}/${specs_file}" command="${_COMPILERS}/bfin-elf/bin/bfin-elf-gcc" useDefault="true"/>
+					<parser enabled="true"/>
+				</scannerInfoProvider>
+			</profile>
+			<profile id="com.rtlabs.workbench.powerpceabi.PowerPCEABIManagedMakePerProjectProfile">
+				<buildOutputProvider>
+					<openAction enabled="true" filePath=""/>
+					<parser enabled="true"/>
+				</buildOutputProvider>
+				<scannerInfoProvider id="specsFile">
+					<runAction arguments="-E -P -v -dD ${plugin_state_location}/${specs_file}" command="${_COMPILERS}/powerpc-eabi/bin/powerpc-eabi-gcc" useDefault="true"/>
+					<parser enabled="true"/>
+				</scannerInfoProvider>
+			</profile>
+			<profile id="com.rtlabs.workbench.powerpceabispe.PowerPCEABISPEManagedMakePerProjectProfile">
+				<buildOutputProvider>
+					<openAction enabled="true" filePath=""/>
+					<parser enabled="true"/>
+				</buildOutputProvider>
+				<scannerInfoProvider id="specsFile">
+					<runAction arguments="-E -P -v -dD ${plugin_state_location}/${specs_file}" command="${_COMPILERS}/powerpc-eabispe/bin/powerpc-eabispe-gcc" useDefault="true"/>
+					<parser enabled="true"/>
+				</scannerInfoProvider>
+			</profile>
+			<profile id="org.eclipse.cdt.make.core.GCCStandardMakePerProjectProfile">
+				<buildOutputProvider>
+					<openAction enabled="true" filePath=""/>
+					<parser enabled="true"/>
+				</buildOutputProvider>
+				<scannerInfoProvider id="specsFile">
+					<runAction arguments="-E -P -v -dD ${plugin_state_location}/${specs_file}" command="gcc" useDefault="true"/>
+					<parser enabled="true"/>
+				</scannerInfoProvider>
+			</profile>
+			<profile id="org.eclipse.cdt.make.core.GCCStandardMakePerFileProfile">
+				<buildOutputProvider>
+					<openAction enabled="true" filePath=""/>
+					<parser enabled="true"/>
+				</buildOutputProvider>
+				<scannerInfoProvider id="makefileGenerator">
+					<runAction arguments="-E -P -v -dD" command="" useDefault="true"/>
+					<parser enabled="true"/>
+				</scannerInfoProvider>
+			</profile>
+			<profile id="org.eclipse.cdt.managedbuilder.core.GCCManagedMakePerProjectProfile">
+				<buildOutputProvider>
+					<openAction enabled="true" filePath=""/>
+					<parser enabled="true"/>
+				</buildOutputProvider>
+				<scannerInfoProvider id="specsFile">
+					<runAction arguments="-E -P -v -dD ${plugin_state_location}/${specs_file}" command="gcc" useDefault="true"/>
+					<parser enabled="true"/>
+				</scannerInfoProvider>
+			</profile>
+			<profile id="org.eclipse.cdt.managedbuilder.core.GCCManagedMakePerProjectProfileCPP">
+				<buildOutputProvider>
+					<openAction enabled="true" filePath=""/>
+					<parser enabled="true"/>
+				</buildOutputProvider>
+				<scannerInfoProvider id="specsFile">
+					<runAction arguments="-E -P -v -dD ${plugin_state_location}/specs.cpp" command="g++" useDefault="true"/>
+					<parser enabled="true"/>
+				</scannerInfoProvider>
+			</profile>
+			<profile id="org.eclipse.cdt.managedbuilder.core.GCCManagedMakePerProjectProfileC">
+				<buildOutputProvider>
+					<openAction enabled="true" filePath=""/>
+					<parser enabled="true"/>
+				</buildOutputProvider>
+				<scannerInfoProvider id="specsFile">
+					<runAction arguments="-E -P -v -dD ${plugin_state_location}/specs.c" command="gcc" useDefault="true"/>
+					<parser enabled="true"/>
+				</scannerInfoProvider>
+			</profile>
+			<profile id="org.eclipse.cdt.managedbuilder.core.GCCWinManagedMakePerProjectProfile">
+				<buildOutputProvider>
+					<openAction enabled="true" filePath=""/>
+					<parser enabled="true"/>
+				</buildOutputProvider>
+				<scannerInfoProvider id="specsFile">
+					<runAction arguments="-c 'gcc -E -P -v -dD &quot;${plugin_state_location}/${specs_file}&quot;'" command="sh" useDefault="true"/>
+					<parser enabled="true"/>
+				</scannerInfoProvider>
+			</profile>
+			<profile id="org.eclipse.cdt.managedbuilder.core.GCCWinManagedMakePerProjectProfileCPP">
+				<buildOutputProvider>
+					<openAction enabled="true" filePath=""/>
+					<parser enabled="true"/>
+				</buildOutputProvider>
+				<scannerInfoProvider id="specsFile">
+					<runAction arguments="-c 'g++ -E -P -v -dD &quot;${plugin_state_location}/specs.cpp&quot;'" command="sh" useDefault="true"/>
+					<parser enabled="true"/>
+				</scannerInfoProvider>
+			</profile>
+			<profile id="org.eclipse.cdt.managedbuilder.core.GCCWinManagedMakePerProjectProfileC">
+				<buildOutputProvider>
+					<openAction enabled="true" filePath=""/>
+					<parser enabled="true"/>
+				</buildOutputProvider>
+				<scannerInfoProvider id="specsFile">
+					<runAction arguments="-c 'gcc -E -P -v -dD &quot;${plugin_state_location}/specs.c&quot;'" command="sh" useDefault="true"/>
+					<parser enabled="true"/>
+				</scannerInfoProvider>
+			</profile>
+		</scannerConfigBuildInfo>
+	</storageModule>
+</cproject>
