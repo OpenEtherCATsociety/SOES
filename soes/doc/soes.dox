@@ -1,0 +1,50 @@
+/**
+ * \mainpage Simple Open EtherCAT Slave or SOES
+ *
+ * \section start Tutorial
+ * For a tutorial on SOES  See tutorial.txt
+ * 
+ * \section overview Overview
+ * SOES is an EtherCAT slave stack written in c. Its purpose is to learn and
+ * to use. All users are invited to study the source to get an understanding
+ * how an EtherCAT slave function
+ *
+ * Features as of 1.0.0 :
+ * - Address offset based HAL for easy ESC read/write access via any interface
+ * - Mailbox with data link layer
+ * - CoE
+ * - Object dictionary
+ * - SDO read and write for all sizes including segmented transfers
+ * - Easy portable C-code suited for embedded applications
+ * - Fixed PDO mapping
+ * - FoE with bootstrap template
+ * - Support for Little and Big endian targets.
+ * - Polling for interrupts
+ *
+ * \section legal Legal notice
+ * SOES Simple Open EtherCAT Slave \n
+ * Copyright (C) 2007-2013 Arthur Ketels \n
+ * Copyright (C) 2012-2013 rt-labs \n
+ *
+ * SOES is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU General Public License version 2 as published by the Free
+ * Software Foundation.
+ *
+ * SOES is distributed in the hope that it will be useful, but WITHOUT ANY
+ * WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+ * for more details.
+ *
+ * As a special exception, if other files instantiate templates or use macros
+ * or inline functions from this file, or you compile this file and link it
+ * with other works to produce a work based on this file, this file does not
+ * by itself cause the resulting work to be covered by the GNU General Public
+ * License. However the source code for this file must still be made available
+ * in accordance with section (3) of the GNU General Public License.
+ *
+ * This exception does not invalidate any other reasons why a work based on
+ * this file might be covered by the GNU General Public License.
+ *
+ * The EtherCAT Technology, the trade name and logo "EtherCAT" are the intellectual
+ * property of, and protected by Beckhoff Automation GmbH.
+ */

@@ -1,0 +1,26 @@
+#Thu May 03 13:45:19 CEST 2012
+eclipse.preferences.version=1
+environment/project/rtlabs.config.armeabi.exe.debug.395733966.824490108/COMPILERS/delimiter=\:
+environment/project/rtlabs.config.armeabi.exe.debug.395733966.824490108/COMPILERS/operation=append
+environment/project/rtlabs.config.armeabi.exe.debug.395733966.824490108/COMPILERS/value=${_COMPILERS}
+environment/project/rtlabs.config.armeabi.exe.debug.395733966.824490108/RT_TOOLS/delimiter=\:
+environment/project/rtlabs.config.armeabi.exe.debug.395733966.824490108/RT_TOOLS/operation=append
+environment/project/rtlabs.config.armeabi.exe.debug.395733966.824490108/RT_TOOLS/value=${_RT_TOOLS}
+environment/project/rtlabs.config.armeabi.exe.debug.395733966.824490108/append=true
+environment/project/rtlabs.config.armeabi.exe.debug.395733966.824490108/appendContributed=true
+environment/project/rtlabs.config.armeabi.exe.debug.395733966/COMPILERS/delimiter=\:
+environment/project/rtlabs.config.armeabi.exe.debug.395733966/COMPILERS/operation=append
+environment/project/rtlabs.config.armeabi.exe.debug.395733966/COMPILERS/value=${_COMPILERS}
+environment/project/rtlabs.config.armeabi.exe.debug.395733966/RT_TOOLS/delimiter=\:
+environment/project/rtlabs.config.armeabi.exe.debug.395733966/RT_TOOLS/operation=append
+environment/project/rtlabs.config.armeabi.exe.debug.395733966/RT_TOOLS/value=${_RT_TOOLS}
+environment/project/rtlabs.config.armeabi.exe.debug.395733966/append=true
+environment/project/rtlabs.config.armeabi.exe.debug.395733966/appendContributed=true
+environment/project/rtlabs.config.armeabi.exe.release.1352352209/COMPILERS/delimiter=\:
+environment/project/rtlabs.config.armeabi.exe.release.1352352209/COMPILERS/operation=append
+environment/project/rtlabs.config.armeabi.exe.release.1352352209/COMPILERS/value=${_COMPILERS}
+environment/project/rtlabs.config.armeabi.exe.release.1352352209/RT_TOOLS/delimiter=\:
+environment/project/rtlabs.config.armeabi.exe.release.1352352209/RT_TOOLS/operation=append
+environment/project/rtlabs.config.armeabi.exe.release.1352352209/RT_TOOLS/value=${_RT_TOOLS}
+environment/project/rtlabs.config.armeabi.exe.release.1352352209/append=true
+environment/project/rtlabs.config.armeabi.exe.release.1352352209/appendContributed=true
