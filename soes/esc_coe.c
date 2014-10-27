@@ -896,7 +896,7 @@ void ESC_coeprocess (void)
                         }
                         else
                         {
-                           SDO_abort (etohs (coesdo->index), coesdo->subindex, ABORT_UNKNOWN);
+                           SDO_abort (etohs (coesdo->index), coesdo->subindex, ABORT_UNSUPPORTED);
                         }
                         MBXcontrol[0].state = MBXstate_idle;
                         ESCvar.xoe = 0;
