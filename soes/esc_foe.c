@@ -493,6 +493,12 @@ void FOE_data ()
       DPRINT("FOE_data packet error,packet: %d foeheaader.packet: %d\n",packet,FOEvar.foepacket);
       FOE_abort (FOE_ERR_PACKETNO);
    }
+   else if (data_len == 0)
+   {
+      DPRINT("FOE_data completed\n");
+      res = FOE_send_ack ();
+      FOE_init ();
+   }
    else if (FOEvar.fposition + data_len > FOEvar.fend)
    {
       DPRINT("FOE_data disk full\n");
