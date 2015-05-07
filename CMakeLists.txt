@@ -1,0 +1,34 @@
+# CMakeLists files in this project can
+# refer to the root source directory of the project as ${SOES_SOURCE_DIR} and
+# to the root binary directory of the project as ${SOES_BINARY_DIR}.
+cmake_minimum_required (VERSION 2.8.4)
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake")
+project (SOES)
+
+set (SOES_VERSION_MAJOR 0)
+set (SOES_VERSION_MINOR 1)
+set (SOES_VERSION_PATCH 0)
+
+# Generate version numbers
+configure_file (
+  "${SOES_SOURCE_DIR}/version.h.in"
+  "${SOES_SOURCE_DIR}/soes/version.h"
+  )
+
+# Include paths
+include_directories("${SOES_SOURCE_DIR}/include")
+include_directories("${SOES_SOURCE_DIR}/soes")
+
+# Platform flags, OSAL sources
+include(${CMAKE_SYSTEM_NAME})
+
+# Source paths
+add_subdirectory (soes)
+
+include (InstallRequiredSystemLibraries)
+set (CPACK_RESOURCE_FILE_LICENSE "${SOES_SOURCE_DIR}/LICENSE")
+set (CPACK_PACKAGE_VERSION_MAJOR "${SOES_VERSION_MAJOR}")
+set (CPACK_PACKAGE_VERSION_MINOR "${SOES_VERSION_MINOR}")
+set (CPACK_PACKAGE_VERSION_PATCH "${SOES_VERSION_MINOR}")
+set (CPACK_PACKAGE_CONTACT info.ethercat@rt-labs.com)
+include (CPack)
