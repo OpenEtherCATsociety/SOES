@@ -29,18 +29,17 @@
  * property of, and protected by Beckhoff Automation GmbH.
  */
 
- /** \file 
+ /** \file
  * \brief
  * CAN over EtherCAT (CoE) module.
  *
  * SDO read / write and SDO service functions
  */
- 
+
 #include <string.h>
 #include <cc.h>
 #include "esc.h"
 #include "esc_coe.h"
-#include "objectlist.h"
 
 #define BITS2BYTES(b) ((b + 7) >> 3)
 

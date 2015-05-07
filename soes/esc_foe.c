@@ -31,28 +31,16 @@
  * property of, and protected by Beckhoff Automation GmbH.
  */
 
- /** \file 
+ /** \file
  * \brief
  * File over EtherCAT (FoE) module.
  */
 
 
-#include "osal.h"
 #include <cc.h>
 #include "esc.h"
 #include "esc_foe.h"
 #include <string.h>
-
-
-#undef ESC_DEBUG
-
-#ifdef ESC_DEBUG
-#define DPRINT(...) OSAL_PRINT ("esc_foe: "__VA_ARGS__)
-#define DEBUG_ASSERT(expression)    ASSERT(expression)
-#else
-#define DPRINT(...)
-#define DEBUG_ASSERT(expression)
-#endif  /* DEBUG */
 
  /** \file
  * \brief
@@ -369,7 +357,7 @@ void FOE_read ()
    {
       FOEvar.foepacket = 1;
       /*
-       * Attempt to send the packet 
+       * Attempt to send the packet
        */
       res = FOE_send_data_packet ();
       if (res <= (int)FOE_DATA_SIZE)

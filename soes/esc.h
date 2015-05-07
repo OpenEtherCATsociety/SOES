@@ -29,12 +29,12 @@
  * The EtherCAT Technology, the trade name and logo "EtherCAT" are the intellectual
  * property of, and protected by Beckhoff Automation GmbH.
  */
- 
-/** \file 
+
+/** \file
  * \brief
  * Headerfile for esc.h
  */
- 
+
 #ifndef __esc__
 #define __esc__
 
@@ -528,5 +528,16 @@ extern _MBX MBX[MBXBUFFERS];
 extern _MBXcontrol MBXcontrol[MBXBUFFERS];
 extern uint8 MBXrun;
 extern uint16 SM2_sml, SM3_sml;
+
+typedef struct
+{
+   uint8 state;
+} _App;
+
+#define APPSTATE_IDLE      0x00
+#define APPSTATE_INPUT     0x01
+#define APPSTATE_OUTPUT    0x02
+
+extern _App App;
 
 #endif

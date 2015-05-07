@@ -38,6 +38,12 @@ typedef int32_t  int32;
 #define etohl(x) (x)
 #endif
 
+#ifdef ESC_DEBUG
+#define DPRINT(...) rprintp ("esc_foe: "__VA_ARGS__) /* TODO */
+#else
+#define DPRINT(...)
+#endif  /* DEBUG */
+
 #ifdef __cplusplus
 }
 #endif
