@@ -30,7 +30,7 @@
  * property of, and protected by Beckhoff Automation GmbH.
  */
 #include <string.h>
-#include "utypes.h"
+#include <cc.h>
 #include "esc.h"
 #include "esc_coe.h"
 #include "esc_foe.h"

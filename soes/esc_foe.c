@@ -38,7 +38,7 @@
 
 
 #include "osal.h"
-#include "utypes.h"
+#include <cc.h>
 #include "esc.h"
 #include "esc_foe.h"
 #include <string.h>

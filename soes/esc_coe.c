@@ -37,7 +37,7 @@
  */
  
 #include <string.h>
-#include "utypes.h"
+#include <cc.h>
 #include "esc.h"
 #include "esc_coe.h"
 #include "objectlist.h"
