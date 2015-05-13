@@ -29,16 +29,16 @@
  * The EtherCAT Technology, the trade name and logo "EtherCAT" are the intellectual
  * property of, and protected by Beckhoff Automation GmbH.
  */
- 
+
  /** \file
  * \brief
  * ESC hardware layer functions.
  *
- * Function to read and write commands to the ESC. Used to read/write ESC 
- * registers and memory. 
+ * Function to read and write commands to the ESC. Used to read/write ESC
+ * registers and memory.
  */
- 
-#include <utypes.h>
+
+#include <cc.h>
 #include <spi/spi.h>
 #include <string.h>
 
@@ -50,14 +50,14 @@
 #define ESC_NEXT        0x00
 
 static int et1100 = -1;
-static uint8_t read_termination[128] = { 0 };
+static uint8 read_termination[128] = { 0 };
 
-void esc_address (uint16_t address, uint8_t command, uint16_t * al_event)
+static void esc_address (uint16 address, uint8 command, uint16 * al_event)
 {
    /* Device is selected already.
     * We use 2 bytes addressing.
     */
-   uint8_t data[2];
+   uint8 data[2];
 
    /* address 12:5 */
    data[0] = (address >> 5);
@@ -65,11 +65,10 @@ void esc_address (uint16_t address, uint8_t command, uint16_t * al_event)
    data[1] = ((address & 0x1F) << 3) | command;
 
    /* Write (and read AL interrupt register) */
-   spi_bidirectionally_transfer (et1100, (uint8_t *) al_event, data,
+   spi_bidirectionally_transfer (et1100, (uint8 *) al_event, data,
                                  sizeof (data));
 }
 
-#ifndef WSREAD
 /** ESC read function used by the Slave stack.
  *
  * @param[in]   address     = address of ESC register to read
@@ -98,11 +97,6 @@ uint8 ESC_read (uint16 address, void *buf, uint16 len, void *tALevent)
    /* result is never used */
    return 0;
 }
-#endif
-
-#ifdef WSREAD
-#error NOT SUPPORTED!
-#endif
 
 /** ESC write function used by the Slave stack.
  *
