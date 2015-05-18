@@ -38,6 +38,12 @@ typedef int32_t  int32;
 #define etohl(x) (x)
 #endif
 
+#if BYTE_ORDER == LITTLE_ENDIAN
+#define EC_LITTLE_ENDIAN
+#else
+#define EC_BIG_ENDIAN
+#endif
+
 #ifdef ESC_DEBUG
 #define DPRINT(...) rprintp ("esc_foe: "__VA_ARGS__) /* TODO */
 #else

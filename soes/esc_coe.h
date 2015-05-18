@@ -37,7 +37,7 @@
 #ifndef __esc_coe__
 #define __esc_coe__
 
-typedef struct PACKED
+typedef struct CC_PACKED
 {
    uint16 subindex;
    uint16 datatype;
@@ -48,7 +48,7 @@ typedef struct PACKED
    void *data;
 } _objd;
 
-typedef struct PACKED
+typedef struct CC_PACKED
 {
    uint16 index;
    uint16 objtype;

@@ -38,9 +38,10 @@
 #ifndef __esc__
 #define __esc__
 
+#include <cc.h>
+
 /* storage modifier for data stored in flashmemory */
 #define FLASHSTORE               const
-#define PACKED                   __attribute__((__packed__))
 
 #define ESCREG_ADDRESS           0x0010
 #define ESCREG_DLSTATUS          0x0110
@@ -239,10 +240,8 @@
 #define FOE_WAIT_FOR_FINAL_ACK         2
 #define FOE_WAIT_FOR_DATA              3
 
-#define EC_LITTLE_ENDIAN
-
 // Attention! this struct is always little-endian
-typedef struct PACKED
+typedef struct CC_PACKED
 {
    uint16 PSA;
    uint16 Length;
@@ -301,7 +300,7 @@ typedef struct PACKED
 } _ESCsm;
 
 /* Attention! this struct is always little-endian */
-typedef struct PACKED
+typedef struct CC_PACKED
 {
    uint16 PSA;
    uint16 Length;
@@ -311,14 +310,14 @@ typedef struct PACKED
    uint8 ActPDI;
 } _ESCsm2;
 
-typedef FLASHSTORE struct PACKED
+typedef struct CC_PACKED
 {
    uint16 PSA;
    uint16 Length;
    uint8 Command;
 } _ESCsmCompact;
 
-typedef struct PACKED
+typedef struct CC_PACKED
 {
    uint16 ALevent;
    uint16 ALstatus;
@@ -359,7 +358,7 @@ typedef struct PACKED
    _ESCsm SM[4];
 } _ESCvar;
 
-typedef struct PACKED
+typedef struct CC_PACKED
 {
    uint16 length;
    uint16 address;
@@ -381,18 +380,18 @@ typedef struct PACKED
 #endif
 } _MBXh;
 
-typedef struct PACKED
+typedef struct CC_PACKED
 {
    _MBXh header;
    uint8 b[MBXDSIZE];
 } _MBX;
 
-typedef struct PACKED
+typedef struct CC_PACKED
 {
    uint16 numberservice;
 } _COEh;
 
-typedef struct PACKED
+typedef struct CC_PACKED
 {
 #if defined(EC_LITTLE_ENDIAN)
    uint8 opcode:7;
@@ -408,14 +407,14 @@ typedef struct PACKED
    uint16 fragmentsleft;
 } _INFOh;
 
-typedef struct PACKED
+typedef struct CC_PACKED
 {
    _MBXh mbxheader;
    uint16 type;
    uint16 detail;
 } _MBXerr;
 
-typedef struct PACKED
+typedef struct CC_PACKED
 {
    _MBXh mbxheader;
    _COEh coeheader;
@@ -425,7 +424,7 @@ typedef struct PACKED
    uint32 size;
 } _COEsdo;
 
-typedef struct PACKED
+typedef struct CC_PACKED
 {
    _MBXh mbxheader;
    _COEh coeheader;
@@ -437,7 +436,7 @@ typedef struct PACKED
    char name;
 } _COEobjdesc;
 
-typedef struct PACKED
+typedef struct CC_PACKED
 {
    _MBXh mbxheader;
    _COEh coeheader;
@@ -451,7 +450,7 @@ typedef struct PACKED
    char name;
 } _COEentdesc;
 
-typedef struct PACKED
+typedef struct CC_PACKED
 {
    uint8 opcode;
    uint8 reserved;
@@ -466,7 +465,7 @@ typedef struct PACKED
 #define FOEHSIZE        (sizeof(_FOEh))
 #define FOE_DATA_SIZE   (MBXSIZEBOOT - (MBXHSIZE+FOEHSIZE))
 
-typedef struct PACKED
+typedef struct CC_PACKED
 {
    _MBXh mbxheader;
    _FOEh foeheader;

@@ -31,9 +31,9 @@
  * property of, and protected by Beckhoff Automation GmbH.
  */
 
-/** \file 
+/** \file
  * \brief
- * Headerfile for esc_foe.c 
+ * Headerfile for esc_foe.c
  */
 
 #ifndef __esc_foe__
@@ -73,7 +73,7 @@ typedef struct foe_cfg
    foe_writefile_cfg_t * files;
 } foe_cfg_t;
 
-typedef struct PACKED
+typedef struct CC_PACKED
 {
    /** Current FoE state, ex. Waiting for ACK, Waiting for DATA */
    uint8  foestate;
