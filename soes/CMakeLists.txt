@@ -1,6 +1,4 @@
 
-message (STATUS "Building for ${CMAKE_SYSTEM_NAME}")
-
 # NOTE: add headers to make them show up in an IDE
 add_library (soes
   esc.c

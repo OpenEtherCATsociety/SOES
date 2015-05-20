@@ -36,7 +36,7 @@
 #define __esc__
 
 #include <cc.h>
-#include <config.h>
+#include "config.h"
 
 /* storage modifier for data stored in flashmemory */
 #define FLASHSTORE               const
@@ -487,7 +487,9 @@ void ESC_state (void);
 /* From hardware file */
 uint8 ESC_read (uint16 address, void *buf, uint16 len, void *tALevent);
 uint8 ESC_write (uint16 address, void *buf, uint16 len, void *tALevent);
-void ESC_init (void * arg);
+void ESC_init (const void * arg);
+void ESC_reset (void);
+
 /* From application */
 extern void APP_safeoutput ();
 

@@ -38,9 +38,10 @@
  * registers and memory.
  */
 
-#include <cc.h>
+#include <esc.h>
 #include <spi/spi.h>
 #include <string.h>
+#include <gpio.h>
 
 #define ESC_CMD_READ    0x02
 #define ESC_CMD_READWS  0x03
@@ -51,6 +52,10 @@
 
 static int et1100 = -1;
 static uint8 read_termination[128] = { 0 };
+
+#define GPIO_ECAT_RESET    1 /* specific function to hold ESC reset on startup
+                              * when emulating EEPROM
+                              */
 
 static void esc_address (uint16 address, uint8 command, uint16 * al_event)
 {
@@ -120,9 +125,34 @@ uint8 ESC_write (uint16 address, void *buf, uint16 len, void *tALevent)
    return 0;
 }
 
-void ESC_init (void * arg)
+void ESC_reset (void)
 {
-   char * spi_name = (char *)arg;
+   volatile int timeout;
+
+   DPRINT("esc_reset_started\n");
+
+   gpio_set (GPIO_ECAT_RESET,0); /* pin =0 */
+   gpio_configure_pin (GPIO_ECAT_RESET,MUX_GPIO,IRQC_DISABLED,MODE_OUTPUT);
+
+   task_delay (1000);
+
+   gpio_configure_pin (GPIO_ECAT_RESET,MUX_GPIO,IRQC_DISABLED,MODE_INPUT);
+   while(timeout<10000000)
+   {
+      /* ECAT releases resetpin */
+      if(gpio_get (GPIO_ECAT_RESET)!=0)
+      {
+         break; // OK
+      }
+      timeout++;
+      task_delay (30);
+   }
+   DPRINT("esc_reset_ended\n");
+}
+
+void ESC_init (const void * arg)
+{
+   const char * spi_name = (char *)arg;
    et1100 = open (spi_name, O_RDWR, 0);
    read_termination[127] = 0xFF;
 }

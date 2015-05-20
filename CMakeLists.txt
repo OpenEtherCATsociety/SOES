@@ -24,6 +24,9 @@ include(${CMAKE_SYSTEM_NAME})
 
 # Source paths
 add_subdirectory (soes)
+add_subdirectory (applications/rtl_slavedemo)
+
+message (STATUS "Building for ${CMAKE_SYSTEM_NAME}")
 
 include (InstallRequiredSystemLibraries)
 set (CPACK_RESOURCE_FILE_LICENSE "${SOES_SOURCE_DIR}/LICENSE")

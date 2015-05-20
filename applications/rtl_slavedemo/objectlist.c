@@ -25,192 +25,133 @@
  * The EtherCAT Technology, the trade name and logo "EtherCAT" are the intellectual
  * property of, and protected by Beckhoff Automation GmbH.
  */
- 
+
  /** \file
  * \brief
- * CoE Object Dictionary. 
+ * CoE Object Dictionary.
  *
  * Part of application, describe the slave and its process data.
  */
- 
+
 #ifndef __objectlist__
 #define __objectlist__
 
-typedef FLASHSTORE struct PACKED
-{
-   uint16 subindex;
-   uint16 datatype;
-   uint16 bitlength;
-   uint16 access;
-   char FLASHSTORE *name;
-   uint32 value;
-   void *data;
-} _objd;
+#include "esc_coe.h"
+#include "utypes.h"
 
-typedef FLASHSTORE struct PACKED
-{
-   uint16 index;
-   uint16 objtype;
-   uint8 maxsub;
-   uint8 pad1;
-   char FLASHSTORE *name;
-   _objd FLASHSTORE *objdesc;
-} _objectlist;
+extern _Rbuffer Rb;
+extern _Wbuffer Wb;
+extern _Cbuffer Cb;
+extern uint32 encoder_scale;
+extern uint32 encoder_scale_mirror;
 
-#define OBJH_READ               0
-#define OBJH_WRITE              1
+static const char acName1000[] = "Device Type";
+static const char acName1008[] = "Manufacturer Device Name";
+static const char acName1009[] = "Manufacturer Hardware Version";
+static const char acName100A[] = "Manufacturer Software Version";
+static const char acName1018[] = "Identity Object";
+static const char acName1018_01[] = "Vendor ID";
+static const char acName1018_02[] = "Product Code";
+static const char acName1018_03[] = "Revision Number";
+static const char acName1018_04[] = "Serial Number";
+static const char acNameMO[] = "Mapped object";
+static const char acName1600[] = "Receive PDO mapping";
+static const char acName1A00[] = "Transmit PDO mapping";
+static const char acName1C00[] = "Sync Manager Communication type";
+static const char acName1C00_01[] = "Communications type SM0";
+static const char acName1C00_02[] = "Communications type SM1";
+static const char acName1C00_03[] = "Communications type SM2";
+static const char acName1C00_04[] = "Communications type SM3";
+static const char acName1C10[] = "Sync Manager 0 PDO Assignment";
+static const char acName1C11[] = "Sync Manager 1 PDO Assignment";
+static const char acName1C12[] = "Sync Manager 2 PDO Assignment";
+static const char acName1C13[] = "Sync Manager 3 PDO Assignment";
+static const char acNameNOE[] = "Number of entries";
+static const char acName6000[] = "Digital Inputs";
+static const char acName6000_01[] = "Button";
+static const char acName6000_02[] = "Encoder";
+static const char acName7000[] = "Digital outputs";
+static const char acName7000_01[] = "LED";
+static const char acName7100[] = "Parameters";
+static const char acName7100_01[] = "Encoder scale";
+static const char acName7100_02[] = "Encoder scale mirror";
+static const char acName8001[] = "Slave commands";
+static const char acName8001_01[] = "Reset counter";
 
-#define _ac FLASHSTORE char
-#define nil 0
+static char ac1008_00[] = "SOES test application";
+static char ac1009_00[] = "0.0.2";
+static char ac100A_00[] = "0.9.3";
 
-#define OTYPE_DOMAIN            0x0002
-#define OTYPE_DEFTYPE           0x0005
-#define OTYPE_DEFSTRUCT         0x0006
-#define OTYPE_VAR               0x0007
-#define OTYPE_ARRAY             0x0008
-#define OTYPE_RECORD            0x0009
-
-#define DTYPE_BOOLEAN           0x0001
-#define DTYPE_INTEGER8          0x0002
-#define DTYPE_INTEGER16         0x0003
-#define DTYPE_INTEGER32         0x0004
-#define DTYPE_UNSIGNED8         0x0005
-#define DTYPE_UNSIGNED16        0x0006
-#define DTYPE_UNSIGNED32        0x0007
-#define DTYPE_REAL32            0x0008
-#define DTYPE_VISIBLE_STRING    0x0009
-#define DTYPE_OCTET_STRING      0x000A
-#define DTYPE_UNICODE_STRING    0x000B
-#define DTYPE_INTEGER24         0x0010
-#define DTYPE_UNSIGNED24        0x0016
-#define DTYPE_INTEGER64         0x0015
-#define DTYPE_UNSIGNED64        0x001B
-#define DTYPE_REAL64            0x0011
-#define DTYPE_PDO_MAPPING       0x0021
-#define DTYPE_IDENTITY          0x0023
-#define DTYPE_BIT1              0x0030
-#define DTYPE_BIT2              0x0031
-#define DTYPE_BIT3              0x0032
-#define DTYPE_BIT4              0x0033
-#define DTYPE_BIT5              0x0034
-#define DTYPE_BIT6              0x0035
-#define DTYPE_BIT7              0x0036
-#define DTYPE_BIT8              0x0037
-
-#define ATYPE_R                 0x07
-#define ATYPE_RW                0x3F
-#define ATYPE_RWpre             0x0F
-#define ATYPE_RXPDO             0x40
-#define ATYPE_TXPDO             0x80
-
-_ac acName1000[] = "Device Type";
-_ac acName1008[] = "Manufacturer Device Name";
-_ac acName1009[] = "Manufacturer Hardware Version";
-_ac acName100A[] = "Manufacturer Software Version";
-_ac acName1018[] = "Identity Object";
-_ac acName1018_01[] = "Vendor ID";
-_ac acName1018_02[] = "Product Code";
-_ac acName1018_03[] = "Revision Number";
-_ac acName1018_04[] = "Serial Number";
-_ac acNameMO[] = "Mapped object";
-_ac acName1600[] = "Receive PDO mapping";
-_ac acName1A00[] = "Transmit PDO mapping";
-_ac acName1C00[] = "Sync Manager Communication type";
-_ac acName1C00_01[] = "Communications type SM0";
-_ac acName1C00_02[] = "Communications type SM1";
-_ac acName1C00_03[] = "Communications type SM2";
-_ac acName1C00_04[] = "Communications type SM3";
-_ac acName1C10[] = "Sync Manager 0 PDO Assignment";
-_ac acName1C11[] = "Sync Manager 1 PDO Assignment";
-_ac acName1C12[] = "Sync Manager 2 PDO Assignment";
-_ac acName1C13[] = "Sync Manager 3 PDO Assignment";
-_ac acNameNOE[] = "Number of entries";
-_ac acName6000[] = "Digital Inputs";
-_ac acName6000_01[] = "Button";
-_ac acName6000_02[] = "Encoder";
-_ac acName7000[] = "Digital outputs";
-_ac acName7000_01[] = "LED";
-_ac acName7100[] = "Parameters";
-_ac acName7100_01[] = "Encoder scale";
-_ac acName7100_02[] = "Encoder scale mirror";
-_ac acName8001[] = "Slave commands";
-_ac acName8001_01[] = "Reset counter";
-//_ac acName[]="";
-
-char ac1008_00[] = "SOES test application";
-char ac1009_00[] = "0.0.2";
-char ac100A_00[] = "0.9.3";
-
-FLASHSTORE _objd SDO1000[] =
+const _objd SDO1000[] =
 { {0x00, DTYPE_UNSIGNED32, 32, ATYPE_R, &acName1000[0], 0x00000000, nil} };
-FLASHSTORE _objd SDO1008[] =
+const _objd SDO1008[] =
 { {0x00, DTYPE_VISIBLE_STRING, sizeof (ac1008_00) << 3, ATYPE_R, &acName1008[0], 0, &ac1008_00[0]}
 };
-FLASHSTORE _objd SDO1009[] =
+const _objd SDO1009[] =
 { {0x00, DTYPE_VISIBLE_STRING, sizeof (ac1009_00) << 3, ATYPE_R, &acName1009[0], 0, &ac1009_00[0]}
 };
-FLASHSTORE _objd SDO100A[] =
+const _objd SDO100A[] =
 { {0x00, DTYPE_VISIBLE_STRING, sizeof (ac100A_00) << 3, ATYPE_R, &acName100A[0], 0, &ac100A_00[0]}
 };
-FLASHSTORE _objd SDO1018[] =
+const _objd SDO1018[] =
 { {0x00, DTYPE_UNSIGNED8, 8, ATYPE_R, &acNameNOE[0], 0x04, nil},
   {0x01, DTYPE_UNSIGNED32, 32, ATYPE_R, &acName1018_01[0], 0x00001337, nil},
   {0x02, DTYPE_UNSIGNED32, 32, ATYPE_R, &acName1018_02[0], 0x12783456, nil},
   {0x03, DTYPE_UNSIGNED32, 32, ATYPE_R, &acName1018_03[0], 0x00000001, nil},
   {0x04, DTYPE_UNSIGNED32, 32, ATYPE_R, &acName1018_04[0], 0x00000000, nil}
 };
-FLASHSTORE _objd SDO1600[] =
+const _objd SDO1600[] =
 { {0x00, DTYPE_UNSIGNED8, 8, ATYPE_R, &acNameNOE[0], 0x01, nil},
   {0x01, DTYPE_UNSIGNED32, 32, ATYPE_R, &acNameMO[0], 0x70000108, nil}
 };
-FLASHSTORE _objd SDO1A00[] =
+const _objd SDO1A00[] =
 { {0x00, DTYPE_UNSIGNED8, 8, ATYPE_R, &acNameNOE[0], 0x02, nil},
   {0x01, DTYPE_UNSIGNED32, 32, ATYPE_R, &acNameMO[0], 0x60000108, nil},
   {0x02, DTYPE_UNSIGNED32, 32, ATYPE_R, &acNameMO[0], 0x60000220, nil}
 
 };
-FLASHSTORE _objd SDO1C00[] =
+const _objd SDO1C00[] =
 { {0x00, DTYPE_UNSIGNED8, 8, ATYPE_R, &acNameNOE[0], 0x04, nil},
   {0x01, DTYPE_UNSIGNED8, 8, ATYPE_R, &acName1C00_01[0], 0x01, nil},
   {0x02, DTYPE_UNSIGNED8, 8, ATYPE_R, &acName1C00_02[0], 0x02, nil},
   {0x03, DTYPE_UNSIGNED8, 8, ATYPE_R, &acName1C00_03[0], 0x03, nil},
   {0x04, DTYPE_UNSIGNED8, 8, ATYPE_R, &acName1C00_04[0], 0x04, nil}
 };
-FLASHSTORE _objd SDO1C10[] =
+const _objd SDO1C10[] =
 { {0x00, DTYPE_UNSIGNED8, 8, ATYPE_R, &acName1C10[0], 0x00, nil}
 };
-FLASHSTORE _objd SDO1C11[] =
+const _objd SDO1C11[] =
 { {0x00, DTYPE_UNSIGNED8, 8, ATYPE_R, &acName1C11[0], 0x00, nil}
 };
-FLASHSTORE _objd SDO1C12[] =
+const _objd SDO1C12[] =
 { {0x00, DTYPE_UNSIGNED8, 8, ATYPE_R, &acNameNOE[0], 0x01, nil},
   {0x01, DTYPE_UNSIGNED16, 16, ATYPE_R, &acNameMO[0], 0x1600, nil}
 };
-FLASHSTORE _objd SDO1C13[] =
+const _objd SDO1C13[] =
 { {0x00, DTYPE_UNSIGNED8, 8, ATYPE_R, &acNameNOE[0], 0x01, nil},
   {0x01, DTYPE_UNSIGNED16, 16, ATYPE_R, &acNameMO[0], 0x1A00, nil}
 };
-FLASHSTORE _objd SDO6000[] =
+const _objd SDO6000[] =
 { {0x00, DTYPE_UNSIGNED8, 8, ATYPE_R, &acNameNOE[0], 0x02, nil},
   {0x01, DTYPE_UNSIGNED8, 8, ATYPE_R, &acName6000_01[0], 0, &(Rb.button)},
   {0x02, DTYPE_UNSIGNED32, 32, ATYPE_R, &acName6000_02[0], 0, &(Rb.encoder)}
 };
-FLASHSTORE _objd SDO7000[] =
+const _objd SDO7000[] =
 { {0x00, DTYPE_UNSIGNED8, 8, ATYPE_R, &acNameNOE[0], 0x01, nil},
   {0x01, DTYPE_UNSIGNED8, 8, ATYPE_RW, &acName7000_01[0], 0, &(Wb.LED)}
 };
-FLASHSTORE _objd SDO7100[] =
+const _objd SDO7100[] =
 { {0x00, DTYPE_UNSIGNED8, 8, ATYPE_R, &acNameNOE[0], 0x02, nil},
   {0x01, DTYPE_UNSIGNED32, 32, ATYPE_RW, &acName7100_01[0], 0, &(encoder_scale)},
   {0x02, DTYPE_UNSIGNED32, 32, ATYPE_R, &acName7100_02[0], 0, &(encoder_scale_mirror)}
 };
 
-FLASHSTORE _objd SDO8001[] =
+const _objd SDO8001[] =
 { {0x00, DTYPE_UNSIGNED8, 8, ATYPE_R, &acNameNOE[0], 0x01, nil},
   {0x01, DTYPE_UNSIGNED32, 32, ATYPE_RW, &acName8001_01[0], 0, &(Cb.reset_counter)},
 };
 
-FLASHSTORE _objectlist SDOobjects[] =
+const _objectlist SDOobjects[] =
 { {0x1000, OTYPE_VAR, 0, 0, &acName1000[0], &SDO1000[0]},
   {0x1008, OTYPE_VAR, 0, 0, &acName1008[0], &SDO1008[0]},
   {0x1009, OTYPE_VAR, 0, 0, &acName1009[0], &SDO1009[0]},

@@ -16,8 +16,11 @@ set(BSP $ENV{BSP} CACHE STRING
 set(DUMMY ${CMAKE_TOOLCHAIN_FILE})
 
 include_directories(
+  ${RTK}/include/
+  ${RTK}/include/arch/${ARCH}
   ${RTK}/include/kern
   ${RTK}/include/drivers
+  ${RTK}/bsp/${BSP}/include
   ${SOES_SOURCE_DIR}/include/sys/gcc
   )
 link_directories(

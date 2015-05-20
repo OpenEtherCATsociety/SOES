@@ -28,43 +28,27 @@
 
  /** \file
  * \brief
- * The application. 
+ * The application.
  *
  * The application, the main loop that service EtherCAT.
  */
- 
-#include <kern.h>
-#include <bsp.h>
 
+#include <kern.h>
 #include <flash_drv.h>
 
-#include <stdio.h>
+#include <esc.h>
+#include <esc_coe.h>
+#include <esc_foe.h>
 #include "utypes.h"
-#include "esc.h"
-#include "esc_coe.h"
-#include "esc_foe.h"
-#include "osal.h"
 #include "bootstrap.h"
 
 #define ESC_DEBUG
-
-#ifdef ESC_DEBUG
-#define DPRINT(...) OSAL_PRINT ("soes: "__VA_ARGS__)
-#define DEBUG_ASSERT(expression)    ASSERT(expression)
-#else
-#define DPRINT(...)
-#define DEBUG_ASSERT(expression)
-#endif  /* DEBUG */
 
 #define WD_RESET           1000
 #define DEFAULTTXPDOMAP    0x1a00
 #define DEFAULTRXPDOMAP    0x1600
 #define DEFAULTTXPDOITEMS  1
 #define DEFAULTRXPDOITEMS  1
-
-#define GPIO_ECAT_RESET    1 /* specific function to hold ESC reset on startup
-                              * when emulating EEPROM
-                              */
 
 uint32            encoder_scale;
 uint32            encoder_scale_mirror;
@@ -224,31 +208,6 @@ void DIG_process (void)
    }
 }
 
-void esc_reset (void)
-{
-   volatile int timeout;
-
-   DPRINT("esc_reset_started\n");
-
-   gpio_set (GPIO_ECAT_RESET,0); /* pin =0 */
-   gpio_configure_pin (GPIO_ECAT_RESET,MUX_GPIO,IRQC_DISABLED,MODE_OUTPUT);
-
-   task_delay (1000);
-
-   gpio_configure_pin (GPIO_ECAT_RESET,MUX_GPIO,IRQC_DISABLED,MODE_INPUT);
-   while(timeout<10000000)
-   {
-      /* ECAT releases resetpin */
-      if(gpio_get (GPIO_ECAT_RESET)!=0)
-      {
-         break; // OK
-      }
-      timeout++;
-      task_delay (30);
-   }
-   DPRINT("esc_reset_ended\n");
-}
-
 /** Optional: Hook called after state change for application specific
  * actions for specific state changes.
  */
@@ -286,8 +245,8 @@ void soes (void *arg)
    };
    ESC_config ((esc_cfg_t *)&config);
 
-   esc_reset ();
-   ESC_init ((void *)spi_name);
+   ESC_reset();
+   ESC_init (spi_name);
 
    task_delay (tick_from_ms (200));
 
@@ -374,4 +333,3 @@ void my_cyclic_callback (void * arg)
 
    }
 }
-

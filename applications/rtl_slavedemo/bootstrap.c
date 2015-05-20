@@ -20,24 +20,15 @@
 
 #include <kern.h>
 #include <bsp.h>
-//#include <twrk60.h>
 #include <flash_drv.h>
 
-#include "utypes.h"
-#include "esc.h"
-#include "esc_foe.h"
-#include "osal.h"
+/* #include "utypes.h" */
+/* #include "esc.h" */
+#include <esc_foe.h>
+/* #include "osal.h" */
 #include "bootstrap.h"
 
 #define ESC_DEBUG
-
-#ifdef ESC_DEBUG
-#define DPRINT(...) OSAL_PRINT ("bootstrap: "__VA_ARGS__)
-#define DEBUG_ASSERT(expression)    ASSERT(expression)
-#else
-#define DPRINT(...)
-#define DEBUG_ASSERT(expression)
-#endif  /* DEBUG */
 
 uint32_t local_boot_state        = BOOT_IDLE;
 static uint32_t boot_started     = 0;
@@ -206,5 +197,3 @@ void bootstrap_state (void)
          break;
    }
 }
-
-
