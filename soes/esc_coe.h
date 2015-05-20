@@ -1,9 +1,6 @@
 /*
  * SOES Simple Open EtherCAT Slave
  *
- * File    : esc_coe.h
- * Version : 0.9.2
- * Date    : 22-02-2010
  * Copyright (C) 2007-2013 Arthur Ketels
  *
  * SOES is free software; you can redistribute it and/or modify it under

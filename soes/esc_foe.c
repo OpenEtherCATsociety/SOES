@@ -1,9 +1,6 @@
 /*
  * SOES Simple Open EtherCAT Slave
  *
- * File    : foe.c
- * Version : 0.1
- * Date    : 11-30-2010
  * Copyright (C) 2010 ZBE Inc.
  * Copyright (C) 2011-2013 Arthur Ketels.
  * Copyright (C) 2012-2013 rt-labs.

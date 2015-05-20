@@ -1,9 +1,6 @@
 /*
  * SOES Simple Open EtherCAT Slave
  *
- * File    : esc.c
- * Version : 0.9.2
- * Date    : 22-02-2010
  * Copyright (C) 2007-2013 Arthur Ketels
  * Copyright (C) 2012-2013 rt-labs.
  *
