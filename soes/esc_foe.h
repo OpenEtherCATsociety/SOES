@@ -36,6 +36,8 @@
 #ifndef __esc_foe__
 #define __esc_foe__
 
+#include <cc.h>
+
 /** Maximum number of characters allowed in a file name. */
 #define FOE_FN_MAX      15
 

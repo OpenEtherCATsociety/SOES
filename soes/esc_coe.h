@@ -34,6 +34,8 @@
 #ifndef __esc_coe__
 #define __esc_coe__
 
+#include <cc.h>
+
 typedef struct CC_PACKED
 {
    uint16 subindex;
