@@ -9,8 +9,6 @@ cmake_minimum_required (VERSION 3.1.2)
 # Get environment variables
 set(RTK $ENV{RTK} CACHE STRING
   "Location of rt-kernel tree")
-set(BSP $ENV{BSP} CACHE STRING
-  "The name of the BSP to build for")
 
 # Avoid warning when re-running cmake
 set(DUMMY ${CMAKE_TOOLCHAIN_FILE})
