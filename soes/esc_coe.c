@@ -73,7 +73,7 @@ uint16 sizeTXPDO (void)
    uint8 c, l, si, sic;
    uint16 size = 0, hobj;
    int16 nidx;
-   _objd FLASHSTORE *objd;
+   const _objd *objd;
 
    if (SDO1C13[0].data)
    {
@@ -120,7 +120,7 @@ uint16 sizeRXPDO (void)
    uint8 c, l, si, sic;
    uint16 size = 0, hobj;
    int16 nidx;
-   _objd FLASHSTORE *objd;
+   const _objd *objd;
 
    if (SDO1C12[0].data)
    {
@@ -164,7 +164,7 @@ uint16 sizeRXPDO (void)
  */
 int16 SDO_findsubindex (int16 nidx, uint8 subindex)
 {
-   _objd FLASHSTORE *objd;
+   const _objd *objd;
    int16 n = 0;
    uint8 maxsub;
    objd = SDOobjects[nidx].objdesc;
@@ -230,7 +230,7 @@ void SDO_upload (void)
    uint8 MBXout;
    uint32 size;
    uint8 dss;
-   _objd FLASHSTORE *objd;
+   const _objd *objd;
    coesdo = (_COEsdo *) &MBX[0];
    index = etohs (coesdo->index);
    subindex = coesdo->subindex;
@@ -415,7 +415,7 @@ void SDO_download (void)
    int16 nidx, nsub;
    uint8 MBXout;
    uint16 size, actsize;
-   _objd FLASHSTORE *objd;
+   const _objd *objd;
    uint32 *mbxdata;
    coesdo = (_COEsdo *) &MBX[0];
    index = etohs (coesdo->index);
@@ -675,7 +675,7 @@ void SDO_getod (void)
    uint16 index;
    int32 nidx;
    uint8 *d;
-   uint8 FLASHSTORE *s;
+   const uint8 *s;
    uint8 n = 0;
    _COEobjdesc *coer, *coel;
    coer = (_COEobjdesc *) &MBX[0];
@@ -698,7 +698,7 @@ void SDO_getod (void)
          if (SDOobjects[nidx].objtype == OTYPE_VAR)
          {
             int32 nsub = SDO_findsubindex (nidx, 0);
-            _objd FLASHSTORE *objd = SDOobjects[nidx].objdesc;
+            const _objd *objd = SDOobjects[nidx].objdesc;
             coel->datatype = htoes ((objd + nsub)->datatype);
          }
          else
@@ -740,8 +740,8 @@ void SDO_geted (void)
    int32 nidx, nsub;
    uint8 subindex;
    uint8 *d;
-   uint8 FLASHSTORE *s;
-   _objd FLASHSTORE *objd;
+   const uint8 *s;
+   const _objd *objd;
    uint8 n = 0;
    _COEentdesc *coer, *coel;
    coer = (_COEentdesc *) &MBX[0];

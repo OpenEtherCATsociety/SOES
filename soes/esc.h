@@ -38,9 +38,6 @@
 #include <cc.h>
 #include "config.h"
 
-/* storage modifier for data stored in flashmemory */
-#define FLASHSTORE               const
-
 #define ESCREG_ADDRESS           0x0010
 #define ESCREG_DLSTATUS          0x0110
 #define ESCREG_ALCONTROL         0x0120
