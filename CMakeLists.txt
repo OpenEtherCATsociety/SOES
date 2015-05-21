@@ -19,7 +19,7 @@ configure_file (
 include_directories("${SOES_SOURCE_DIR}/include")
 include_directories("${SOES_SOURCE_DIR}/soes")
 
-# Platform flags, OSAL sources
+# Platform flags and sources
 include(${CMAKE_SYSTEM_NAME})
 
 # Source paths

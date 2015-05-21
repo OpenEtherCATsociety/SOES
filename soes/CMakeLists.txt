@@ -7,10 +7,10 @@ add_library (soes
   esc_coe.h
   esc_foe.c
   esc_foe.h
-  ${OSAL_SOURCES}
+  ${HAL_SOURCES}
   )
 
-include_directories(${OSAL_INCLUDES})
+include_directories(${HAL_INCLUDES})
 
 install (TARGETS soes DESTINATION bin)
 install (FILES
