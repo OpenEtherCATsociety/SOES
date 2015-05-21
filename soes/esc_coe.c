@@ -33,6 +33,7 @@
  * SDO read / write and SDO service functions
  */
 
+#include <stddef.h>
 #include <string.h>
 #include <cc.h>
 #include "esc.h"
@@ -270,7 +271,7 @@ void SDO_upload (void)
                /* expedited response i.e. length<=4 bytes */
                coeres->command = COE_COMMAND_UPLOADRESPONSE +
                   COE_SIZE_INDICATOR + COE_EXPEDITED_INDICATOR + dss;
-               if ((objd + nsub)->data == nil)
+               if ((objd + nsub)->data == NULL)
                {
                   /* use constant value */
                   coeres->size = htoel ((objd + nsub)->value);
