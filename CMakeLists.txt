@@ -16,11 +16,10 @@ configure_file (
   )
 
 # Include paths
-include_directories("${SOES_SOURCE_DIR}/include")
 include_directories("${SOES_SOURCE_DIR}/soes")
 
 # Platform flags and sources
-include(${CMAKE_SYSTEM_NAME})
+include(${CMAKE_SYSTEM_NAME} OPTIONAL)
 
 # Source paths
 add_subdirectory (soes)

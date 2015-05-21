@@ -19,7 +19,7 @@ include_directories(
   ${RTK}/include/kern
   ${RTK}/include/drivers
   ${RTK}/bsp/${BSP}/include
-  ${SOES_SOURCE_DIR}/include/sys/gcc
+  ${SOES_SOURCE_DIR}/soes/include/sys/gcc
   )
 link_directories(
   ${RTK}/lib/${ARCH}/${CPU}
