@@ -40,8 +40,8 @@
 extern _Rbuffer Rb;
 extern _Wbuffer Wb;
 extern _Cbuffer Cb;
-extern uint32 encoder_scale;
-extern uint32 encoder_scale_mirror;
+extern uint32_t encoder_scale;
+extern uint32_t encoder_scale_mirror;
 
 static const char acName1000[] = "Device Type";
 static const char acName1008[] = "Manufacturer Device Name";

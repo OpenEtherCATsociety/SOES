@@ -41,17 +41,17 @@
 
 #define BITS2BYTES(b) ((b + 7) >> 3)
 
-extern uint8 txpdoitems;
-extern uint8 rxpdoitems;
+extern uint8_t txpdoitems;
+extern uint8_t rxpdoitems;
 
 /** Search for an object index matching the wanted value in the Object List.
  *
  * @param[in] index   = value on index of object we want to locate
  * @return local array index if we succeed, -1 if we didn't find the index.
  */
-int32 SDO_findobject (uint16 index)
+int32_t SDO_findobject (uint16_t index)
 {
-   int32 n = 0;
+   int32_t n = 0;
    while (SDOobjects[n].index < index)
    {
       n++;
@@ -68,20 +68,20 @@ int32 SDO_findobject (uint16 index)
  *
  * @return size of TxPDOs in Bytes.
  */
-uint16 sizeTXPDO (void)
+uint16_t sizeTXPDO (void)
 {
-   uint8 c, l, si, sic;
-   uint16 size = 0, hobj;
-   int16 nidx;
+   uint8_t c, l, si, sic;
+   uint16_t size = 0, hobj;
+   int16_t nidx;
    const _objd *objd;
 
    if (SDO1C13[0].data)
    {
-      si = *((uint8 *) SDO1C13[0].data);
+      si = *((uint8_t *) SDO1C13[0].data);
    }
    else
    {
-      si = (uint8) SDO1C13[0].value;
+      si = (uint8_t) SDO1C13[0].value;
    }
    if (si)
    {
@@ -89,17 +89,17 @@ uint16 sizeTXPDO (void)
       {
          if (SDO1C13[sic].data)
          {
-            hobj = *((uint16 *) SDO1C13[sic].data);
+            hobj = *((uint16_t *) SDO1C13[sic].data);
          }
          else
          {
-            hobj = (uint16) SDO1C13[sic].value;
+            hobj = (uint16_t) SDO1C13[sic].value;
          }
          nidx = SDO_findobject (hobj);
          if (nidx > 0)
          {
             objd = SDOobjects[nidx].objdesc;
-            l = (uint8) objd->value;
+            l = (uint8_t) objd->value;
             for (c = 1; c <= l; c++)
             {
                size += ((objd + c)->value & 0xff);
@@ -115,37 +115,37 @@ uint16 sizeTXPDO (void)
  *
  * @return size of RxPDOs in Bytes.
  */
-uint16 sizeRXPDO (void)
+uint16_t sizeRXPDO (void)
 {
-   uint8 c, l, si, sic;
-   uint16 size = 0, hobj;
-   int16 nidx;
+   uint8_t c, l, si, sic;
+   uint16_t size = 0, hobj;
+   int16_t nidx;
    const _objd *objd;
 
    if (SDO1C12[0].data)
    {
-      si = *((uint8 *) SDO1C12[0].data);
+      si = *((uint8_t *) SDO1C12[0].data);
    }
    else
    {
-      si = (uint8) SDO1C12[0].value;
+      si = (uint8_t) SDO1C12[0].value;
    }if (si)
    {
       for (sic = 1; sic <= si; sic++)
       {
          if (SDO1C12[sic].data)
          {
-            hobj = *((uint16 *) SDO1C12[sic].data);
+            hobj = *((uint16_t *) SDO1C12[sic].data);
          }
          else
          {
-            hobj = (uint16) SDO1C12[sic].value;
+            hobj = (uint16_t) SDO1C12[sic].value;
          }
          nidx = SDO_findobject (hobj);
          if (nidx > 0)
          {
             objd = SDOobjects[nidx].objdesc;
-            l = (uint8) objd->value;
+            l = (uint8_t) objd->value;
             for (c = 1; c <= l; c++)
             {
                size += ((objd + c)->value & 0xff);
@@ -162,11 +162,11 @@ uint16 sizeRXPDO (void)
  * @param[in] subindex   = value on sub-index of object we want to locate
  * @return local array index if we succeed, -1 if we didn't find the index.
  */
-int16 SDO_findsubindex (int16 nidx, uint8 subindex)
+int16_t SDO_findsubindex (int16_t nidx, uint8_t subindex)
 {
    const _objd *objd;
-   int16 n = 0;
-   uint8 maxsub;
+   int16_t n = 0;
+   uint8_t maxsub;
    objd = SDOobjects[nidx].objdesc;
    maxsub = SDOobjects[nidx].maxsub;
    while (((objd + n)->subindex < subindex) && (n < maxsub))
@@ -186,7 +186,7 @@ int16 SDO_findsubindex (int16 nidx, uint8 subindex)
  * @param[in] dest   = pointer to destination
  * @param[in] size   = Size to copy
  */
-void copy2mbx (void *source, void *dest, uint16 size)
+void copy2mbx (void *source, void *dest, uint16_t size)
 {
    memcpy (dest, source, size);
 }
@@ -197,9 +197,9 @@ void copy2mbx (void *source, void *dest, uint16 size)
  * @param[in] sub-index  = sub-index of object causing abort reply
  * @param[in] abortcode  = abort code to send in reply
  */
-void SDO_abort (uint16 index, uint8 subindex, uint32 abortcode)
+void SDO_abort (uint16_t index, uint8_t subindex, uint32_t abortcode)
 {
-   uint8 MBXout;
+   uint8_t MBXout;
    _COEsdo *coeres;
    MBXout = ESC_claimbuffer ();
    if (MBXout)
@@ -224,12 +224,12 @@ void SDO_abort (uint16 index, uint8 subindex, uint32 abortcode)
 void SDO_upload (void)
 {
    _COEsdo *coesdo, *coeres;
-   uint16 index;
-   uint8 subindex;
-   int16 nidx, nsub;
-   uint8 MBXout;
-   uint32 size;
-   uint8 dss;
+   uint16_t index;
+   uint8_t subindex;
+   int16_t nidx, nsub;
+   uint8_t MBXout;
+   uint32_t size;
+   uint8_t dss;
    const _objd *objd;
    coesdo = (_COEsdo *) &MBX[0];
    index = etohs (coesdo->index);
@@ -336,8 +336,8 @@ void SDO_upload (void)
 void SDO_uploadsegment (void)
 {
    _COEsdo *coesdo, *coeres;
-   uint8 MBXout;
-   uint32 size, offset;
+   uint8_t MBXout;
+   uint32_t size, offset;
    coesdo = (_COEsdo *) &MBX[0];
    MBXout = ESC_claimbuffer ();
    if (MBXout)
@@ -375,7 +375,7 @@ void SDO_uploadsegment (void)
             coeres->mbxheader.length = htoes (COE_DEFAULTLENGTH);
          }
       }
-      copy2mbx ((uint8 *) ESCvar.data + offset, (&(coeres->command)) + 1, size);        //copy to mailbox
+      copy2mbx ((uint8_t *) ESCvar.data + offset, (&(coeres->command)) + 1, size);        //copy to mailbox
 
       MBXcontrol[MBXout].state = MBXstate_outreq;
    }
@@ -389,7 +389,7 @@ void SDO_uploadsegment (void)
  * @param[in] sub-index  = sub-index of SDO download request to check
  * @return 1 if the SDO Download is correct. 0 If not correct.
  */
-int ESC_pre_objecthandler (uint16 index, uint8 subindex)
+int ESC_pre_objecthandler (uint16_t index, uint8_t subindex)
 {
    if ((index == 0x1c12) && (subindex > 0) && (rxpdoitems != 0))
    {
@@ -410,13 +410,13 @@ int ESC_pre_objecthandler (uint16 index, uint8 subindex)
 void SDO_download (void)
 {
    _COEsdo *coesdo, *coeres;
-   uint16 index;
-   uint8 subindex;
-   int16 nidx, nsub;
-   uint8 MBXout;
-   uint16 size, actsize;
+   uint16_t index;
+   uint8_t subindex;
+   int16_t nidx, nsub;
+   uint8_t MBXout;
+   uint16_t size, actsize;
    const _objd *objd;
-   uint32 *mbxdata;
+   uint32_t *mbxdata;
    coesdo = (_COEsdo *) &MBX[0];
    index = etohs (coesdo->index);
    subindex = coesdo->subindex;
@@ -501,15 +501,15 @@ void SDO_download (void)
  *
  * @param[in] abortcode  = = abort code to send in reply
  */
-void SDO_infoerror (uint32 abortcode)
+void SDO_infoerror (uint32_t abortcode)
 {
-   uint8 MBXout;
+   uint8_t MBXout;
    _COEobjdesc *coeres;
    MBXout = ESC_claimbuffer ();
    if (MBXout)
    {
       coeres = (_COEobjdesc *) &MBX[MBXout];
-      coeres->mbxheader.length = htoes ((uint16) 0x0a);
+      coeres->mbxheader.length = htoes ((uint16_t) 0x0a);
       coeres->mbxheader.mbxtype = MBXCOE;
       coeres->coeheader.numberservice =
          htoes ((0 & 0x01f) | (COE_SDOINFORMATION << 12));
@@ -530,11 +530,11 @@ void SDO_infoerror (uint32 abortcode)
  */
 void SDO_getodlist (void)
 {
-   uint16 frags;
-   uint8 MBXout = 0;
-   uint16 entries = 0;
-   uint16 i, n;
-   uint16 *p;
+   uint16_t frags;
+   uint8_t MBXout = 0;
+   uint16_t entries = 0;
+   uint16_t i, n;
+   uint16_t *p;
    _COEobjdesc *coel, *coer;
 
    while (SDOobjects[entries].index != 0xffff)
@@ -564,10 +564,10 @@ void SDO_getodlist (void)
       /* number of objects request */
       if (etohs (coer->index) == 0x00)
       {
-         coel->index = htoes ((uint16) 0x00);
+         coel->index = htoes ((uint16_t) 0x00);
          coel->infoheader.incomplete = 0;
          coel->infoheader.reserved = 0x00;
-         coel->infoheader.fragmentsleft = htoes ((uint16) 0);
+         coel->infoheader.fragmentsleft = htoes ((uint16_t) 0);
          MBXcontrol[0].state = MBXstate_idle;
          ESCvar.xoe = 0;
          ESCvar.frags = frags;
@@ -604,7 +604,7 @@ void SDO_getodlist (void)
          ESCvar.frags = frags;
          ESCvar.fragsleft = frags - 1;
          coel->infoheader.fragmentsleft = htoes (ESCvar.fragsleft);
-         coel->index = htoes ((uint16) 0x01);
+         coel->index = htoes ((uint16_t) 0x01);
 
          p = &(coel->datatype);
          for (i = 0; i < n; i++)
@@ -624,9 +624,9 @@ void SDO_getodlist (void)
  */
 void SDO_getodlistcont (void)
 {
-   uint8 MBXout;
-   uint16 i, n, s;
-   uint16 *p;
+   uint8_t MBXout;
+   uint16_t i, n, s;
+   uint16_t *p;
    _COEobjdesc *coel;
 
    MBXout = ESC_claimbuffer ();
@@ -671,12 +671,12 @@ void SDO_getodlistcont (void)
  */
 void SDO_getod (void)
 {
-   uint8 MBXout;
-   uint16 index;
-   int32 nidx;
-   uint8 *d;
-   const uint8 *s;
-   uint8 n = 0;
+   uint8_t MBXout;
+   uint16_t index;
+   int32_t nidx;
+   uint8_t *d;
+   const uint8_t *s;
+   uint8_t n = 0;
    _COEobjdesc *coer, *coel;
    coer = (_COEobjdesc *) &MBX[0];
    index = etohs (coer->index);
@@ -697,7 +697,7 @@ void SDO_getod (void)
          coel->index = htoes (index);
          if (SDOobjects[nidx].objtype == OTYPE_VAR)
          {
-            int32 nsub = SDO_findsubindex (nidx, 0);
+            int32_t nsub = SDO_findsubindex (nidx, 0);
             const _objd *objd = SDOobjects[nidx].objdesc;
             coel->datatype = htoes ((objd + nsub)->datatype);
          }
@@ -707,8 +707,8 @@ void SDO_getod (void)
          }
          coel->maxsub = SDOobjects[nidx].maxsub;
          coel->objectcode = SDOobjects[nidx].objtype;
-         s = (uint8 *) SDOobjects[nidx].name;
-         d = (uint8 *) &(coel->name);
+         s = (uint8_t *) SDOobjects[nidx].name;
+         d = (uint8_t *) &(coel->name);
          while (*s && (n < (MBXDSIZE - 0x0c)))
          {
             *d = *s;
@@ -717,7 +717,7 @@ void SDO_getod (void)
             d++;
          }
          *d = *s;
-         coel->mbxheader.length = htoes ((uint16) 0x0c + n);
+         coel->mbxheader.length = htoes ((uint16_t) 0x0c + n);
          MBXcontrol[MBXout].state = MBXstate_outreq;
          MBXcontrol[0].state = MBXstate_idle;
          ESCvar.xoe = 0;
@@ -735,14 +735,14 @@ void SDO_getod (void)
  */
 void SDO_geted (void)
 {
-   uint8 MBXout;
-   uint16 index;
-   int32 nidx, nsub;
-   uint8 subindex;
-   uint8 *d;
-   const uint8 *s;
+   uint8_t MBXout;
+   uint16_t index;
+   int32_t nidx, nsub;
+   uint8_t subindex;
+   uint8_t *d;
+   const uint8_t *s;
    const _objd *objd;
-   uint8 n = 0;
+   uint8_t n = 0;
    _COEentdesc *coer, *coel;
    coer = (_COEentdesc *) &MBX[0];
    index = etohs (coer->index);
@@ -764,7 +764,7 @@ void SDO_geted (void)
             coel->infoheader.opcode = COE_ENTRYDESCRIPTIONRESPONSE;
             coel->infoheader.incomplete = 0;
             coel->infoheader.reserved = 0x00;
-            coel->infoheader.fragmentsleft = htoes ((uint16) 0);
+            coel->infoheader.fragmentsleft = htoes ((uint16_t) 0);
             coel->index = htoes (index);
             coel->subindex = subindex;
             coel->valueinfo = COE_VALUEINFO_ACCESS +
@@ -772,8 +772,8 @@ void SDO_geted (void)
             coel->datatype = htoes ((objd + nsub)->datatype);
             coel->bitlength = htoes ((objd + nsub)->bitlength);
             coel->access = htoes ((objd + nsub)->access);
-            s = (uint8 *) (objd + nsub)->name;
-            d = (uint8 *) &(coel->name);
+            s = (uint8_t *) (objd + nsub)->name;
+            d = (uint8_t *) &(coel->name);
             while (*s && (n < (MBXDSIZE - 0x10)))
             {
                *d = *s;
@@ -782,7 +782,7 @@ void SDO_geted (void)
                d++;
             }
             *d = *s;
-            coel->mbxheader.length = htoes ((uint16) 0x10 + n);
+            coel->mbxheader.length = htoes ((uint16_t) 0x10 + n);
             MBXcontrol[MBXout].state = MBXstate_outreq;
             MBXcontrol[0].state = MBXstate_idle;
             ESCvar.xoe = 0;
@@ -808,7 +808,7 @@ void ESC_coeprocess (void)
    _MBXh *mbh;
    _COEsdo *coesdo;
    _COEobjdesc *coeobjdesc;
-   uint8 service;
+   uint8_t service;
    if (!MBXrun)
    {
       return;

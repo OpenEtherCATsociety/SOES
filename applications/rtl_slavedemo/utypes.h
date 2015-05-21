@@ -41,19 +41,19 @@
 
 typedef struct
 {
-   uint8 state;
-   uint8 button;
-   uint32 encoder;
+   uint8_t state;
+   uint8_t button;
+   uint32_t encoder;
 } _Rbuffer;
 
 typedef struct
 {
-   uint8 LED;
+   uint8_t LED;
 } _Wbuffer;
 
 typedef struct
 {
-   uint32 reset_counter;
+   uint32_t reset_counter;
 } _Cbuffer;
 
 #endif

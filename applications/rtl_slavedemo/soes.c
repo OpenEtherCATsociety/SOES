@@ -48,26 +48,26 @@
 #define DEFAULTTXPDOITEMS  1
 #define DEFAULTRXPDOITEMS  1
 
-uint32            encoder_scale;
-uint32            encoder_scale_mirror;
+uint32_t            encoder_scale;
+uint32_t            encoder_scale_mirror;
 
 volatile _ESCvar  ESCvar;
 _MBX              MBX[MBXBUFFERS];
 _MBXcontrol       MBXcontrol[MBXBUFFERS];
-uint8             MBXrun=0;
-uint16            SM2_sml,SM3_sml;
+uint8_t           MBXrun=0;
+uint16_t          SM2_sml,SM3_sml;
 _Rbuffer          Rb;
 _Wbuffer          Wb;
 _Cbuffer          Cb;
 _App              App;
-uint16            TXPDOsize,RXPDOsize;
+uint16_t          TXPDOsize,RXPDOsize;
 int               wd_cnt = WD_RESET;
-volatile uint8    digoutput;
-volatile uint8    diginput;
-uint16            txpdomap = DEFAULTTXPDOMAP;
-uint16            rxpdomap = DEFAULTRXPDOMAP;
-uint8             txpdoitems = DEFAULTTXPDOITEMS;
-uint8             rxpdoitems = DEFAULTTXPDOITEMS;
+volatile uint8_t  digoutput;
+volatile uint8_t  diginput;
+uint16_t          txpdomap = DEFAULTTXPDOMAP;
+uint16_t          rxpdomap = DEFAULTRXPDOMAP;
+uint8_t           txpdoitems = DEFAULTTXPDOITEMS;
+uint8_t           rxpdoitems = DEFAULTTXPDOITEMS;
 
 
 extern uint32_t local_boot_state;
@@ -80,7 +80,7 @@ static const char *spi_name = "/spi0/et1100";
  * @param[in] index      = index of SDO download request to handle
  * @param[in] sub-index  = sub-index of SDO download request to handle
  */
-void ESC_objecthandler (uint16 index, uint8 subindex)
+void ESC_objecthandler (uint16_t index, uint8_t subindex)
 {
    switch (index)
    {
@@ -209,7 +209,7 @@ void DIG_process (void)
 /** Optional: Hook called after state change for application specific
  * actions for specific state changes.
  */
-void post_state_change_hook (uint8 * as, uint8 * an)
+void post_state_change_hook (uint8_t * as, uint8_t * an)
 {
 
    /* Add specific step change hooks here */

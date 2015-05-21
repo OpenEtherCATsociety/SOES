@@ -79,9 +79,9 @@ static _FOEvar FOEvar;
  * @return 0= if we succeed, FOE_ERR_NOTFOUND something wrong with filename or
  * password
  */
-int FOE_fopen (char *name, uint8 num_chars, uint32 pass, uint8 op)
+int FOE_fopen (char *name, uint8_t num_chars, uint32_t pass, uint8_t op)
 {
-   uint32 i;
+   uint32_t i;
 
    /* Unpack the file name into characters we can look at. */
    if (num_chars > FOE_FN_MAX)
@@ -135,9 +135,9 @@ int FOE_fopen (char *name, uint8 num_chars, uint32 pass, uint8 op)
 
  * @return Number of copied bytes.
  */
-uint16 FOE_fread (uint8 * data, uint16 maxlength)
+uint16_t FOE_fread (uint8_t * data, uint16_t maxlength)
 {
-   uint16 ncopied = 0;
+   uint16_t ncopied = 0;
 
    while (maxlength && (FOEvar.fend - FOEvar.fposition))
    {
@@ -161,10 +161,10 @@ uint16 FOE_fread (uint8 * data, uint16 maxlength)
 
  * @return Number of copied bytes.
  */
-uint16 FOE_fwrite (uint8 *data, uint16 length)
+uint16_t FOE_fwrite (uint8_t *data, uint16_t length)
 {
-    uint16 ncopied = 0;
-    uint32 failed = 0;
+    uint16_t ncopied = 0;
+    uint32_t failed = 0;
 
     DPRINT("FOE_fwrite\n");
     FOEvar.fprevposition = FOEvar.fposition;
@@ -194,8 +194,8 @@ uint16 FOE_fwrite (uint8 *data, uint16 length)
  */
 uint32_t FOE_fclose (void)
 {
-   uint32 i;
-   uint32 failed = 0;
+   uint32_t i;
+   uint32_t failed = 0;
 
    DPRINT("FOE_fclose\n");
    if (FOEvar.fbufposition)
@@ -231,10 +231,10 @@ void FOE_init ()
  *
  * @param[in] code   = abort code
  */
-void FOE_abort (uint32 code)
+void FOE_abort (uint32_t code)
 {
    _FOE *foembx;
-   uint8 mbxhandle;
+   uint8_t mbxhandle;
 
    if (code)
    {
@@ -269,8 +269,8 @@ void FOE_abort (uint32 code)
 int FOE_send_data_packet ()
 {
    _FOE *foembx;
-   uint16 data_len;
-   uint8 mbxhandle;
+   uint16_t data_len;
+   uint8_t mbxhandle;
 
    mbxhandle = ESC_claimbuffer ();
    if (mbxhandle)
@@ -300,7 +300,7 @@ int FOE_send_data_packet ()
 int FOE_send_ack ()
 {
    _FOE *foembx;
-   uint8 mbxhandle;
+   uint8_t mbxhandle;
 
    mbxhandle = ESC_claimbuffer ();
    if (mbxhandle)
@@ -333,8 +333,8 @@ int FOE_send_ack ()
 void FOE_read ()
 {
    _FOE *foembx;
-   uint32 data_len;
-   uint32 password;
+   uint32_t data_len;
+   uint32_t password;
    int res;
 
    if (FOEvar.foestate != FOE_READY)
@@ -417,8 +417,8 @@ void FOE_ack ()
 void FOE_write ()
 {
    _FOE *foembx;
-   uint32 data_len;
-   uint32 password;
+   uint32_t data_len;
+   uint32_t password;
    int res;
 
    if (FOEvar.foestate != FOE_READY)
@@ -459,8 +459,8 @@ void FOE_write ()
 void FOE_data ()
 {
    _FOE *foembx;
-   uint32 packet;
-   uint16 data_len, ncopied;
+   uint32_t packet;
+   uint16_t data_len, ncopied;
    int res;
 
    if(FOEvar.foestate != FOE_WAIT_FOR_DATA)

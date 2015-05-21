@@ -70,10 +70,10 @@ void boot_inithook (void)
    }
 }
 
-uint32 flash_foe_buffer (foe_writefile_cfg_t * self, uint8 * data)
+uint32_t flash_foe_buffer (foe_writefile_cfg_t * self, uint8_t * data)
 {
-   uint32 flash_cmd_failed = 0;
-   uint32 calculated_address = self->dest_start_address + self->address_offset;
+   uint32_t flash_cmd_failed = 0;
+   uint32_t calculated_address = self->dest_start_address + self->address_offset;
 
    /* This part is Cortex M4 Kinetis specific therefore placed in Hooks*/
    /* Erase every new sector we enter by looking at modulo sector size */
@@ -137,11 +137,11 @@ void bootstrap_foe_init  (void)
       },
    };
 
-   static uint8 fbuf[FLASH_WRITE_BLOCK_SIZE];
+   static uint8_t fbuf[FLASH_WRITE_BLOCK_SIZE];
    static foe_cfg_t config =
    {
       .buffer_size = FLASH_WRITE_BLOCK_SIZE,  /* Buffer size before we flush to destination */
-      .fbuffer     = (uint8 *)&fbuf,
+      .fbuffer     = (uint8_t *)&fbuf,
       .empty_write = 0xFF,
       .n_files     = NELEMENTS (files),
       .files       = files

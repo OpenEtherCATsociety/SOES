@@ -45,9 +45,9 @@ static esc_cfg_t * esc_cfg = NULL;
  *
  * @param[in] errornumber   = Write an by EtherCAT specified Error number register 0x134 AL Status Code
  */
-void ESC_ALerror (uint16 errornumber)
+void ESC_ALerror (uint16_t errornumber)
 {
-   uint16 dummy;
+   uint16_t dummy;
    ESCvar.ALerror = errornumber;
    dummy = htoes (errornumber);
    ESC_write (ESCREG_ALERROR, &dummy, sizeof (dummy), (void *) &ESCvar.ALevent);
@@ -57,11 +57,11 @@ void ESC_ALerror (uint16 errornumber)
  * @param[in] status   = Write current slave status to register 0x130 AL Status
  * reflecting actual state and error indication if present
  */
-void ESC_ALstatus (uint8 status)
+void ESC_ALstatus (uint8_t status)
 {
-   uint16 dummy;
+   uint16_t dummy;
    ESCvar.ALstatus = status;
-   dummy = htoes ((uint16) status);
+   dummy = htoes ((uint16_t) status);
    ESC_write (ESCREG_ALSTATUS, &dummy, sizeof (dummy),
               (void *) &ESCvar.ALevent);
 }
@@ -71,9 +71,9 @@ void ESC_ALstatus (uint8 status)
  *
  * @param[in] n   = Read Sync Manager no. n
  */
-void ESC_SMack (uint8 n)
+void ESC_SMack (uint8_t n)
 {
-   uint16 dummy;
+   uint16_t dummy;
    ESC_read (ESCREG_SM0STATUS + (n << 3), &dummy, 2, (void *) &ESCvar.ALevent);
 }
 
@@ -82,10 +82,10 @@ void ESC_SMack (uint8 n)
  *
  * @param[in] n   = Read Sync Manager no. n
  */
-void ESC_SMstatus (uint8 n)
+void ESC_SMstatus (uint8_t n)
 {
    _ESCsm2 *sm;
-   uint16 temp;
+   uint16_t temp;
    sm = (_ESCsm2 *) & ESCvar.SM[n];
    ESC_read (ESCREG_SM0STATUS + (n << 3), &temp, 2, (void *) &ESCvar.ALevent);
 #if defined(EC_LITTLE_ENDIAN)
@@ -103,7 +103,7 @@ void ESC_SMstatus (uint8 n)
  *
  * @param[in] n   = Write to Sync Manager no. n
  */
-void ESC_SMwritepdi (uint8 n)
+void ESC_SMwritepdi (uint8_t n)
 {
    _ESCsm2 *sm;
    sm = (_ESCsm2 *) & ESCvar.SM[n];
@@ -115,7 +115,7 @@ void ESC_SMwritepdi (uint8 n)
  *
  * @param[in] n   = Write to Sync Manager no. n
  */
-void ESC_SMenable (uint8 n)
+void ESC_SMenable (uint8_t n)
 {
    _ESCsm2 *sm;
    sm = (_ESCsm2 *) & ESCvar.SM[n];
@@ -126,7 +126,7 @@ void ESC_SMenable (uint8 n)
  *
  * @param[in] n   = Write to Sync Manager no. n
  */
-void ESC_SMdisable (uint8 n)
+void ESC_SMdisable (uint8_t n)
 {
    _ESCsm2 *sm;
    sm = (_ESCsm2 *) & ESCvar.SM[n];
@@ -147,12 +147,12 @@ void ESC_address (void)
  *
  * @return value of register Watchdog Status.
  */
-uint8 ESC_WDstatus (void)
+uint8_t ESC_WDstatus (void)
 {
-   uint16 wdstatus;
+   uint16_t wdstatus;
    ESC_read (ESCREG_WDSTATUS, &wdstatus, 2, (void *) &ESCvar.ALevent);
    wdstatus = etohs (wdstatus);
-   return (uint8) wdstatus;
+   return (uint8_t) wdstatus;
 }
 
 /** Check mailbox status by reading all SyncManager 0 and 1 data. The read values
@@ -164,7 +164,7 @@ uint8 ESC_WDstatus (void)
  * @return if all Mailbox values is correct we return incoming state request, otherwise
  * we return state Init with Error flag set.
  */
-uint8 ESC_checkmbx (uint8 state)
+uint8_t ESC_checkmbx (uint8_t state)
 {
    _ESCsm2 *SM;
    ESC_read (ESCREG_SM0, (void *) &ESCvar.SM[0], sizeof (ESCvar.SM[0]),
@@ -178,7 +178,7 @@ uint8 ESC_checkmbx (uint8 state)
       ESCvar.SMtestresult = SMRESULT_ERRSM0;
       ESC_SMdisable (0);
       ESC_SMdisable (1);
-      return (uint8) (ESCinit | ESCerror);      //fail state change
+      return (uint8_t) (ESCinit | ESCerror);      //fail state change
    }
    SM = (_ESCsm2 *) & ESCvar.SM[1];
    if ((etohs (SM->PSA) != MBX1_sma) || (etohs (SM->Length) != MBX1_sml)
@@ -200,7 +200,7 @@ uint8 ESC_checkmbx (uint8 state)
  * @return if all Mailbox values is correct we return incoming state, otherwise
  * we return state Init with Error flag set.
  */
-uint8 ESC_startmbx (uint8 state)
+uint8_t ESC_startmbx (uint8_t state)
 {
    ESC_SMenable (0);
    ESC_SMenable (1);
@@ -227,7 +227,7 @@ uint8 ESC_startmbx (uint8 state)
  * @return if all Mailbox values is correct we return incoming state request, otherwise
  * we return state Init with Error flag set.
  */
-uint8 ESC_checkmbxboot (uint8 state)
+uint8_t ESC_checkmbxboot (uint8_t state)
 {
    _ESCsm2 *SM;
    ESC_read (ESCREG_SM0, (void *) &ESCvar.SM[0], sizeof (ESCvar.SM[0]),
@@ -241,7 +241,7 @@ uint8 ESC_checkmbxboot (uint8 state)
       ESCvar.SMtestresult = SMRESULT_ERRSM0;
       ESC_SMdisable (0);
       ESC_SMdisable (1);
-      return (uint8) (ESCinit | ESCerror);      //fail state change
+      return (uint8_t) (ESCinit | ESCerror);      //fail state change
    }
    SM = (_ESCsm2 *) & ESCvar.SM[1];
    if ((etohs (SM->PSA) != MBX1_sma_b) || (etohs (SM->Length) != MBX1_sml_b)
@@ -250,7 +250,7 @@ uint8 ESC_checkmbxboot (uint8 state)
       ESCvar.SMtestresult = SMRESULT_ERRSM1;
       ESC_SMdisable (0);
       ESC_SMdisable (1);
-      return (uint8) (ESCinit | ESCerror);      //fail state change
+      return (uint8_t) (ESCinit | ESCerror);      //fail state change
    }
    return state;
 }
@@ -264,7 +264,7 @@ uint8 ESC_checkmbxboot (uint8 state)
  * @return if all Mailbox values is correct we return incoming state, otherwise
  * we return state Init with Error flag set.
  */
-uint8 ESC_startmbxboot (uint8 state)
+uint8_t ESC_startmbxboot (uint8_t state)
 {
    ESC_SMenable (0);
    ESC_SMenable (1);
@@ -288,7 +288,7 @@ uint8 ESC_startmbxboot (uint8 state)
  */
 void ESC_stopmbx (void)
 {
-   uint8 n;
+   uint8_t n;
    MBXrun = 0;
    ESC_SMdisable (0);
    ESC_SMdisable (1);
@@ -315,7 +315,7 @@ void ESC_stopmbx (void)
 void ESC_readmbx (void)
 {
    _MBX *MB = &MBX[0];
-   uint16 length;
+   uint16_t length;
 
    if (ESCvar.ALstatus == ESCboot)
    {
@@ -357,11 +357,11 @@ void ESC_readmbx (void)
  *
  * @param[in] n   = Which local mailbox buffer n to send.
  */
-void ESC_writembx (uint8 n)
+void ESC_writembx (uint8_t n)
 {
    _MBX *MB = &MBX[n];
-   uint8 dummy = 0;
-   uint16 length;
+   uint8_t dummy = 0;
+   uint16_t length;
    length = etohs (MB->header.length);
    if (ESCvar.ALstatus == ESCboot)
    {
@@ -394,7 +394,7 @@ void ESC_writembx (uint8 n)
  */
 void ESC_ackmbxread (void)
 {
-   uint8 dummy = 0;
+   uint8_t dummy = 0;
    if (ESCvar.ALstatus == ESCboot)
    {
       ESC_write (MBX1_sma_b, &dummy, 1, (void *) &ESCvar.ALevent);
@@ -412,10 +412,10 @@ void ESC_ackmbxread (void)
  *
  * @return The index of Mailbox buffer prepared for outbox. IF no buffer is available return 0.
  */
-uint8 ESC_claimbuffer (void)
+uint8_t ESC_claimbuffer (void)
 {
    _MBX *MB;
-   uint8 n = MBXBUFFERS - 1;
+   uint8_t n = MBXBUFFERS - 1;
    while ((n > 0) && (MBXcontrol[n].state))
    {
       n--;
@@ -442,9 +442,9 @@ uint8 ESC_claimbuffer (void)
  *
  * @return the index of Mailbox buffer ready to be posted.
  */
-uint8 ESC_outreqbuffer (void)
+uint8_t ESC_outreqbuffer (void)
 {
-   uint8 n = MBXBUFFERS - 1;
+   uint8_t n = MBXBUFFERS - 1;
    while ((n > 0) && (MBXcontrol[n].state != MBXstate_outreq))
    {
       n--;
@@ -457,17 +457,17 @@ uint8 ESC_outreqbuffer (void)
  *
  * @param[in] n   = Error number to be sent in mailbox error message.
  */
-void MBX_error (uint16 error)
+void MBX_error (uint16_t error)
 {
-   uint8 MBXout;
+   uint8_t MBXout;
    _MBXerr *mbxerr;
    MBXout = ESC_claimbuffer ();
    if (MBXout)
    {
       mbxerr = (_MBXerr *) & MBX[MBXout];
-      mbxerr->mbxheader.length = htoes ((uint16) 0x04);
+      mbxerr->mbxheader.length = htoes ((uint16_t) 0x04);
       mbxerr->mbxheader.mbxtype = MBXERR;
-      mbxerr->type = htoes ((uint16) 0x01);
+      mbxerr->type = htoes ((uint16_t) 0x01);
       mbxerr->detail = htoes (error);
       MBXcontrol[MBXout].state = MBXstate_outreq;
    }
@@ -479,9 +479,9 @@ void MBX_error (uint16 error)
  *
  * @return =0 if nothing to do. =1 if something to be handled by mailbox protocols.
  */
-uint8 ESC_mbxprocess (void)
+uint8_t ESC_mbxprocess (void)
 {
-   uint8 mbxhandle = 0;
+   uint8_t mbxhandle = 0;
    _MBX *MB = &MBX[0];
 
    if (!MBXrun)
@@ -637,7 +637,7 @@ void ESC_xoeprocess (void)
  * @param[in] state   = Requested state.
  * @return = incoming state request if every thing checks out OK. = state (PREOP | ERROR)  if something isn't correct.
  */
-uint8 ESC_checkSM23 (uint8 state)
+uint8_t ESC_checkSM23 (uint8_t state)
 {
    _ESCsm2 *SM;
    ESC_read (ESCREG_SM2, (void *) &ESCvar.SM[2], sizeof (ESCvar.SM[2]),
@@ -670,7 +670,7 @@ uint8 ESC_checkSM23 (uint8 state)
  * @param[in] state   = Requested state.
  * @return = state, incoming state request if every thing checks out OK. =state (PREOP | ERROR) if something isn't correct.
  */
-uint8 ESC_startinput (uint8 state)
+uint8_t ESC_startinput (uint8_t state)
 {
    state = ESC_checkSM23 (state);
    if (state != (ESCpreop | ESCerror))
@@ -713,7 +713,7 @@ void ESC_stopinput (void)
  * @return = state unchanged.
  *
  */
-uint8 ESC_startoutput (uint8 state)
+uint8_t ESC_startoutput (uint8_t state)
 {
    ESC_SMenable (2);
    App.state |= APPSTATE_OUTPUT;
@@ -737,8 +737,8 @@ void ESC_stopoutput (void)
  */
 void ESC_state (void)
 {
-   uint8 ac, an, as, ax, ax23;
-   uint8 handle_smchanged = 0;
+   uint8_t ac, an, as, ax, ax23;
+   uint8_t handle_smchanged = 0;
 
    /* Do we have a state change request pending */
    if (ESCvar.ALevent & ESCREG_ALEVENT_CONTROL)

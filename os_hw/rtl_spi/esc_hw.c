@@ -51,18 +51,18 @@
 #define ESC_NEXT        0x00
 
 static int et1100 = -1;
-static uint8 read_termination[128] = { 0 };
+static uint8_t read_termination[128] = { 0 };
 
 #define GPIO_ECAT_RESET    1 /* specific function to hold ESC reset on startup
                               * when emulating EEPROM
                               */
 
-static void esc_address (uint16 address, uint8 command, uint16 * al_event)
+static void esc_address (uint16_t address, uint8_t command, uint16_t * al_event)
 {
    /* Device is selected already.
     * We use 2 bytes addressing.
     */
-   uint8 data[2];
+   uint8_t data[2];
 
    /* address 12:5 */
    data[0] = (address >> 5);
@@ -70,7 +70,7 @@ static void esc_address (uint16 address, uint8 command, uint16 * al_event)
    data[1] = ((address & 0x1F) << 3) | command;
 
    /* Write (and read AL interrupt register) */
-   spi_bidirectionally_transfer (et1100, (uint8 *) al_event, data,
+   spi_bidirectionally_transfer (et1100, (uint8_t *) al_event, data,
                                  sizeof (data));
 }
 
@@ -82,7 +82,7 @@ static void esc_address (uint16 address, uint8 command, uint16 * al_event)
  * @param[out]  tALevent    = on every read we refresh the AL event register
  * @return 0 as default, the stack don't rely on any result
  */
-uint8 ESC_read (uint16 address, void *buf, uint16 len, void *tALevent)
+uint8_t ESC_read (uint16_t address, void *buf, uint16_t len, void *tALevent)
 {
    /* Select device. */
    spi_select (et1100);
@@ -111,7 +111,7 @@ uint8 ESC_read (uint16 address, void *buf, uint16 len, void *tALevent)
  * @param[out]  tALevent    = on every read we refresh the AL event register
  * @return 0 as default, the stack don't rely on any result
  */
-uint8 ESC_write (uint16 address, void *buf, uint16 len, void *tALevent)
+uint8_t ESC_write (uint16_t address, void *buf, uint16_t len, void *tALevent)
 {
    /* Select device. */
    spi_select (et1100);

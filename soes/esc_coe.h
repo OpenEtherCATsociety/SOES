@@ -38,21 +38,21 @@
 
 typedef struct CC_PACKED
 {
-   uint16 subindex;
-   uint16 datatype;
-   uint16 bitlength;
-   uint16 access;
+   uint16_t subindex;
+   uint16_t datatype;
+   uint16_t bitlength;
+   uint16_t access;
    const char *name;
-   uint32 value;
+   uint32_t value;
    void *data;
 } _objd;
 
 typedef struct CC_PACKED
 {
-   uint16 index;
-   uint16 objtype;
-   uint8 maxsub;
-   uint8 pad1;
+   uint16_t index;
+   uint16_t objtype;
+   uint8_t maxsub;
+   uint8_t pad1;
    const char *name;
    const _objd *objdesc;
 } _objectlist;
@@ -101,10 +101,10 @@ typedef struct CC_PACKED
 #define ATYPE_TXPDO             0x80
 
 void ESC_coeprocess (void);
-uint16 sizeTXPDO (void);
-uint16 sizeRXPDO (void);
+uint16_t sizeTXPDO (void);
+uint16_t sizeRXPDO (void);
 
-extern void ESC_objecthandler (uint16 index, uint8 subindex);
+extern void ESC_objecthandler (uint16_t index, uint8_t subindex);
 extern const _objectlist SDOobjects[];
 extern const _objd SDO1C12[];
 extern const _objd SDO1C13[];

@@ -9,13 +9,6 @@ extern "C"
 #include <assert.h>
 #include <stdint.h>
 
-typedef uint8_t  uint8;
-typedef int8_t   int8;
-typedef uint16_t uint16;
-typedef int16_t  int16;
-typedef uint32_t uint32;
-typedef int32_t  int32;
-
 #define CC_PACKED_BEGIN
 #define CC_PACKED_END
 #define CC_PACKED       __attribute__((packed))
