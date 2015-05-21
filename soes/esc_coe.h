@@ -60,8 +60,6 @@ typedef struct CC_PACKED
 #define OBJH_READ               0
 #define OBJH_WRITE              1
 
-/* #define _ac const char */
-
 #define OTYPE_DOMAIN            0x0002
 #define OTYPE_DEFTYPE           0x0005
 #define OTYPE_DEFSTRUCT         0x0006

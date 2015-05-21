@@ -31,13 +31,8 @@
 #include <bsp.h>
 #include <flash_drv.h>
 
-/* #include "utypes.h" */
-/* #include "esc.h" */
 #include <esc_foe.h>
-/* #include "osal.h" */
 #include "bootstrap.h"
-
-#define ESC_DEBUG
 
 uint32_t local_boot_state        = BOOT_IDLE;
 static uint32_t boot_started     = 0;

@@ -42,8 +42,6 @@
 #include "utypes.h"
 #include "bootstrap.h"
 
-#define ESC_DEBUG
-
 #define WD_RESET           1000
 #define DEFAULTTXPDOMAP    0x1a00
 #define DEFAULTRXPDOMAP    0x1600
