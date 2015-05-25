@@ -8,6 +8,7 @@ extern "C"
 
 #include <assert.h>
 #include <stdint.h>
+#include <machine/endian.h>
 
 #define CC_PACKED_BEGIN
 #define CC_PACKED_END
@@ -19,17 +20,16 @@ extern "C"
 #define CC_SWAP32(x) __builtin_bswap32 (x)
 #define CC_SWAP16(x) ((uint16_t)(x) >> 8 | ((uint16_t)(x) & 0xFF) << 8)
 
-#if BYTE_ORDER == LITTLE_ENDIAN
+#if BYTE_ORDER == BIG_ENDIAN
 #define htoes(x) CC_SWAP16 (x)
 #define htoel(x) CC_SWAP32 (x)
-#define etohs(x) htoes (x)
-#define etohl(x) htoel (x)
 #else
 #define htoes(x) (x)
 #define htoel(x) (x)
-#define etohs(x) (x)
-#define etohl(x) (x)
 #endif
+
+#define etohs(x) htoes (x)
+#define etohl(x) htoel (x)
 
 #if BYTE_ORDER == LITTLE_ENDIAN
 #define EC_LITTLE_ENDIAN
