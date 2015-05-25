@@ -94,7 +94,7 @@ typedef struct CC_PACKED
 #define DTYPE_BIT7              0x0036
 #define DTYPE_BIT8              0x0037
 
-#define ATYPE_R                 0x07
+#define ATYPE_RO                0x07
 #define ATYPE_RW                0x3F
 #define ATYPE_RWpre             0x0F
 #define ATYPE_RXPDO             0x40
