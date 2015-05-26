@@ -1,9 +1,6 @@
 /*
  * SOES Simple Open EtherCAT Slave
  *
- * File    : esc_foe.h
- * Version : 0.1
- * Date    : 11-30-2010
  * Copyright (C) 2010 ZBE Inc.
  * Copyright (C) 2007-2013 Arthur Ketels
  * Copyright (C) 2012-2013 rt-labs.
@@ -31,13 +28,15 @@
  * property of, and protected by Beckhoff Automation GmbH.
  */
 
-/** \file 
+/** \file
  * \brief
- * Headerfile for esc_foe.c 
+ * Headerfile for esc_foe.c
  */
 
 #ifndef __esc_foe__
 #define __esc_foe__
+
+#include <cc.h>
 
 /** Maximum number of characters allowed in a file name. */
 #define FOE_FN_MAX      15
@@ -48,47 +47,47 @@ struct foe_writefile_cfg
    /** Name of file to receive from master */
    const char * name;
    /** Size of file,sizeof data we can recv */
-   uint32       max_data;
+   uint32_t       max_data;
    /** Where to store the data initially */
-   uint32       dest_start_address;
+   uint32_t       dest_start_address;
    /** Current address during write of file */
-   uint32       address_offset;
+   uint32_t       address_offset;
    /* FoE password */
-   uint32       filepass;
+   uint32_t       filepass;
    /* Pointer to application foe write function */
-   uint32       (*write_function) (foe_writefile_cfg_t * self, uint8 * data);
+   uint32_t       (*write_function) (foe_writefile_cfg_t * self, uint8_t * data);
 };
 
 typedef struct foe_cfg
 {
    /** Allocate static in caller func to fit buffer_size */
-   uint8 * fbuffer;
+   uint8_t * fbuffer;
    /** Write this to fill-up, ex. 0xFF for "non write" */
-   uint8   empty_write;
+   uint8_t   empty_write;
    /** Buffer size before we flush to destination */
-   uint32  buffer_size;
+   uint32_t  buffer_size;
    /** Number of files used in firmware update */
-   uint32  n_files;
+   uint32_t  n_files;
    /** Pointer to files configured to be used by FoE */
    foe_writefile_cfg_t * files;
 } foe_cfg_t;
 
-typedef struct PACKED
+typedef struct CC_PACKED
 {
    /** Current FoE state, ex. Waiting for ACK, Waiting for DATA */
-   uint8  foestate;
+   uint8_t  foestate;
    /** Current file buffer position, evaluated against foe file buffer size
     * when to flush
     */
-   uint16 fbufposition;
+   uint16_t fbufposition;
    /** Frame number in read or write sequence */
-   uint32 foepacket;
+   uint32_t foepacket;
    /** Current position in file to be handled by FoE request */
-   uint32 fposition;
+   uint32_t fposition;
    /** Previous position in file to be handled by FoE request */
-   uint32 fprevposition;
+   uint32_t fprevposition;
    /** End position of allocated disk space for FoE requested file  */
-   uint32 fend;
+   uint32_t fend;
 } _FOEvar;
 
 /* Initializes FoE state. */

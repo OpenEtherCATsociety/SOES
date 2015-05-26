@@ -1,9 +1,6 @@
 /*
  * SOES Simple Open EtherCAT Slave
  *
- * File    : esc.h
- * Version : 0.9.2
- * Date    : 22-02-2010
  * Copyright (C) 2007-2013 Arthur Ketels
  * Copyright (C) 2012-2013 rt-labs.
  *
@@ -29,18 +26,17 @@
  * The EtherCAT Technology, the trade name and logo "EtherCAT" are the intellectual
  * property of, and protected by Beckhoff Automation GmbH.
  */
- 
-/** \file 
+
+/** \file
  * \brief
  * Headerfile for esc.h
  */
- 
+
 #ifndef __esc__
 #define __esc__
 
-/* storage modifier for data stored in flashmemory */
-#define FLASHSTORE               const
-#define PACKED                   __attribute__((__packed__))
+#include <cc.h>
+#include "config.h"
 
 #define ESCREG_ADDRESS           0x0010
 #define ESCREG_DLSTATUS          0x0110
@@ -166,35 +162,6 @@
 #define COE_VALUEINFO_MINIMUM           0x20
 #define COE_VALUEINFO_MAXIMUM           0x40
 
-#define MBXSIZE                        0x80
-#define MBXSIZEBOOT                    0x80
-#define MBXBUFFERS                     3
-
-#define MBX0_sma                       0x1000
-#define MBX0_sml                       MBXSIZE
-#define MBX0_sme                       MBX0_sma+MBX0_sml-1
-#define MBX0_smc                       0x26
-#define MBX1_sma                       0x1080
-#define MBX1_sml                       MBXSIZE
-#define MBX1_sme                       MBX1_sma+MBX1_sml-1
-#define MBX1_smc                       0x22
-
-#define MBX0_sma_b                     0x1000
-#define MBX0_sml_b                     MBXSIZEBOOT
-#define MBX0_sme_b                     MBX0_sma_b+MBX0_sml_b-1
-#define MBX0_smc_b                     0x26
-#define MBX1_sma_b                     0x1080
-#define MBX1_sml_b                     MBXSIZEBOOT
-#define MBX1_sme_b                     MBX1_sma_b+MBX1_sml_b-1
-#define MBX1_smc_b                     0x22
-
-#define SM2_sma                        0x1100
-#define SM2_smc                        0x24
-#define SM2_act                        0x01
-#define SM3_sma                        0x1180
-#define SM3_smc                        0x20
-#define SM3_act                        0x01
-
 #define MBXHSIZE                       sizeof(_MBXh)
 #define MBXDSIZE                       MBXSIZE-MBXHSIZE
 
@@ -239,241 +206,239 @@
 #define FOE_WAIT_FOR_FINAL_ACK         2
 #define FOE_WAIT_FOR_DATA              3
 
-#define EC_LITTLE_ENDIAN
-
 // Attention! this struct is always little-endian
-typedef struct PACKED
+typedef struct CC_PACKED
 {
-   uint16 PSA;
-   uint16 Length;
+   uint16_t PSA;
+   uint16_t Length;
 
 #if defined(EC_LITTLE_ENDIAN)
-   uint8 Mode:2;
-   uint8 Direction:2;
-   uint8 IntECAT:1;
-   uint8 IntPDI:1;
-   uint8 WTE:1;
-   uint8 R1:1;
+   uint8_t Mode:2;
+   uint8_t Direction:2;
+   uint8_t IntECAT:1;
+   uint8_t IntPDI:1;
+   uint8_t WTE:1;
+   uint8_t R1:1;
 
-   uint8 IntW:1;
-   uint8 IntR:1;
-   uint8 R2:1;
-   uint8 MBXstat:1;
-   uint8 BUFstat:2;
-   uint8 R3:2;
+   uint8_t IntW:1;
+   uint8_t IntR:1;
+   uint8_t R2:1;
+   uint8_t MBXstat:1;
+   uint8_t BUFstat:2;
+   uint8_t R3:2;
 
-   uint8 ECsm:1;
-   uint8 ECrep:1;
-   uint8 ECr4:4;
-   uint8 EClatchEC:1;
-   uint8 EClatchPDI:1;
+   uint8_t ECsm:1;
+   uint8_t ECrep:1;
+   uint8_t ECr4:4;
+   uint8_t EClatchEC:1;
+   uint8_t EClatchPDI:1;
 
-   uint8 PDIsm:1;
-   uint8 PDIrep:1;
-   uint8 PDIr5:6;
+   uint8_t PDIsm:1;
+   uint8_t PDIrep:1;
+   uint8_t PDIr5:6;
 #endif
 
 #if defined(EC_BIG_ENDIAN)
-   uint8 R1:1;
-   uint8 WTE:1;
-   uint8 IntPDI:1;
-   uint8 IntECAT:1;
-   uint8 Direction:2;
-   uint8 Mode:2;
+   uint8_t R1:1;
+   uint8_t WTE:1;
+   uint8_t IntPDI:1;
+   uint8_t IntECAT:1;
+   uint8_t Direction:2;
+   uint8_t Mode:2;
 
-   uint8 R3:2;
-   uint8 BUFstat:2;
-   uint8 MBXstat:1;
-   uint8 R2:1;
-   uint8 IntR:1;
-   uint8 IntW:1;
+   uint8_t R3:2;
+   uint8_t BUFstat:2;
+   uint8_t MBXstat:1;
+   uint8_t R2:1;
+   uint8_t IntR:1;
+   uint8_t IntW:1;
 
-   uint8 EClatchPDI:1;
-   uint8 EClatchEC:1;
-   uint8 ECr4:4;
-   uint8 ECrep:1;
-   uint8 ECsm:1;
+   uint8_t EClatchPDI:1;
+   uint8_t EClatchEC:1;
+   uint8_t ECr4:4;
+   uint8_t ECrep:1;
+   uint8_t ECsm:1;
 
-   uint8 PDIr5:6;
-   uint8 PDIrep:1;
-   uint8 PDIsm:1;
+   uint8_t PDIr5:6;
+   uint8_t PDIrep:1;
+   uint8_t PDIsm:1;
 #endif
 } _ESCsm;
 
 /* Attention! this struct is always little-endian */
-typedef struct PACKED
+typedef struct CC_PACKED
 {
-   uint16 PSA;
-   uint16 Length;
-   uint8 Command;
-   uint8 Status;
-   uint8 ActESC;
-   uint8 ActPDI;
+   uint16_t PSA;
+   uint16_t Length;
+   uint8_t Command;
+   uint8_t Status;
+   uint8_t ActESC;
+   uint8_t ActPDI;
 } _ESCsm2;
 
-typedef FLASHSTORE struct PACKED
+typedef struct CC_PACKED
 {
-   uint16 PSA;
-   uint16 Length;
-   uint8 Command;
+   uint16_t PSA;
+   uint16_t Length;
+   uint8_t Command;
 } _ESCsmCompact;
 
-typedef struct PACKED
+typedef struct CC_PACKED
 {
-   uint16 ALevent;
-   uint16 ALstatus;
-   uint16 ALcontrol;
-   uint16 ALerror;
-   uint16 DLstatus;
-   uint16 address;
-   uint8 mbxcnt;
-   uint8 mbxincnt;
-   uint8 mbxoutpost;
-   uint8 mbxbackup;
-   uint8 xoe;
-   uint8 txcue;
-   uint8 mbxfree;
-   uint8 segmented;
+   uint16_t ALevent;
+   uint16_t ALstatus;
+   uint16_t ALcontrol;
+   uint16_t ALerror;
+   uint16_t DLstatus;
+   uint16_t address;
+   uint8_t mbxcnt;
+   uint8_t mbxincnt;
+   uint8_t mbxoutpost;
+   uint8_t mbxbackup;
+   uint8_t xoe;
+   uint8_t txcue;
+   uint8_t mbxfree;
+   uint8_t segmented;
    void *data;
-   uint16 entries;
-   uint16 frags;
-   uint16 fragsleft;
+   uint16_t entries;
+   uint16_t frags;
+   uint16_t fragsleft;
 
 #if defined(EC_LITTLE_ENDIAN)
-   uint8 r1:1;
-   uint8 toggle:1;
-   uint8 r2:6;
+   uint8_t r1:1;
+   uint8_t toggle:1;
+   uint8_t r2:6;
 #endif
 
 #if defined(EC_BIG_ENDIAN)
-   uint8 r2:6;
-   uint8 toggle:1;
-   uint8 r1:1;
+   uint8_t r2:6;
+   uint8_t toggle:1;
+   uint8_t r1:1;
 #endif
 
-   uint8 SMtestresult;
-   int16 temp;
-   uint16 wdcnt;
-   uint32 PrevTime;
-   uint32 Time;
+   uint8_t SMtestresult;
+   int16_t temp;
+   uint16_t wdcnt;
+   uint32_t PrevTime;
+   uint32_t Time;
    _ESCsm SM[4];
 } _ESCvar;
 
-typedef struct PACKED
+typedef struct CC_PACKED
 {
-   uint16 length;
-   uint16 address;
+   uint16_t length;
+   uint16_t address;
 
 #if defined(EC_LITTLE_ENDIAN)
-   uint8 channel:6;
-   uint8 priority:2;
+   uint8_t channel:6;
+   uint8_t priority:2;
 
-   uint8 mbxtype:4;
-   uint8 mbxcnt:4;
+   uint8_t mbxtype:4;
+   uint8_t mbxcnt:4;
 #endif
 
 #if defined(EC_BIG_ENDIAN)
-   uint8 priority:2;
-   uint8 channel:6;
+   uint8_t priority:2;
+   uint8_t channel:6;
 
-   uint8 mbxcnt:4;
-   uint8 mbxtype:4;
+   uint8_t mbxcnt:4;
+   uint8_t mbxtype:4;
 #endif
 } _MBXh;
 
-typedef struct PACKED
+typedef struct CC_PACKED
 {
    _MBXh header;
-   uint8 b[MBXDSIZE];
+   uint8_t b[MBXDSIZE];
 } _MBX;
 
-typedef struct PACKED
+typedef struct CC_PACKED
 {
-   uint16 numberservice;
+   uint16_t numberservice;
 } _COEh;
 
-typedef struct PACKED
+typedef struct CC_PACKED
 {
 #if defined(EC_LITTLE_ENDIAN)
-   uint8 opcode:7;
-   uint8 incomplete:1;
+   uint8_t opcode:7;
+   uint8_t incomplete:1;
 #endif
 
 #if defined(EC_BIG_ENDIAN)
-   uint8 incomplete:1;
-   uint8 opcode:7;
+   uint8_t incomplete:1;
+   uint8_t opcode:7;
 #endif
 
-   uint8 reserved;
-   uint16 fragmentsleft;
+   uint8_t reserved;
+   uint16_t fragmentsleft;
 } _INFOh;
 
-typedef struct PACKED
+typedef struct CC_PACKED
 {
    _MBXh mbxheader;
-   uint16 type;
-   uint16 detail;
+   uint16_t type;
+   uint16_t detail;
 } _MBXerr;
 
-typedef struct PACKED
+typedef struct CC_PACKED
 {
    _MBXh mbxheader;
    _COEh coeheader;
-   uint8 command;
-   uint16 index;
-   uint8 subindex;
-   uint32 size;
+   uint8_t command;
+   uint16_t index;
+   uint8_t subindex;
+   uint32_t size;
 } _COEsdo;
 
-typedef struct PACKED
+typedef struct CC_PACKED
 {
    _MBXh mbxheader;
    _COEh coeheader;
    _INFOh infoheader;
-   uint16 index;
-   uint16 datatype;
-   uint8 maxsub;
-   uint8 objectcode;
+   uint16_t index;
+   uint16_t datatype;
+   uint8_t maxsub;
+   uint8_t objectcode;
    char name;
 } _COEobjdesc;
 
-typedef struct PACKED
+typedef struct CC_PACKED
 {
    _MBXh mbxheader;
    _COEh coeheader;
    _INFOh infoheader;
-   uint16 index;
-   uint8 subindex;
-   uint8 valueinfo;
-   uint16 datatype;
-   uint16 bitlength;
-   uint16 access;
+   uint16_t index;
+   uint8_t subindex;
+   uint8_t valueinfo;
+   uint16_t datatype;
+   uint16_t bitlength;
+   uint16_t access;
    char name;
 } _COEentdesc;
 
-typedef struct PACKED
+typedef struct CC_PACKED
 {
-   uint8 opcode;
-   uint8 reserved;
+   uint8_t opcode;
+   uint8_t reserved;
    union
    {
-      uint32 password;
-      uint32 packetnumber;
-      uint32 errorcode;
+      uint32_t password;
+      uint32_t packetnumber;
+      uint32_t errorcode;
    };
 } _FOEh;
 
 #define FOEHSIZE        (sizeof(_FOEh))
 #define FOE_DATA_SIZE   (MBXSIZEBOOT - (MBXHSIZE+FOEHSIZE))
 
-typedef struct PACKED
+typedef struct CC_PACKED
 {
    _MBXh mbxheader;
    _FOEh foeheader;
    union
    {
       char filename[FOE_DATA_SIZE];
-      uint8 data[FOE_DATA_SIZE];
+      uint8_t data[FOE_DATA_SIZE];
       char errortext[FOE_DATA_SIZE];
    };
 } _FOE;
@@ -489,44 +454,57 @@ typedef struct PACKED
  */
 typedef struct
 {
-   uint8 state;
+   uint8_t state;
 } _MBXcontrol;
 
 typedef struct esc_cfg
 {
-   void (*pre_state_change_hook) (uint8 * as, uint8 * an);
-   void (*post_state_change_hook) (uint8 * as, uint8 * an);
+   void (*pre_state_change_hook) (uint8_t * as, uint8_t * an);
+   void (*post_state_change_hook) (uint8_t * as, uint8_t * an);
 } esc_cfg_t;
 
 void ESC_config (esc_cfg_t * cfg);
-void ESC_ALerror (uint16 errornumber);
-void ESC_ALstatus (uint8 status);
-void ESC_SMstatus (uint8 n);
-uint8 ESC_WDstatus (void);
-uint8 ESC_claimbuffer (void);
-uint8 ESC_startmbx (uint8 state);
+void ESC_ALerror (uint16_t errornumber);
+void ESC_ALstatus (uint8_t status);
+void ESC_SMstatus (uint8_t n);
+uint8_t ESC_WDstatus (void);
+uint8_t ESC_claimbuffer (void);
+uint8_t ESC_startmbx (uint8_t state);
 void ESC_stopmbx (void);
-void MBX_error (uint16 error);
-uint8 ESC_mbxprocess (void);
+void MBX_error (uint16_t error);
+uint8_t ESC_mbxprocess (void);
 void ESC_xoeprocess (void);
-uint8 ESC_startinput (uint8 state);
+uint8_t ESC_startinput (uint8_t state);
 void ESC_stopinput (void);
-uint8 ESC_startoutput (uint8 state);
+uint8_t ESC_startoutput (uint8_t state);
 void ESC_stopoutput (void);
 void ESC_ALevent (void);
 void ESC_state (void);
 
 /* From hardware file */
-uint8 ESC_read (uint16 address, void *buf, uint16 len, void *tALevent);
-uint8 ESC_write (uint16 address, void *buf, uint16 len, void *tALevent);
-void ESC_init (void * arg);
+uint8_t ESC_read (uint16_t address, void *buf, uint16_t len, void *tALevent);
+uint8_t ESC_write (uint16_t address, void *buf, uint16_t len, void *tALevent);
+void ESC_init (const void * arg);
+void ESC_reset (void);
+
 /* From application */
 extern void APP_safeoutput ();
 
 extern volatile _ESCvar ESCvar;
 extern _MBX MBX[MBXBUFFERS];
 extern _MBXcontrol MBXcontrol[MBXBUFFERS];
-extern uint8 MBXrun;
-extern uint16 SM2_sml, SM3_sml;
+extern uint8_t MBXrun;
+extern uint16_t SM2_sml, SM3_sml;
+
+typedef struct
+{
+   uint8_t state;
+} _App;
+
+#define APPSTATE_IDLE      0x00
+#define APPSTATE_INPUT     0x01
+#define APPSTATE_OUTPUT    0x02
+
+extern _App App;
 
 #endif
