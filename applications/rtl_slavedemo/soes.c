@@ -1,9 +1,6 @@
 /*
  * SOES Simple Open EtherCAT Slave
  *
- * File    : soes.c
- * Version : 0.9.2
- * Date    : 22-02-2010
  * Copyright (C) 2007-2013 Arthur Ketels
  *
  * SOES is free software; you can redistribute it and/or modify it under
@@ -31,33 +28,19 @@
 
  /** \file
  * \brief
- * The application. 
+ * The application.
  *
  * The application, the main loop that service EtherCAT.
  */
- 
-#include <kern.h>
-#include <bsp.h>
 
+#include <kern.h>
 #include <flash_drv.h>
 
-#include <stdio.h>
+#include <esc.h>
+#include <esc_coe.h>
+#include <esc_foe.h>
 #include "utypes.h"
-#include "esc.h"
-#include "esc_coe.h"
-#include "esc_foe.h"
-#include "osal.h"
 #include "bootstrap.h"
-
-#define ESC_DEBUG
-
-#ifdef ESC_DEBUG
-#define DPRINT(...) OSAL_PRINT ("soes: "__VA_ARGS__)
-#define DEBUG_ASSERT(expression)    ASSERT(expression)
-#else
-#define DPRINT(...)
-#define DEBUG_ASSERT(expression)
-#endif  /* DEBUG */
 
 #define WD_RESET           1000
 #define DEFAULTTXPDOMAP    0x1a00
@@ -65,30 +48,26 @@
 #define DEFAULTTXPDOITEMS  1
 #define DEFAULTRXPDOITEMS  1
 
-#define GPIO_ECAT_RESET    1 /* specific function to hold ESC reset on startup
-                              * when emulating EEPROM
-                              */
-
-uint32            encoder_scale;
-uint32            encoder_scale_mirror;
+uint32_t            encoder_scale;
+uint32_t            encoder_scale_mirror;
 
 volatile _ESCvar  ESCvar;
 _MBX              MBX[MBXBUFFERS];
 _MBXcontrol       MBXcontrol[MBXBUFFERS];
-uint8             MBXrun=0;
-uint16            SM2_sml,SM3_sml;
+uint8_t           MBXrun=0;
+uint16_t          SM2_sml,SM3_sml;
 _Rbuffer          Rb;
 _Wbuffer          Wb;
 _Cbuffer          Cb;
 _App              App;
-uint16            TXPDOsize,RXPDOsize;
+uint16_t          TXPDOsize,RXPDOsize;
 int               wd_cnt = WD_RESET;
-volatile uint8    digoutput;
-volatile uint8    diginput;
-uint16            txpdomap = DEFAULTTXPDOMAP;
-uint16            rxpdomap = DEFAULTRXPDOMAP;
-uint8             txpdoitems = DEFAULTTXPDOITEMS;
-uint8             rxpdoitems = DEFAULTTXPDOITEMS;
+volatile uint8_t  digoutput;
+volatile uint8_t  diginput;
+uint16_t          txpdomap = DEFAULTTXPDOMAP;
+uint16_t          rxpdomap = DEFAULTRXPDOMAP;
+uint8_t           txpdoitems = DEFAULTTXPDOITEMS;
+uint8_t           rxpdoitems = DEFAULTTXPDOITEMS;
 
 
 extern uint32_t local_boot_state;
@@ -101,7 +80,7 @@ static const char *spi_name = "/spi0/et1100";
  * @param[in] index      = index of SDO download request to handle
  * @param[in] sub-index  = sub-index of SDO download request to handle
  */
-void ESC_objecthandler (uint16 index, uint8 subindex)
+void ESC_objecthandler (uint16_t index, uint8_t subindex)
 {
    switch (index)
    {
@@ -227,35 +206,10 @@ void DIG_process (void)
    }
 }
 
-void esc_reset (void)
-{
-   volatile int timeout;
-
-   DPRINT("esc_reset_started\n");
-
-   gpio_set (GPIO_ECAT_RESET,0); /* pin =0 */
-   gpio_configure_pin (GPIO_ECAT_RESET,MUX_GPIO,IRQC_DISABLED,MODE_OUTPUT);
-
-   task_delay (1000);
-
-   gpio_configure_pin (GPIO_ECAT_RESET,MUX_GPIO,IRQC_DISABLED,MODE_INPUT);
-   while(timeout<10000000)
-   {
-      /* ECAT releases resetpin */
-      if(gpio_get (GPIO_ECAT_RESET)!=0)
-      {
-         break; // OK
-      }
-      timeout++;
-      task_delay (30);
-   }
-   DPRINT("esc_reset_ended\n");
-}
-
 /** Optional: Hook called after state change for application specific
  * actions for specific state changes.
  */
-void post_state_change_hook (uint8 * as, uint8 * an)
+void post_state_change_hook (uint8_t * as, uint8_t * an)
 {
 
    /* Add specific step change hooks here */
@@ -289,8 +243,8 @@ void soes (void *arg)
    };
    ESC_config ((esc_cfg_t *)&config);
 
-   esc_reset ();
-   ESC_init ((void *)spi_name);
+   ESC_reset();
+   ESC_init (spi_name);
 
    task_delay (tick_from_ms (200));
 
@@ -377,4 +331,3 @@ void my_cyclic_callback (void * arg)
 
    }
 }
-

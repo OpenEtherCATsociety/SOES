@@ -1,43 +1,38 @@
-/******************************************************************************
- *                *          ***                    ***
- *              ***          ***                    ***
- * ***  ****  **********     ***        *****       ***  ****          *****
- * *********  **********     ***      *********     ************     *********
- * ****         ***          ***              ***   ***       ****   ***
- * ***          ***  ******  ***      ***********   ***        ****   *****
- * ***          ***  ******  ***    *************   ***        ****      *****
- * ***          ****         ****   ***       ***   ***       ****          ***
- * ***           *******      ***** **************  *************    *********
- * ***             *****        ***   *******   **  **  ******         *****
- *                           t h e  r e a l t i m e  t a r g e t  e x p e r t s
+/*
+ * SOES Simple Open EtherCAT Slave
  *
- * http://www.rt-labs.com
- * Copyright (C) 2012-2013. rt-labs AB, Sweden. All rights reserved.
- *------------------------------------------------------------------------------
- * $Id: bootstrap.c 522 2013-06-20 16:16:45Z rtlaka $
- *------------------------------------------------------------------------------
+ * Copyright (C) 2007-2015 Arthur Ketels
+ * Copyright (C) 2012-2015 rt-labs
+ *
+ * SOES is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU General Public License version 2 as published by the Free
+ * Software Foundation.
+ *
+ * SOES is distributed in the hope that it will be useful, but WITHOUT ANY
+ * WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+ * for more details.
+ *
+ * As a special exception, if other files instantiate templates or use macros
+ * or inline functions from this file, or you compile this file and link it
+ * with other works to produce a work based on this file, this file does not
+ * by itself cause the resulting work to be covered by the GNU General Public
+ * License. However the source code for this file must still be made available
+ * in accordance with section (3) of the GNU General Public License.
+ *
+ * This exception does not invalidate any other reasons why a work based on
+ * this file might be covered by the GNU General Public License.
+ *
+ * The EtherCAT Technology, the trade name and logo "EtherCAT" are the intellectual
+ * property of, and protected by Beckhoff Automation GmbH.
  */
 
 #include <kern.h>
 #include <bsp.h>
-//#include <twrk60.h>
 #include <flash_drv.h>
 
-#include "utypes.h"
-#include "esc.h"
-#include "esc_foe.h"
-#include "osal.h"
+#include <esc_foe.h>
 #include "bootstrap.h"
-
-#define ESC_DEBUG
-
-#ifdef ESC_DEBUG
-#define DPRINT(...) OSAL_PRINT ("bootstrap: "__VA_ARGS__)
-#define DEBUG_ASSERT(expression)    ASSERT(expression)
-#else
-#define DPRINT(...)
-#define DEBUG_ASSERT(expression)
-#endif  /* DEBUG */
 
 uint32_t local_boot_state        = BOOT_IDLE;
 static uint32_t boot_started     = 0;
@@ -75,10 +70,10 @@ void boot_inithook (void)
    }
 }
 
-uint32 flash_foe_buffer (foe_writefile_cfg_t * self, uint8 * data)
+uint32_t flash_foe_buffer (foe_writefile_cfg_t * self, uint8_t * data)
 {
-   uint32 flash_cmd_failed = 0;
-   uint32 calculated_address = self->dest_start_address + self->address_offset;
+   uint32_t flash_cmd_failed = 0;
+   uint32_t calculated_address = self->dest_start_address + self->address_offset;
 
    /* This part is Cortex M4 Kinetis specific therefore placed in Hooks*/
    /* Erase every new sector we enter by looking at modulo sector size */
@@ -142,11 +137,11 @@ void bootstrap_foe_init  (void)
       },
    };
 
-   static uint8 fbuf[FLASH_WRITE_BLOCK_SIZE];
+   static uint8_t fbuf[FLASH_WRITE_BLOCK_SIZE];
    static foe_cfg_t config =
    {
       .buffer_size = FLASH_WRITE_BLOCK_SIZE,  /* Buffer size before we flush to destination */
-      .fbuffer     = (uint8 *)&fbuf,
+      .fbuffer     = (uint8_t *)&fbuf,
       .empty_write = 0xFF,
       .n_files     = NELEMENTS (files),
       .files       = files
@@ -206,5 +201,3 @@ void bootstrap_state (void)
          break;
    }
 }
-
-
