@@ -38,7 +38,7 @@
  * registers and memory.
  */
 
-#include "../../../esc.h"
+#include "../../esc.h"
 #include <spi/spi.h>
 #include <string.h>
 #include <gpio.h>
