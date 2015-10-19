@@ -38,6 +38,7 @@
  * registers and memory.
  */
 
+#include "utypes.h"
 #include "../../esc.h"
 #include <spi/spi.h>
 #include <string.h>
@@ -51,7 +52,7 @@
 #define ESC_NEXT        0x00
 
 static int et1100 = -1;
-static uint8_t read_termination[128] = { 0 };
+static uint8_t read_termination[MAX(sizeof(Wb), 128)] = { 0 };
 
 #define GPIO_ECAT_RESET    1 /* specific function to hold ESC reset on startup
                               * when emulating EEPROM
@@ -84,6 +85,8 @@ static void esc_address (uint16_t address, uint8_t command, uint16_t * al_event)
  */
 uint8_t ESC_read (uint16_t address, void *buf, uint16_t len, void *tALevent)
 {
+   ASSERT(len <= sizeof(read_termination));
+
    /* Select device. */
    spi_select (et1100);
 
@@ -94,8 +97,8 @@ uint8_t ESC_read (uint16_t address, void *buf, uint16_t len, void *tALevent)
     * all bytes except the last one where we want to pull it high (0xFF).
     * Read (and write termination bytes).
     */
-   spi_bidirectionally_transfer (et1100, buf, read_termination + (128 - len),
-                                 len);
+   spi_bidirectionally_transfer (et1100, buf, read_termination +
+                                 (sizeof(read_termination) - len), len);
 
    /* Un-select device. */
    spi_unselect (et1100);
@@ -154,5 +157,5 @@ void ESC_init (const void * arg)
 {
    const char * spi_name = (char *)arg;
    et1100 = open (spi_name, O_RDWR, 0);
-   read_termination[127] = 0xFF;
+   read_termination[sizeof(read_termination) - 1] = 0xFF;
 }
