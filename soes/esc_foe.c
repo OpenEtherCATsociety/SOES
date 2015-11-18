@@ -251,7 +251,7 @@ void FOE_abort (uint32_t code)
       }
       /* Nothing we can do if we can't get an outbound mailbox. */
    }
-   DPRINT("FOE_abort\n");
+   DPRINT("FOE_abort: 0x%X\n", code);
    FOE_init ();
 }
 
@@ -475,7 +475,7 @@ void FOE_data ()
 
    if (packet != FOEvar.foepacket)
    {
-      DPRINT("FOE_data packet error,packet: %d foeheaader.packet: %d\n",packet,FOEvar.foepacket);
+      DPRINT("FOE_data packet error,packet: %d foeheader.packet: %d\n",packet,FOEvar.foepacket);
       FOE_abort (FOE_ERR_PACKETNO);
    }
    else if (data_len == 0)
@@ -603,10 +603,6 @@ void ESC_foeprocess (void)
       if (etohs (foembx->mbxheader.length) < FOEHSIZE)
       {
          FOE_abort (MBXERR_SIZETOOSHORT);
-      }
-      else if (ESCvar.ALstatus != ESCboot)
-      {
-         FOE_abort (FOE_ERR_BOOTSTRAPONLY);
       }
       else
       {
