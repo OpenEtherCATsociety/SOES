@@ -481,6 +481,7 @@ void FOE_data ()
    else if (data_len == 0)
    {
       DPRINT("FOE_data completed\n");
+      FOE_fclose ();
       res = FOE_send_ack ();
       FOE_init ();
    }
