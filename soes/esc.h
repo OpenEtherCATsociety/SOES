@@ -161,6 +161,7 @@
 #define COE_VALUEINFO_DEFAULT           0x10
 #define COE_VALUEINFO_MINIMUM           0x20
 #define COE_VALUEINFO_MAXIMUM           0x40
+#define COE_MINIMUM_LENGTH              8
 
 #define MBXHSIZE                       sizeof(_MBXh)
 #define MBXDSIZE                       MBXSIZE-MBXHSIZE

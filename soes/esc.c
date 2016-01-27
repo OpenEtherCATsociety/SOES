@@ -572,16 +572,9 @@ uint8_t ESC_mbxprocess (void)
    {
       ESC_readmbx ();
       ESCvar.SM[0].MBXstat = 0;
-      if (etohs (MB->header.length) < 6)
+      if (etohs (MB->header.length) == 0)
       {
-         if (etohs (MB->header.length) == 0)
-         {
-            MBX_error (MBXERR_INVALIDHEADER);
-         }
-         else
-         {
-            MBX_error (MBXERR_SIZETOOSHORT);
-         }
+         MBX_error (MBXERR_INVALIDHEADER);
          /* drop mailbox */
          MBXcontrol[0].state = MBXstate_idle;
       }
@@ -843,7 +836,6 @@ void ESC_state (void)
    switch (as)
    {
       case INIT_TO_INIT:
-      case BOOT_TO_BOOT:
       case PREOP_TO_PREOP:
       case OP_TO_OP:
       {
@@ -857,6 +849,7 @@ void ESC_state (void)
          break;
       }
       case INIT_TO_BOOT:
+      case BOOT_TO_BOOT:
       {
          /* get station address */
          ESC_address ();

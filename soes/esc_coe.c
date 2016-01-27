@@ -90,6 +90,7 @@ uint16_t sizeTXPDO (void)
          if (SDO1C13[sic].data)
          {
             hobj = *((uint16_t *) SDO1C13[sic].data);
+            hobj = htoes(hobj);
          }
          else
          {
@@ -136,6 +137,7 @@ uint16_t sizeRXPDO (void)
          if (SDO1C12[sic].data)
          {
             hobj = *((uint16_t *) SDO1C12[sic].data);
+            hobj = htoes(hobj);
          }
          else
          {
@@ -440,15 +442,15 @@ void SDO_download (void)
             else
             {
                /* normal upload */
-               size = (etohs (coesdo->size) & 0xffff);
+               size = (etohl (coesdo->size) & 0xffff);
                mbxdata = (&(coesdo->size)) + 1;
             }
             actsize = ((objd + nsub)->bitlength + 7) >> 3;
             if (actsize == size)
             {
-               copy2mbx (mbxdata, (objd + nsub)->data, size);
                if (ESC_pre_objecthandler (index, subindex))
                {
+                  copy2mbx (mbxdata, (objd + nsub)->data, size);
                   MBXout = ESC_claimbuffer ();
                   if (MBXout)
                   {
@@ -463,9 +465,9 @@ void SDO_download (void)
                      coeres->size = htoel (0);
                      MBXcontrol[MBXout].state = MBXstate_outreq;
                   }
+                 /* external object write handler */
+                 ESC_objecthandler (index, subindex);
                }
-               /* external object write handler */
-               ESC_objecthandler (index, subindex);
             }
             else
             {
@@ -818,12 +820,14 @@ void ESC_coeprocess (void)
       mbh = (_MBXh *) &MBX[0];
       if (mbh->mbxtype == MBXCOE)
       {
-         if (mbh->length < 8)
+         if (etohs (mbh->length) < COE_MINIMUM_LENGTH)
          {
             MBX_error (MBXERR_INVALIDSIZE);
          }
          else
+         {
             ESCvar.xoe = MBXCOE;
+         }
       }
    }
    if ((ESCvar.xoe == (MBXCOE + MBXODL)) && (!ESCvar.mbxoutpost))
