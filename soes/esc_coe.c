@@ -70,8 +70,7 @@ int32_t SDO_findobject (uint16_t index)
  */
 uint16_t sizeTXPDO (void)
 {
-   uint8_t c, l, si, sic;
-   uint16_t size = 0, hobj;
+   uint16_t size = 0, hobj, l, si, c, sic;
    int16_t nidx;
    const _objd *objd;
 
@@ -118,8 +117,7 @@ uint16_t sizeTXPDO (void)
  */
 uint16_t sizeRXPDO (void)
 {
-   uint8_t c, l, si, sic;
-   uint16_t size = 0, hobj;
+   uint16_t size = 0, hobj, c, l, si, sic;
    int16_t nidx;
    const _objd *objd;
 
