@@ -7,6 +7,8 @@ add_library (soes
   esc_coe.h
   esc_foe.c
   esc_foe.h
+  esc_eep.c
+  esc_eep.h
   ${HAL_SOURCES}
   )
 
@@ -17,4 +19,5 @@ install (FILES
   esc.h
   esc_coe.h
   esc_foe.h
+  esc_eep.h
   DESTINATION include)
