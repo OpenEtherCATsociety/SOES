@@ -81,9 +81,8 @@ static void esc_address (uint16_t address, uint8_t command)
  * @param[in]   address     = address of ESC register to read
  * @param[out]  buf         = pointer to buffer to read in
  * @param[in]   len         = number of bytes to read
- * @return 0 as default, the stack don't rely on any result
  */
-uint8_t ESC_read (uint16_t address, void *buf, uint16_t len)
+void ESC_read (uint16_t address, void *buf, uint16_t len)
 {
    ASSERT(len <= sizeof(read_termination));
 
@@ -111,9 +110,8 @@ uint8_t ESC_read (uint16_t address, void *buf, uint16_t len)
  * @param[in]   address     = address of ESC register to write
  * @param[out]  buf         = pointer to buffer to write from
  * @param[in]   len         = number of bytes to write
- * @return 0 as default, the stack don't rely on any result
  */
-uint8_t ESC_write (uint16_t address, void *buf, uint16_t len)
+void ESC_write (uint16_t address, void *buf, uint16_t len)
 {
    /* Select device. */
    spi_select (et1100);
