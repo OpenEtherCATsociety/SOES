@@ -479,12 +479,11 @@ uint8_t ESC_startinput (uint8_t state);
 void ESC_stopinput (void);
 uint8_t ESC_startoutput (uint8_t state);
 void ESC_stopoutput (void);
-void ESC_ALevent (void);
 void ESC_state (void);
 
 /* From hardware file */
-uint8_t ESC_read (uint16_t address, void *buf, uint16_t len, void *tALevent);
-uint8_t ESC_write (uint16_t address, void *buf, uint16_t len, void *tALevent);
+void ESC_read (uint16_t address, void *buf, uint16_t len);
+void ESC_write (uint16_t address, void *buf, uint16_t len);
 void ESC_init (const void * arg);
 void ESC_reset (void);
 

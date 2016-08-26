@@ -152,13 +152,13 @@ void APP_safeoutput (void)
  */
 void TXPDO_update (void)
 {
-   ESC_write (SM3_sma, &Rb.button, TXPDOsize, (void *) &ESCvar.ALevent);
+   ESC_write (SM3_sma, &Rb.button, TXPDOsize);
 }
 /** Mandatory: Read Sync Manager 2 to local process data, Master Outputs.
  */
 void RXPDO_update (void)
 {
-   ESC_read (SM2_sma, &Wb.LED, RXPDOsize, (void *) &ESCvar.ALevent);
+   ESC_read (SM2_sma, &Wb.LED, RXPDOsize);
 }
 
 /** Mandatory: Function to update local I/O, call read ethercat outputs, call
@@ -252,7 +252,7 @@ void soes (void *arg)
    while ((ESCvar.DLstatus & 0x0001) == 0)
    {
       ESC_read (ESCREG_DLSTATUS, (void *) &ESCvar.DLstatus,
-                sizeof (ESCvar.DLstatus), (void *) &ESCvar.ALevent);
+                sizeof (ESCvar.DLstatus));
       ESCvar.DLstatus = etohs (ESCvar.DLstatus);
    }
 
@@ -281,8 +281,7 @@ void soes (void *arg)
          rxpdoitems = DEFAULTTXPDOITEMS;
       }
       /* Read local time from ESC*/
-      ESC_read (ESCREG_LOCALTIME, (void *) &ESCvar.Time, sizeof (ESCvar.Time),
-                (void *) &ESCvar.ALevent);
+      ESC_read (ESCREG_LOCALTIME, (void *) &ESCvar.Time, sizeof (ESCvar.Time));
       ESCvar.Time = etohl (ESCvar.Time);
 
       /* Check the state machine */

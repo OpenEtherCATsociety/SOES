@@ -50,7 +50,7 @@ void ESC_ALerror (uint16_t errornumber)
    uint16_t dummy;
    ESCvar.ALerror = errornumber;
    dummy = htoes (errornumber);
-   ESC_write (ESCREG_ALERROR, &dummy, sizeof (dummy), (void *) &ESCvar.ALevent);
+   ESC_write (ESCREG_ALERROR, &dummy, sizeof (dummy));
 }
 /** Write AL Status to the ESC.
  *
@@ -62,8 +62,7 @@ void ESC_ALstatus (uint8_t status)
    uint16_t dummy;
    ESCvar.ALstatus = status;
    dummy = htoes ((uint16_t) status);
-   ESC_write (ESCREG_ALSTATUS, &dummy, sizeof (dummy),
-              (void *) &ESCvar.ALevent);
+   ESC_write (ESCREG_ALSTATUS, &dummy, sizeof (dummy));
 }
 
 /** Read SM Status register 0x805(+ offset to SyncManager n) to acknowledge a
@@ -74,7 +73,7 @@ void ESC_ALstatus (uint8_t status)
 void ESC_SMack (uint8_t n)
 {
    uint16_t dummy;
-   ESC_read (ESCREG_SM0STATUS + (n << 3), &dummy, 2, (void *) &ESCvar.ALevent);
+   ESC_read (ESCREG_SM0STATUS + (n << 3), &dummy, 2);
 }
 
 /** Read SM Status register 0x805(+ offset to SyncManager n) and save the
@@ -87,7 +86,7 @@ void ESC_SMstatus (uint8_t n)
    _ESCsm2 *sm;
    uint16_t temp;
    sm = (_ESCsm2 *) & ESCvar.SM[n];
-   ESC_read (ESCREG_SM0STATUS + (n << 3), &temp, 2, (void *) &ESCvar.ALevent);
+   ESC_read (ESCREG_SM0STATUS + (n << 3), &temp, 2);
 #if defined(EC_LITTLE_ENDIAN)
    sm->ActESC = temp >> 8;
    sm->Status = temp;
@@ -107,8 +106,7 @@ void ESC_SMwritepdi (uint8_t n)
 {
    _ESCsm2 *sm;
    sm = (_ESCsm2 *) & ESCvar.SM[n];
-   ESC_write (ESCREG_SM0PDI + (n << 3), &(sm->ActPDI), 1,
-              (void *) &ESCvar.ALevent);
+   ESC_write (ESCREG_SM0PDI + (n << 3), &(sm->ActPDI), 1);
 }
 
 /** Write 0 to Bit0 in SM PDI control register 0x807(+ offset to SyncManager n) to Activate the Sync Manager n.
@@ -138,8 +136,7 @@ void ESC_SMdisable (uint8_t n)
  */
 void ESC_address (void)
 {
-   ESC_read (ESCREG_ADDRESS, (void *) &ESCvar.address, sizeof (ESCvar.address),
-             (void *) &ESCvar.ALevent);
+   ESC_read (ESCREG_ADDRESS, (void *) &ESCvar.address, sizeof (ESCvar.address));
    ESCvar.address = etohs (ESCvar.address);
 }
 
@@ -150,7 +147,7 @@ void ESC_address (void)
 uint8_t ESC_WDstatus (void)
 {
    uint16_t wdstatus;
-   ESC_read (ESCREG_WDSTATUS, &wdstatus, 2, (void *) &ESCvar.ALevent);
+   ESC_read (ESCREG_WDSTATUS, &wdstatus, 2);
    wdstatus = etohs (wdstatus);
    return (uint8_t) wdstatus;
 }
@@ -167,10 +164,8 @@ uint8_t ESC_WDstatus (void)
 uint8_t ESC_checkmbx (uint8_t state)
 {
    _ESCsm2 *SM;
-   ESC_read (ESCREG_SM0, (void *) &ESCvar.SM[0], sizeof (ESCvar.SM[0]),
-             (void *) &ESCvar.ALevent);
-   ESC_read (ESCREG_SM1, (void *) &ESCvar.SM[1], sizeof (ESCvar.SM[1]),
-             (void *) &ESCvar.ALevent);
+   ESC_read (ESCREG_SM0, (void *) &ESCvar.SM[0], sizeof (ESCvar.SM[0]));
+   ESC_read (ESCREG_SM1, (void *) &ESCvar.SM[1], sizeof (ESCvar.SM[1]));
    SM = (_ESCsm2 *) & ESCvar.SM[0];
    if ((etohs (SM->PSA) != MBX0_sma) || (etohs (SM->Length) != MBX0_sml)
        || (SM->Command != MBX0_smc) || (ESCvar.SM[0].ECsm == 0))
@@ -230,10 +225,8 @@ uint8_t ESC_startmbx (uint8_t state)
 uint8_t ESC_checkmbxboot (uint8_t state)
 {
    _ESCsm2 *SM;
-   ESC_read (ESCREG_SM0, (void *) &ESCvar.SM[0], sizeof (ESCvar.SM[0]),
-             (void *) &ESCvar.ALevent);
-   ESC_read (ESCREG_SM1, (void *) &ESCvar.SM[1], sizeof (ESCvar.SM[1]),
-             (void *) &ESCvar.ALevent);
+   ESC_read (ESCREG_SM0, (void *) &ESCvar.SM[0], sizeof (ESCvar.SM[0]));
+   ESC_read (ESCREG_SM1, (void *) &ESCvar.SM[1], sizeof (ESCvar.SM[1]));
    SM = (_ESCsm2 *) & ESCvar.SM[0];
    if ((etohs (SM->PSA) != MBX0_sma_b) || (etohs (SM->Length) != MBX0_sml_b)
        || (SM->Command != MBX0_smc_b) || (ESCvar.SM[0].ECsm == 0))
@@ -319,34 +312,32 @@ void ESC_readmbx (void)
 
    if (ESCvar.ALstatus == ESCboot)
    {
-      ESC_read (MBX0_sma_b, MB, MBXHSIZE, (void *) &ESCvar.ALevent);
+      ESC_read (MBX0_sma_b, MB, MBXHSIZE);
       length = etohs (MB->header.length);
 
       if (length > (MBX0_sml_b - MBXHSIZE))
       {
          length = MBX0_sml_b - MBXHSIZE;
       }
-      ESC_read (MBX0_sma_b + MBXHSIZE, &(MB->b[0]), length,
-                (void *) &ESCvar.ALevent);
+      ESC_read (MBX0_sma_b + MBXHSIZE, &(MB->b[0]), length);
       if (length + MBXHSIZE < MBX0_sml_b)
       {
-         ESC_read (MBX0_sme_b, &length, 1, (void *) &ESCvar.ALevent);
+         ESC_read (MBX0_sme_b, &length, 1);
       }
    }
    else
    {
-      ESC_read (MBX0_sma, MB, MBXHSIZE, (void *) &ESCvar.ALevent);
+      ESC_read (MBX0_sma, MB, MBXHSIZE);
       length = etohs (MB->header.length);
 
       if (length > (MBX0_sml - MBXHSIZE))
       {
          length = MBX0_sml - MBXHSIZE;
       }
-      ESC_read (MBX0_sma + MBXHSIZE, &(MB->b[0]), length,
-                (void *) &ESCvar.ALevent);
+      ESC_read (MBX0_sma + MBXHSIZE, &(MB->b[0]), length);
       if (length + MBXHSIZE < MBX0_sml)
       {
-         ESC_read (MBX0_sme, &length, 1, (void *) &ESCvar.ALevent);
+         ESC_read (MBX0_sme, &length, 1);
       }
    }
    MBXcontrol[0].state = MBXstate_inclaim;
@@ -369,10 +360,10 @@ void ESC_writembx (uint8_t n)
       {
          length = MBX1_sml_b - MBXHSIZE;
       }
-      ESC_write (MBX1_sma_b, MB, MBXHSIZE + length, (void *) &ESCvar.ALevent);
+      ESC_write (MBX1_sma_b, MB, MBXHSIZE + length);
       if (length + MBXHSIZE < MBX1_sml_b)
       {
-         ESC_write (MBX1_sme_b, &dummy, 1, (void *) &ESCvar.ALevent);
+         ESC_write (MBX1_sme_b, &dummy, 1);
       }
    }
    else
@@ -381,10 +372,10 @@ void ESC_writembx (uint8_t n)
       {
          length = MBX1_sml - MBXHSIZE;
       }
-      ESC_write (MBX1_sma, MB, MBXHSIZE + length, (void *) &ESCvar.ALevent);
+      ESC_write (MBX1_sma, MB, MBXHSIZE + length);
       if (length + MBXHSIZE < MBX1_sml)
       {
-         ESC_write (MBX1_sme, &dummy, 1, (void *) &ESCvar.ALevent);
+         ESC_write (MBX1_sme, &dummy, 1);
       }
    }
    ESCvar.mbxfree = 0;
@@ -397,11 +388,11 @@ void ESC_ackmbxread (void)
    uint8_t dummy = 0;
    if (ESCvar.ALstatus == ESCboot)
    {
-      ESC_write (MBX1_sma_b, &dummy, 1, (void *) &ESCvar.ALevent);
+      ESC_write (MBX1_sma_b, &dummy, 1);
    }
    else
    {
-      ESC_write (MBX1_sma, &dummy, 1, (void *) &ESCvar.ALevent);
+      ESC_write (MBX1_sma, &dummy, 1);
    }
    ESCvar.mbxfree = 1;
 }
@@ -633,10 +624,8 @@ void ESC_xoeprocess (void)
 uint8_t ESC_checkSM23 (uint8_t state)
 {
    _ESCsm2 *SM;
-   ESC_read (ESCREG_SM2, (void *) &ESCvar.SM[2], sizeof (ESCvar.SM[2]),
-             (void *) &ESCvar.ALevent);
-   ESC_read (ESCREG_SM3, (void *) &ESCvar.SM[3], sizeof (ESCvar.SM[3]),
-             (void *) &ESCvar.ALevent);
+   ESC_read (ESCREG_SM2, (void *) &ESCvar.SM[2], sizeof (ESCvar.SM[2]));
+   ESC_read (ESCREG_SM3, (void *) &ESCvar.SM[3], sizeof (ESCvar.SM[3]));
    SM = (_ESCsm2 *) & ESCvar.SM[2];
    if ((etohs (SM->PSA) != SM2_sma) || (etohs (SM->Length) != SM2_sml)
        || (SM->Command != SM2_smc) || !(SM->ActESC & SM2_act))
@@ -737,7 +726,7 @@ void ESC_state (void)
    if (ESCvar.ALevent & ESCREG_ALEVENT_CONTROL)
    {
       ESC_read (ESCREG_ALCONTROL, (void *) &ESCvar.ALcontrol,
-                sizeof (ESCvar.ALcontrol), (void *) &ESCvar.ALevent);
+                sizeof (ESCvar.ALcontrol));
       ESCvar.ALcontrol = etohs (ESCvar.ALcontrol);
    }
    /* Have at least on Sync Manager  changed */
