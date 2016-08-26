@@ -6,32 +6,35 @@ VARIANT = F100x256
 
 EC_SII = sii_eeprom.bin
 
+XMC_LIB = ./XMC_Peripheral_Library
+SOES_DIR = ../../soes
+
+
 SRC = \
 	main.c \
 	objectlist.c \
 	soes.c \
-	../../soes/esc.c \
-	../../soes/esc_coe.c \
-	../../soes/esc_eep.c \
-	../../soes/hal/xmc4/esc_hw.c \
-	../../soes/hal/xmc4/esc_hw_eep.c \
-	Libraries/XMCLib/src/xmc_gpio.c \
-	Libraries/XMCLib/src/xmc4_gpio.c \
-	Libraries/XMCLib/src/xmc4_scu.c \
-	Libraries/XMCLib/src/xmc_ecat.c \
-	Libraries/XMCLib/src/xmc4_flash.c \
-	Libraries/XMCLib/src/xmc_fce.c \
-	Libraries/Newlib/syscalls.c \
-	Startup/system_$(DEVICE).c \
+	$(SOES_DIR)/esc.c \
+	$(SOES_DIR)/esc_coe.c \
+	$(SOES_DIR)/esc_eep.c \
+	$(SOES_DIR)/hal/xmc4/esc_hw.c \
+	$(SOES_DIR)/hal/xmc4/esc_hw_eep.c \
+	$(XMC_LIB)/XMCLib/src/xmc_gpio.c \
+	$(XMC_LIB)/XMCLib/src/xmc4_gpio.c \
+	$(XMC_LIB)/XMCLib/src/xmc4_scu.c \
+	$(XMC_LIB)/XMCLib/src/xmc_ecat.c \
+	$(XMC_LIB)/XMCLib/src/xmc4_flash.c \
+	$(XMC_LIB)/XMCLib/src/xmc_fce.c \
+	$(XMC_LIB)/Newlib/syscalls.c \
+	$(XMC_LIB)/CMSIS/Infineon/XMC4300_series/Source/system_XMC4300.c \
 
 ASRC = \
-	Startup/startup_$(DEVICE).S \
+	$(XMC_LIB)/CMSIS/Infineon/XMC4300_series/Source/GCC/startup_XMC4300.S \
 
 BINS = \
 	$(EC_SII)\
 
-
-LINKER_SCRIPT = ./linker_script.ld
+LINKER_SCRIPT = $(XMC_LIB)/CMSIS/Infineon/XMC4300_series/Source/GCC/XMC4300x256.ld
 
 # JLink options
 JLINK_SPEED = 1000
@@ -49,14 +52,13 @@ DEP = $(ASRC:.S=.d) $(SRC:.c=.d)
 CPPFLAGS = -D$(DEVICE)_$(VARIANT)
 CPPFLAGS += -MMD -MP -MF $(@:.o=.d) -MT $(@)
 
-CPPFLAGS += -I./Libraries/XMCLib/inc
-CPPFLAGS += -I./Libraries/CMSIS/Include
-CPPFLAGS += -I./Libraries/CMSIS/Infineon/$(DEVICE)_series/Include
+CPPFLAGS += -I./$(XMC_LIB)/XMCLib/inc
+CPPFLAGS += -I./$(XMC_LIB)/CMSIS/Include
+CPPFLAGS += -I./$(XMC_LIB)/CMSIS/Infineon/$(DEVICE)_series/Include
 CPPFLAGS += -I.
-CPPFLAGS += -I./Libraries
-CPPFLAGS += -I../../soes
-CPPFLAGS += -I../../soes/hal/xmc4
-CPPFLAGS += -I../../soes/include/sys/gcc
+CPPFLAGS += -I$(SOES_DIR)
+CPPFLAGS += -I$(SOES_DIR)/hal/xmc4
+CPPFLAGS += -I$(SOES_DIR)/include/sys/gcc
 
 ARCHFLAGS = -mfloat-abi=softfp -mcpu=cortex-m4 -mfpu=fpv4-sp-d16 -mthumb
 
