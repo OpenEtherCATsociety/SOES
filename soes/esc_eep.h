@@ -59,33 +59,18 @@ typedef struct CC_PACKED
    union {
      uint16_t reg;
      struct {
-#if defined(EC_LITTLE_ENDIAN)
-   uint8_t wrEnable:1;
-   uint8_t reserved:4;
-   uint8_t eeEmulated:1;
-   uint8_t eightByteRead:1;
-   uint8_t twoByteAddr:1;
-   uint8_t cmdReg:3;
-   uint8_t csumErr:1;
-   uint8_t eeLoading:1;
-   uint8_t ackErr:1;
-   uint8_t wrErr:1;
-   uint8_t busy:1;
-#endif
+        uint8_t wrEnable:1;
+        uint8_t reserved:4;
+        uint8_t eeEmulated:1;
+        uint8_t eightByteRead:1;
+        uint8_t twoByteAddr:1;
 
-#if defined(EC_BIG_ENDIAN)
-   uint8_t busy:1;
-   uint8_t wrErr:1;
-   uint8_t ackErr:1;
-   uint8_t eeLoading:1;
-   uint8_t csumErr:1;
-   uint8_t cmdReg:3;
-   uint8_t twoByteAddr:1;
-   uint8_t eightByteRead:1;
-   uint8_t eeEmulated:1;
-   uint8_t reserved:4;
-   uint8_t wrEnable:1;
-#endif
+        uint8_t cmdReg:3;
+        uint8_t csumErr:1;
+        uint8_t eeLoading:1;
+        uint8_t ackErr:1;
+        uint8_t wrErr:1;
+        uint8_t busy:1;
       } bits;
    } contstat;
 
