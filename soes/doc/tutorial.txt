@@ -84,7 +84,7 @@ void soes (void *arg)
    while ((ESCvar.DLstatus & 0x0001) == 0)
    {
       ESC_read (ESCREG_DLSTATUS, (void *) &ESCvar.DLstatus,
-                sizeof (ESCvar.DLstatus), (void *) &ESCvar.ALevent);
+                sizeof (ESCvar.DLstatus));
       ESCvar.DLstatus = etohs (ESCvar.DLstatus);
    }
 
@@ -109,7 +109,7 @@ void soes (void *arg)
    while ((ESCvar.DLstatus & 0x0001) == 0)
    {
       ESC_read (ESCREG_DLSTATUS, (void *) &ESCvar.DLstatus,
-                sizeof (ESCvar.DLstatus), (void *) &ESCvar.ALevent);
+                sizeof (ESCvar.DLstatus));
       ESCvar.DLstatus = etohs (ESCvar.DLstatus);
    }
 
@@ -155,11 +155,8 @@ void soes (void *arg)
          txpdoitems = DEFAULTTXPDOITEMS;
          rxpdoitems = DEFAULTTXPDOITEMS;
       }
-      ESC_read (ESCREG_LOCALTIME, (void *) &ESCvar.Time, sizeof (ESCvar.Time),
-                (void *) &ESCvar.ALevent);
+      ESC_read (ESCREG_LOCALTIME, (void *) &ESCvar.Time, sizeof (ESCvar.Time));
       ESCvar.Time = etohl (ESCvar.Time);
-
-      ESC_ALevent();
 
       ESC_state ();
       if (ESC_mbxprocess ())
@@ -196,7 +193,7 @@ The example code can be split in 2 parts
 
 void RXPDO_update (void)
 {
-   ESC_read (SM2_sma, &Wb.LED, RXPDOsize, (void *) &ESCvar.ALevent);
+   ESC_read (SM2_sma, &Wb.LED, RXPDOsize);
 }
 
 void DIG_process (void)
@@ -243,7 +240,7 @@ void DIG_process (void)
   
 void TXPDO_update (void)
 {
-   ESC_write (SM3_sma, &Rb.button, TXPDOsize, (void *) &ESCvar.ALevent);
+   ESC_write (SM3_sma, &Rb.button, TXPDOsize);
 }
 
 void DIG_process (void)

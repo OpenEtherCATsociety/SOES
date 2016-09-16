@@ -58,7 +58,7 @@ static uint8_t read_termination[MAX(sizeof(Wb), 128)] = { 0 };
                               * when emulating EEPROM
                               */
 
-static void esc_address (uint16_t address, uint8_t command, uint16_t * al_event)
+static void esc_address (uint16_t address, uint8_t command)
 {
    /* Device is selected already.
     * We use 2 bytes addressing.
@@ -71,8 +71,9 @@ static void esc_address (uint16_t address, uint8_t command, uint16_t * al_event)
    data[1] = ((address & 0x1F) << 3) | command;
 
    /* Write (and read AL interrupt register) */
-   spi_bidirectionally_transfer (et1100, (uint8_t *) al_event, data,
-                                 sizeof (data));
+   spi_bidirectionally_transfer (et1100, (uint8_t *) &ESCvar.ALevent,
+                                 data, sizeof (data));
+   ESCvar.ALevent = etohs (ESCvar.ALevent);
 }
 
 /** ESC read function used by the Slave stack.
@@ -80,10 +81,8 @@ static void esc_address (uint16_t address, uint8_t command, uint16_t * al_event)
  * @param[in]   address     = address of ESC register to read
  * @param[out]  buf         = pointer to buffer to read in
  * @param[in]   len         = number of bytes to read
- * @param[out]  tALevent    = on every read we refresh the AL event register
- * @return 0 as default, the stack don't rely on any result
  */
-uint8_t ESC_read (uint16_t address, void *buf, uint16_t len, void *tALevent)
+void ESC_read (uint16_t address, void *buf, uint16_t len)
 {
    ASSERT(len <= sizeof(read_termination));
 
@@ -91,7 +90,7 @@ uint8_t ESC_read (uint16_t address, void *buf, uint16_t len, void *tALevent)
    spi_select (et1100);
 
    /* Write address and command to device. */
-   esc_address (address, ESC_CMD_READ, tALevent);
+   esc_address (address, ESC_CMD_READ);
 
    /* Here we want to read data and keep MOSI low (0x00) during
     * all bytes except the last one where we want to pull it high (0xFF).
@@ -111,15 +110,13 @@ uint8_t ESC_read (uint16_t address, void *buf, uint16_t len, void *tALevent)
  * @param[in]   address     = address of ESC register to write
  * @param[out]  buf         = pointer to buffer to write from
  * @param[in]   len         = number of bytes to write
- * @param[out]  tALevent    = on every read we refresh the AL event register
- * @return 0 as default, the stack don't rely on any result
  */
-uint8_t ESC_write (uint16_t address, void *buf, uint16_t len, void *tALevent)
+void ESC_write (uint16_t address, void *buf, uint16_t len)
 {
    /* Select device. */
    spi_select (et1100);
    /* Write address and command to device. */
-   esc_address (address, ESC_CMD_WRITE, tALevent);
+   esc_address (address, ESC_CMD_WRITE);
    /* Write data. */
    write (et1100, buf, len);
    /* Un-select device. */
