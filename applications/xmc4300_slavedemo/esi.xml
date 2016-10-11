@@ -1,0 +1,42 @@
+<?xml version="1.0"?>
+<EtherCATInfo xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="EtherCATInfo.xsd" Version="1.2">
+	<Vendor>
+		<Id>#x1337</Id>
+		<Name>rt-labs AB</Name>
+	</Vendor>
+	<Descriptions>
+		<Groups>
+			<Group>
+				<Type>ATENSLAVE</Type>
+				<Name>ATO</Name>
+			</Group>
+		</Groups>
+		<Devices>
+			<Device Physics="YY">
+				<Type ProductCode="#x12783456" RevisionNo="#x00000001">ATO sample application</Type>
+				<Name><![CDATA[ATEN-ATO output slave]]></Name>
+				<GroupType>ATENSLAVE</GroupType>
+				<Fmmu>Outputs</Fmmu>
+				<Fmmu>Inputs</Fmmu>
+				<Sm DefaultSize="128" StartAddress="#x1000" ControlByte="#x26" Enable="1">MBoxOut</Sm>
+				<Sm DefaultSize="128" StartAddress="#x1080" ControlByte="#x22" Enable="1">MBoxIn</Sm>
+				<Sm StartAddress="#x1100" ControlByte="#x24" Enable="1">Outputs</Sm>
+				<Sm StartAddress="#x1180" ControlByte="#x20" Enable="1">Inputs</Sm>
+				<Mailbox DataLinkLayer="1">
+					<CoE SdoInfo="1" CompleteAccess="0" PdoUpload="1"/>
+				</Mailbox>
+				<Dc>
+					<OpMode>
+						<Name>DcOff</Name>
+						<Desc>DC unused</Desc>
+						<AssignActivate>#x0000</AssignActivate>
+					</OpMode>
+				</Dc>
+				<Eeprom>
+					<ByteSize>3968</ByteSize>
+					<ConfigData>050E0306102700</ConfigData>
+				</Eeprom>
+			</Device>
+		</Devices>
+	</Descriptions>
+</EtherCATInfo>
