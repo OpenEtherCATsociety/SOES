@@ -40,7 +40,11 @@
 
 #include <string.h>
 
-#include "sii_eeprom.h"
+extern const uint8_t _binary_sii_eeprom_bin_start;
+extern const uint8_t _binary_sii_eeprom_bin_end;
+
+#define SII_EE_DEFLT (&_binary_sii_eeprom_bin_start)
+#define SII_EE_DEFLT_SIZE (uint32_t)(&_binary_sii_eeprom_bin_end - &_binary_sii_eeprom_bin_start)
 
 #if EEP_BYTES_PER_BLOCK > EEP_BYTES_PER_SECTOR
 #error EEP_BYTES_PER_BLOCK needs to fit into EEP_BYTES_PER_SECTOR
@@ -85,13 +89,13 @@ static const XMC_GPIO_CONFIG_t gpio_config_btn = {
   .output_strength = 0
 };
 
-#define EEP_DEFAULT_BTN_INIT()	XMC_GPIO_Init(EEP_DEFAULT_BTN, &gpio_config_btn)
-#define EEP_DEFAULT_BTN_STATE()	XMC_GPIO_GetInput(EEP_DEFAULT_BTN)
+#define EEP_DEFAULT_BTN_INIT()  XMC_GPIO_Init(EEP_DEFAULT_BTN, &gpio_config_btn)
+#define EEP_DEFAULT_BTN_STATE() XMC_GPIO_GetInput(EEP_DEFAULT_BTN)
 
 #else
 
-#define EEP_DEFAULT_BTN_INIT()	{ }
-#define EEP_DEFAULT_BTN_STATE()	0
+#define EEP_DEFAULT_BTN_INIT()  { }
+#define EEP_DEFAULT_BTN_STATE() 0
 
 #endif
 
@@ -103,15 +107,15 @@ static const XMC_GPIO_CONFIG_t gpio_config_led = {
   .output_strength = XMC_GPIO_OUTPUT_STRENGTH_STRONG_SOFT_EDGE
 };
 
-#define EEP_BUSY_LED_INIT()	XMC_GPIO_Init(EEP_BUSY_LED, &gpio_config_led)
-#define EEP_BUSY_LED_ON()	XMC_GPIO_SetOutputHigh(EEP_BUSY_LED)
-#define EEP_BUSY_LED_OFF()	XMC_GPIO_SetOutputLow(EEP_BUSY_LED)
+#define EEP_BUSY_LED_INIT() XMC_GPIO_Init(EEP_BUSY_LED, &gpio_config_led)
+#define EEP_BUSY_LED_ON()   XMC_GPIO_SetOutputHigh(EEP_BUSY_LED)
+#define EEP_BUSY_LED_OFF()  XMC_GPIO_SetOutputLow(EEP_BUSY_LED)
 
 #else
 
-#define EEP_BUSY_LED_INIT()	{ }
-#define EEP_BUSY_LED_ON()	{ }
-#define EEP_BUSY_LED_OFF()	{ }
+#define EEP_BUSY_LED_INIT() { }
+#define EEP_BUSY_LED_ON()   { }
+#define EEP_BUSY_LED_OFF()  { }
 
 #endif
 
