@@ -492,6 +492,12 @@ uint8_t ESC_mbxprocess (void)
    if (ESCvar.mbxoutpost && ESCvar.SM[1].IntR)
    {
       ESC_ackmbxread ();
+      ESC_SMstatus (1);
+      
+      /* while interrupt flag is set, skip mailbox process */
+      if(ESCvar.SM[1].IntR){
+          return 0;
+      }
       /* dispose old backup */
       if (ESCvar.mbxbackup)
       {
@@ -506,7 +512,7 @@ uint8_t ESC_mbxprocess (void)
       MBXcontrol[ESCvar.mbxoutpost].state = MBXstate_backup;
       ESCvar.mbxbackup = ESCvar.mbxoutpost;
       ESCvar.mbxoutpost = 0;
-      return 0;
+      return 1;
    }
 
    /* repeat request */
