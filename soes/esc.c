@@ -506,6 +506,11 @@ uint8_t ESC_mbxprocess (void)
       MBXcontrol[ESCvar.mbxoutpost].state = MBXstate_backup;
       ESCvar.mbxbackup = ESCvar.mbxoutpost;
       ESCvar.mbxoutpost = 0;
+      /* Do we have any ongoing protocol transfers, return 1 */
+      if(ESCvar.xoe > 0)
+      {
+         return 1;
+      }
       return 0;
    }
 
