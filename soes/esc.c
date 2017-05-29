@@ -31,6 +31,7 @@
 #include "esc.h"
 #include "esc_coe.h"
 #include "esc_foe.h"
+#include "esc_hw.h"
 
 /** \file
  * \brief
@@ -52,6 +53,7 @@ void ESC_ALerror (uint16_t errornumber)
    dummy = htoes (errornumber);
    ESC_write (ESCREG_ALERROR, &dummy, sizeof (dummy));
 }
+
 /** Write AL Status to the ESC.
  *
  * @param[in] status   = Write current slave status to register 0x130 AL Status
@@ -63,6 +65,51 @@ void ESC_ALstatus (uint8_t status)
    ESCvar.ALstatus = status;
    dummy = htoes ((uint16_t) status);
    ESC_write (ESCREG_ALSTATUS, &dummy, sizeof (dummy));
+}
+
+/** Write ALeventMask register 0x204.
+ *
+ * @param[in] n   = AL Event Mask
+ */
+void ESC_ALeventmaskwrite (uint32_t mask)
+{
+   uint32_t aleventmask;
+   aleventmask = htoel(mask);
+   ESC_write (ESCREG_ALEVENTMASK, &aleventmask, sizeof(aleventmask));
+}
+
+/** Read AleventMask register 0x204.
+ *
+ * @return value of register AL Event Mask
+ */
+uint32_t ESC_ALeventmaskread (void)
+{
+   uint32_t aleventmask;
+
+   ESC_read (ESCREG_ALEVENTMASK, &aleventmask, sizeof(aleventmask));
+   return htoel(aleventmask);
+}
+
+/** Write ALevent register 0x220.
+ *
+ * @param[in] n   = AL Event Mask
+ */
+void ESC_ALeventwrite (uint32_t event)
+{
+   uint32_t alevent;
+   alevent = htoel(event);
+   ESC_write (ESCREG_ALEVENT, &alevent, sizeof(alevent));
+}
+
+/** Read Alevent register 0x220.
+ *
+ * @return value of register AL Event Mask
+ */
+uint32_t ESC_ALeventread (void)
+{
+   uint32_t alevent;
+   ESC_read (ESCREG_ALEVENT, &alevent, sizeof(alevent));
+   return htoel(alevent);
 }
 
 /** Read SM Status register 0x805(+ offset to SyncManager n) to acknowledge a
@@ -151,6 +198,113 @@ uint8_t ESC_WDstatus (void)
    wdstatus = etohs (wdstatus);
    return (uint8_t) wdstatus;
 }
+
+
+#if SOES_IRQ
+
+/** Read SYNC Out Unit activation registers 0x981
+ *
+ * @return value of register Activation.
+ */
+uint8_t ESC_SYNCactivation (void)
+{
+   uint8_t activation;
+   ESC_read (ESCREG_SYNC_ACT, &activation, sizeof(activation));
+   return activation;
+}
+
+/** Read SYNC0 cycle time
+ *
+ * @return value of register SYNC0 cycle time
+ */
+uint32_t ESC_SYNC0cycletime (void)
+{
+   uint32_t cycletime;
+   ESC_read (ESCREG_SYNC0_CYCLE_TIME, &cycletime, sizeof(cycletime));
+   cycletime = etohl (cycletime);
+   return cycletime;
+}
+
+/** Read SYNC0 cycle time
+ *
+ * @return value of register SYNC0 cycle time
+ */
+uint32_t ESC_SYNC1cycletime (void)
+{
+   uint32_t cycletime;
+   ESC_read (ESCREG_SYNC1_CYCLE_TIME, &cycletime, 4);
+   cycletime = etohl (cycletime);
+   return cycletime;
+}
+
+
+/** Validate the DC values if the SYNC unit is activated.
+ *
+ * @return = 0 if OK, else ERROR code to be set by caller.
+ */
+uint16_t ESC_checkDC (void)
+{
+
+#define MIN_PD_CYCLE_TIME  0x1E848 /* From SSC 125us */
+
+   uint16_t ret = 0;
+
+   uint8_t sync_act = ESC_SYNCactivation();
+   uint32_t sync0_cycletime = ESC_SYNC0cycletime();
+   uint16_t sync_type_supported1c32 = 0;
+   uint32_t mincycletime = 0;
+
+   /* Do we need to check sync settings? */
+   if((sync_act & (ESCREG_SYNC_ACT_ACTIVATED | ESCREG_SYNC_AUTO_ACTIVATED)) > 0)
+   {
+      /* If the sync unit is active at least on signal should be activated */
+      if(outputSyncMgrPara(0x1c32, 0x4, &sync_type_supported1c32, DTYPE_UNSIGNED16) == 0)
+      {
+         ret = ALERR_DCINVALIDSYNCCFG;
+
+      }
+      else if(outputSyncMgrPara(0x1c32, 0x5, &mincycletime, DTYPE_UNSIGNED32) ==0)
+      {
+         ret = ALERR_DCINVALIDSYNCCFG;
+      }
+      else if((sync_act & (ESCREG_SYNC_SYNC0_EN | ESCREG_SYNC_SYNC1_EN)) == 0)
+      {
+         ret = ALERR_DCINVALIDSYNCCFG;
+      }
+      /* Do we support activated signals */
+      else if(((sync_type_supported1c32 & SYNCTYPE_SUPPORT_DCSYNC0) == 0) &&
+            ((sync_act & ESCREG_SYNC_SYNC0_EN) > 0))
+      {
+         ret = ALERR_DCINVALIDSYNCCFG;
+      }
+      /* Do we support activated signals */
+      else if(((sync_type_supported1c32 & SYNCTYPE_SUPPORT_DCSYNC1) == 0) &&
+            ((sync_act & ESCREG_SYNC_SYNC1_EN) > 0))
+      {
+         ret = ALERR_DCINVALIDSYNCCFG;
+      }
+
+      else if((sync0_cycletime != 0) && (sync0_cycletime < MIN_PD_CYCLE_TIME))
+      {
+         ret = ALERR_DCSYNC0CYCLETIME;
+      }
+      else
+      {
+         dc_sync = 1;
+         sync_counter = 0;
+      }
+   }
+   else
+   {
+         dc_sync = 0;
+         sync_counter = 0;
+   }
+
+   return ret;
+}
+
+#endif
+
 
 /** Check mailbox status by reading all SyncManager 0 and 1 data. The read values
  * are compared with local definitions for SM Physical Address, SM Length and SM Control.
@@ -506,6 +660,11 @@ uint8_t ESC_mbxprocess (void)
       MBXcontrol[ESCvar.mbxoutpost].state = MBXstate_backup;
       ESCvar.mbxbackup = ESCvar.mbxoutpost;
       ESCvar.mbxoutpost = 0;
+      /* Do we have any ongoing protocol transfers, return 1 */
+      if(ESCvar.xoe > 0)
+      {
+         return 1;
+      }
       return 0;
    }
 
@@ -515,7 +674,7 @@ uint8_t ESC_mbxprocess (void)
       if (ESCvar.mbxoutpost || ESCvar.mbxbackup)
       {
          /* if outmbx empty */
-         if (!ESCvar.mbxoutpost)
+         if (ESCvar.mbxoutpost == 0)
          {
             /* use backup mbx */
             ESC_writembx (ESCvar.mbxbackup);
@@ -558,8 +717,8 @@ uint8_t ESC_mbxprocess (void)
    }
 
    /* read mailbox if full and no xoe in progress */
-   if (ESCvar.SM[0].MBXstat && !MBXcontrol[0].state && !ESCvar.mbxoutpost
-       && !ESCvar.xoe)
+   if ((ESCvar.SM[0].MBXstat != 0) && (MBXcontrol[0].state == 0)
+         && (ESCvar.mbxoutpost == 0) && (ESCvar.xoe == 0))
    {
       ESC_readmbx ();
       ESCvar.SM[0].MBXstat = 0;
@@ -576,15 +735,6 @@ uint8_t ESC_mbxprocess (void)
       }
       ESCvar.mbxincnt = MB->header.mbxcnt;
       return 1;
-   }
-
-   /* ack changes in non used SM */
-   if (ESCvar.ALevent & ESCREG_ALEVENT_SMCHANGE)
-   {
-      ESC_SMack (4);
-      ESC_SMack (5);
-      ESC_SMack (6);
-      ESC_SMack (7);
    }
 
    return 0;
@@ -625,7 +775,6 @@ uint8_t ESC_checkSM23 (uint8_t state)
 {
    _ESCsm2 *SM;
    ESC_read (ESCREG_SM2, (void *) &ESCvar.SM[2], sizeof (ESCvar.SM[2]));
-   ESC_read (ESCREG_SM3, (void *) &ESCvar.SM[3], sizeof (ESCvar.SM[3]));
    SM = (_ESCsm2 *) & ESCvar.SM[2];
    if ((etohs (SM->PSA) != SM2_sma) || (etohs (SM->Length) != SM2_sml)
        || (SM->Command != SM2_smc) || !(SM->ActESC & SM2_act))
@@ -634,6 +783,7 @@ uint8_t ESC_checkSM23 (uint8_t state)
       /* fail state change */
       return (ESCpreop | ESCerror);
    }
+   ESC_read (ESCREG_SM3, (void *) &ESCvar.SM[3], sizeof (ESCvar.SM[3]));
    SM = (_ESCsm2 *) & ESCvar.SM[3];
    if ((etohs (SM->PSA) != SM3_sma) || (etohs (SM->Length) != SM3_sml)
        || (SM->Command != SM3_smc) || !(SM->ActESC & SM3_act))
@@ -654,11 +804,13 @@ uint8_t ESC_checkSM23 (uint8_t state)
  */
 uint8_t ESC_startinput (uint8_t state)
 {
+
    state = ESC_checkSM23 (state);
+
    if (state != (ESCpreop | ESCerror))
    {
       ESC_SMenable (3);
-      App.state = APPSTATE_INPUT;
+      ATOMIC_SET(App.state, APPSTATE_INPUT);
    }
    else
    {
@@ -673,6 +825,34 @@ uint8_t ESC_startinput (uint8_t state)
          ESC_ALerror (ALERR_INVALIDOUTPUTSM);
       }
    }
+
+#if SOES_IRQ
+   if (state != (ESCpreop | ESCerror))
+   {
+      uint16_t dc_check_result;
+      dc_check_result = ESC_checkDC();
+      if(dc_check_result > 0)
+      {
+         ESC_ALerror (dc_check_result);
+         state = (ESCpreop | ESCerror);
+
+         ESC_SMdisable (2);
+         ESC_SMdisable (3);
+         ATOMIC_SET(App.state, APPSTATE_IDLE);
+      }
+      else
+      {
+         if(dc_sync > 0)
+         {
+            ESC_interrupt_enable(ESCREG_ALEVENT_DC_SYNC0 | ESCREG_ALEVENT_SM2);
+         }
+         else
+         {
+            ESC_interrupt_enable(ESCREG_ALEVENT_SM2);
+         }
+      }
+   }
+#endif
    return state;
 }
 
@@ -682,9 +862,14 @@ uint8_t ESC_startinput (uint8_t state)
  */
 void ESC_stopinput (void)
 {
-   App.state = APPSTATE_IDLE;
+   ATOMIC_SET(App.state, APPSTATE_IDLE);
    ESC_SMdisable (3);
    ESC_SMdisable (2);
+
+#if SOES_IRQ
+   ESC_interrupt_disable(ESCREG_ALEVENT_DC_SYNC0 | ESCREG_ALEVENT_SM2);
+#endif
+
 }
 
 
@@ -697,30 +882,121 @@ void ESC_stopinput (void)
  */
 uint8_t ESC_startoutput (uint8_t state)
 {
+
    ESC_SMenable (2);
-   App.state |= APPSTATE_OUTPUT;
+   ATOMIC_OR(App.state, APPSTATE_OUTPUT);
    return state;
+
 }
 
 /** Unconditional stop of updating outputs by disabling Sync Manager 2.
- * Set the App.state to APPSTATE_ONPUT. Call application hook APP_safeoutput
+ * Set the App.state to APPSTATE_INPUT. Call application hook APP_safeoutput
  * letting the user to set safe state values on outputs.
  *
  */
 void ESC_stopoutput (void)
 {
-   App.state &= APPSTATE_INPUT;
+   ATOMIC_AND(App.state, APPSTATE_INPUT);
    ESC_SMdisable (2);
    APP_safeoutput ();
 }
-/** The state handler acting on ALControl Bit(0) and SyncManager Activation BIT(4)
+
+/** The state handler acting on SyncManager Activation BIT(4)
+ * events in the Al Event Request register 0x220.
+ *
+ */
+void ESC_sm_act_event (void)
+{
+   uint8_t ac, an, as, ax, ax23;
+
+   /* Have at least on Sync Manager  changed */
+   if ((ESCvar.ALevent & ESCREG_ALEVENT_SMCHANGE) == 0)
+   {
+      /* nothing to do */
+      return;
+   }
+
+   /* Mask state request bits + Error ACK */
+   ac = ESCvar.ALcontrol & ESCREG_AL_STATEMASK;
+   as = ESCvar.ALstatus & ESCREG_AL_STATEMASK;
+   an = as;
+   if (((ac & ESCerror) || (ac == ESCinit)))
+   {
+      /* if error bit confirmed reset */
+      ac &= ESCREG_AL_ERRACKMASK;
+      an &= ESCREG_AL_ERRACKMASK;
+   }
+   /* Enter SM changed handling for all steps but Init and Boot when Mailboxes
+    * is up and running
+    */
+   if ((as & ESCREG_AL_ALLBUTINITMASK) &&
+       ((as == ESCboot) == 0) && MBXrun)
+   {
+      /* Validate Sync Managers, reading the Activation register will
+       * acknowledge the SyncManager Activation event making us enter
+       * this execution path.
+       */
+      ax = ESC_checkmbx (as);
+      ax23 = ESC_checkSM23 (as);
+      if ((an & ESCerror) && ((ac & ESCerror) == 0))
+      {
+         /* if in error then stay there */
+      }
+      /* Have we been forced to step down to INIT we will stop mailboxes,
+       * update AL Status Code and exit ESC_state
+       */
+      else if (ax == (ESCinit | ESCerror))
+      {
+         /* If we have activated Inputs and Outputs we need to disable them */
+         if (ATOMIC_GET(App.state))
+         {
+            ESC_stopoutput ();
+            ESC_stopinput ();
+         }
+         /* Stop mailboxes and update ALStatus code */
+         ESC_stopmbx ();
+         ESC_ALerror (ALERR_INVALIDMBXCONFIG);
+         MBXrun = 0;
+         ESC_ALstatus (ax);
+         return;
+      }
+      /* Have we been forced to step down to PREOP we will stop inputs
+       * and outputs, update AL Status Code and exit ESC_state
+       */
+      else if (ATOMIC_GET(App.state) && (ax23 == (ESCpreop | ESCerror)))
+      {
+         ESC_stopoutput ();
+         ESC_stopinput ();
+         if (ESCvar.SMtestresult & SMRESULT_ERRSM3)
+         {
+            ESC_ALerror (ALERR_INVALIDINPUTSM);
+         }
+         else
+         {
+            ESC_ALerror (ALERR_INVALIDOUTPUTSM);
+         }
+         ESC_ALstatus (ax23);
+      }
+   }
+   else
+   {
+      ESC_SMack (0);
+      ESC_SMack (1);
+      ESC_SMack (2);
+      ESC_SMack (3);
+      ESC_SMack (4);
+      ESC_SMack (5);
+      ESC_SMack (6);
+      ESC_SMack (7);
+   }
+}
+/** The state handler acting on ALControl Bit(0)
  * events in the Al Event Request register 0x220.
  *
  */
 void ESC_state (void)
 {
-   uint8_t ac, an, as, ax, ax23;
-   uint8_t handle_smchanged = 0;
+   uint8_t ac, an, as;
 
    /* Do we have a state change request pending */
    if (ESCvar.ALevent & ESCREG_ALEVENT_CONTROL)
@@ -728,11 +1004,6 @@ void ESC_state (void)
       ESC_read (ESCREG_ALCONTROL, (void *) &ESCvar.ALcontrol,
                 sizeof (ESCvar.ALcontrol));
       ESCvar.ALcontrol = etohs (ESCvar.ALcontrol);
-   }
-   /* Have at least on Sync Manager  changed */
-   else if (ESCvar.ALevent & ESCREG_ALEVENT_SMCHANGE)
-   {
-      handle_smchanged  = 1;
    }
    else
    {
@@ -749,63 +1020,9 @@ void ESC_state (void)
       ac &= ESCREG_AL_ERRACKMASK;
       an &= ESCREG_AL_ERRACKMASK;
    }
-   /* Enter SM changed handling for all steps but Init and Boot when Mailboxes
-    * is up and running
-    */
-   if (handle_smchanged && (as & ESCREG_AL_ALLBUTINITMASK) &&
-       !(as == ESCboot) && MBXrun)
-   {
-      /* Validate Sync Managers, reading the Activation register will
-       * acknowledge the SyncManager Activation event making us enter
-       * this execution path.
-       */
-      ax = ESC_checkmbx (as);
-      ax23 = ESC_checkSM23 (as);
-      if ((an & ESCerror) && !(ac & ESCerror))
-      {
-         /* if in error then stay there */
-         return;
-      }
-      /* Have we been forced to step down to INIT we will stop mailboxes,
-       * update AL Status Code and exit ESC_state
-       */
-      if (ax == (ESCinit | ESCerror))
-      {
-         /* If we have activated Inputs and Outputs we need to disable them */
-         if (App.state)
-         {
-            ESC_stopoutput ();
-            ESC_stopinput ();
-         }
-         /* Stop mailboxes and update ALStatus code */
-         ESC_stopmbx ();
-         ESC_ALerror (ALERR_INVALIDMBXCONFIG);
-         MBXrun = 0;
-         ESC_ALstatus (ax);
-         return;
-      }
-      /* Have we been forced to step down to PREOP we will stop inputs
-       * and outputs, update AL Status Code and exit ESC_state
-       */
-      if ((App.state) && (ax23 == (ESCpreop | ESCerror)))
-      {
-         ESC_stopoutput ();
-         ESC_stopinput ();
-         if (ESCvar.SMtestresult & SMRESULT_ERRSM3)
-         {
-            ESC_ALerror (ALERR_INVALIDINPUTSM);
-         }
-         else
-         {
-            ESC_ALerror (ALERR_INVALIDOUTPUTSM);
-         }
-         ESC_ALstatus (ax23);
-         return;
-      }
-   }
 
    /* Error state not acked, leave original */
-   if ((an & ESCerror) && !(ac & ESCerror))
+   if ((an & ESCerror) && ((ac & ESCerror) == 0))
    {
       return;
    }

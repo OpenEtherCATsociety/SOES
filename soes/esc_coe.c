@@ -63,6 +63,74 @@ int32_t SDO_findobject (uint16_t index)
    return n;
 }
 
+#if SOES_IRQ
+/** Get the value for reuested SDO 0x1C32 sub index
+ *
+ * @param[in] index    = value on index of object we want to locate
+ * @param[in] subindex = value on subindex of object we want to locate
+ * @param[out] buf     = buf to copy value to
+ * @param[in] datatype = EtherCAT datatype of buf
+ * @return 1 if value was found, else 0.
+ */
+int outputSyncMgrPara (uint16_t index,uint8_t subindex, void * buf, uint16_t datatype)
+{
+   int result = 0;
+
+   if(subindex <= SDO1C32[0].value)
+   {
+
+      if((SDO1C32[subindex].data != NULL) &&
+         (SDO1C32[subindex].datatype == datatype))
+      {
+         memcpy(buf, SDO1C32[subindex].data, SDO1C32[subindex].bitlength / 8 );
+         result = 1;
+      }
+      else
+      {
+         if((datatype == DTYPE_UNSIGNED32) &&
+            (SDO1C32[subindex].datatype == datatype))
+         {
+            *(uint32_t *)buf = SDO1C32[subindex].value;
+            result = 1;
+         }
+         else if((datatype == DTYPE_UNSIGNED16) &&
+                 (SDO1C32[subindex].datatype == datatype))
+         {
+            *(uint16_t *)buf = (uint16_t)SDO1C32[subindex].value;
+            result = 1;
+
+         }
+         else if((datatype == DTYPE_UNSIGNED8) &&
+                 (SDO1C32[subindex].datatype == datatype))
+         {
+            *(uint8_t *)buf = (uint8_t)SDO1C32[subindex].value;
+            result = 1;
+         }
+      }
+   }
+
+
+   return result;
+}
+
+/** Init default values for SDO 0x1C32
+ *
+ */
+void initDefaultOutputSyncMgrPara (void)
+{
+   uint32_t i;
+
+   for(i = 1; i <= SDO1C32[0].value;i++ )
+   {
+      if(SDO1C32[i].data != NULL)
+      {
+         *(uint32_t *)SDO1C32[i].data = SDO1C32[i].value;
+      }
+   }
+
+}
+#endif
+
 /** Calculate the size in Bytes of TxPDOs by adding the objects in SyncManager
  * SDO 1C13.
  *
@@ -520,6 +588,8 @@ void SDO_infoerror (uint32_t abortcode)
       coeres->infoheader.fragmentsleft = 0;
       coeres->index = htoel (abortcode);
       MBXcontrol[MBXout].state = MBXstate_outreq;
+      MBXcontrol[0].state = MBXstate_idle;
+      ESCvar.xoe = 0;
    }
 }
 

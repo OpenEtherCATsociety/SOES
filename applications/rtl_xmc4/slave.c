@@ -9,7 +9,11 @@
 #define EEP_EMULATION   0       /* Set to 1 for EEPROM emulation */
 #endif
 
-#define WATCHDOG_RESET_VALUE 150
+#ifdef EEP_EMULATION
+#include "soes/esc_eep.h"
+#include "soes/esc_hw_eep.h"
+#endif
+
 #define DEFAULTTXPDOMAP    0x1a00
 #define DEFAULTRXPDOMAP    0x1600
 #define DEFAULTTXPDOITEMS  1
@@ -23,6 +27,7 @@ uint16_t          SM2_sml,SM3_sml;
 _Rbuffer          Rb;
 _Wbuffer          Wb;
 _Cbuffer          Cb;
+_Mbuffer          Mb;
 _App              App;
 uint16_t          TXPDOsize,RXPDOsize;
 uint16_t          txpdomap = DEFAULTTXPDOMAP;
@@ -30,7 +35,8 @@ uint16_t          rxpdomap = DEFAULTRXPDOMAP;
 uint8_t           txpdoitems = DEFAULTTXPDOITEMS;
 uint8_t           rxpdoitems = DEFAULTTXPDOITEMS;
 
-static unsigned int watchdog = WATCHDOG_RESET_VALUE;
+static unsigned int watchdog;
+static unsigned int watchdog_reset;
 static void (*application_loop_callback)(void) = NULL;
 
 /** Mandatory: Hook called from the slave stack SDO Download handler to act on
@@ -90,9 +96,11 @@ void APP_safeoutput (void)
 {
    DPRINT ("APP_safeoutput\n");
 
-   // Set safe values for Wb.LEDs
-   Wb.LEDs.LED0 = 0;
-   Wb.LEDs.LED1 = 0;
+   // Set safe values for Wb.LEDgroup0
+   Wb.LEDgroup0.LED0 = 0;
+
+   // Set safe values for Wb.LEDgroup1
+   Wb.LEDgroup1.LED1 = 0;
 
 }
 
@@ -113,25 +121,19 @@ void RXPDO_update (void)
  * write ethercat inputs. Implement watch-dog counter to count-out if we have
  * made state change affecting the App.state.
  */
-void DIG_process (void)
+void DIG_process (uint8_t flags)
 {
-   if (watchdog > 0)
+   /* Handle watchdog */
+   if((flags & DIG_PROCESS_WD) > 0)
    {
-      watchdog--;
-   }
-   if (App.state & APPSTATE_OUTPUT)
-   {
-      /* SM2 trigger ? */
-      if (ESCvar.ALevent & ESCREG_ALEVENT_SM2)
-      {
-         ESCvar.ALevent &= ~ESCREG_ALEVENT_SM2;
-         RXPDO_update();
-         watchdog = WATCHDOG_RESET_VALUE;
 
-         /* Set outputs */
-         cb_set_LEDs();
+      if (ATOMIC_GET(watchdog) > 0)
+      {
+         ATOMIC_SUB(watchdog, 1);
       }
-      if (watchdog == 0)
+
+      if ((ATOMIC_GET(watchdog) == 0) &&
+          ((ATOMIC_GET(App.state) & APPSTATE_OUTPUT) > 0))
       {
          DPRINT("DIG_process watchdog expired\n");
          ESC_stopoutput();
@@ -140,49 +142,54 @@ void DIG_process (void)
          /* goto safe-op with error bit set */
          ESC_ALstatus (ESCsafeop | ESCerror);
       }
+      else if(((ATOMIC_GET(App.state) & APPSTATE_OUTPUT) == 0))
+      {
+         ATOMIC_SET(watchdog, watchdog_reset);
+      }
    }
-   else
-   {
-      watchdog = WATCHDOG_RESET_VALUE;
-   }
-   if (App.state)
-   {
-      /* Update inputs */
-      cb_get_Buttons();
-      TXPDO_update();
-   }
-}
 
-/********** TODO: Generic code beyond this point ***************/
-
-static const char *spi_name = "/spi1/lan9252";
-
-/** Optional: Hook called after state change for application specific
- * actions for specific state changes.
- */
-void post_state_change_hook (uint8_t * as, uint8_t * an)
-{
-#if 0
-   /* Add specific step change hooks here */
-   if ((*as == BOOT_TO_INIT) && (*an == ESCinit))
+   /* Handle Outputs */
+   if ((flags & DIG_PROCESS_OUTPUTS) > 0)
    {
-      boot_inithook();
+      if(((ATOMIC_GET(App.state) & APPSTATE_OUTPUT) > 0)
+           && (ESCvar.ALevent & ESCREG_ALEVENT_SM2))
+      {
+         ESCvar.ALevent &= ~ESCREG_ALEVENT_SM2;
+         RXPDO_update();
+         ATOMIC_SET(watchdog, watchdog_reset);
+
+         /* Set outputs */
+         cb_set_LEDgroup0();
+         cb_set_LEDgroup1();
+      }
    }
-   else if((*as == INIT_TO_BOOT) && (*an & ESCerror ) == 0)
+
+   /* Call appliction */
+   if ((flags & DIG_PROCESS_APP_HOOK) > 0)
    {
-      init_boothook();
+      /* Call application callback if set */
+      if (application_loop_callback != NULL)
+      {
+         (application_loop_callback)();
+      }
    }
-#endif
+
+   /* Handle Inputs */
+   if ((flags & DIG_PROCESS_INPUTS) > 0)
+   {
+      if(ATOMIC_GET(App.state) > 0)
+      {
+         /* Update inputs */
+         cb_get_Buttons();
+         TXPDO_update();
+      }
+   }
 }
 
 /**
- * Set callback run once every loop in the SOES application loop.
+ * SOES main function. It should be called periodically.
+ * Reads the EtherCAT state and status. Responsible for I/O updates.
  */
-void set_application_loop_hook(void (*callback)(void))
-{
-   application_loop_callback = callback;
-}
-
 /**
  * SOES main function. It should be called periodically.
  * Reads the EtherCAT state and status. Responsible for I/O updates.
@@ -197,8 +204,7 @@ void soes (void)
       txpdoitems = DEFAULTTXPDOITEMS;
       rxpdoitems = DEFAULTTXPDOITEMS;
    }
-
-   /* Read local time from ESC */
+   /* Read local time from ESC*/
    ESC_read (ESCREG_LOCALTIME, (void *) &ESCvar.Time, sizeof (ESCvar.Time));
    ESCvar.Time = etohl (ESCvar.Time);
 
@@ -214,38 +220,33 @@ void soes (void)
       ESC_foeprocess();
       ESC_xoeprocess();
    }
-   DIG_process();
+
+   DIG_process(DIG_PROCESS_WD| DIG_PROCESS_INPUTS| DIG_PROCESS_OUTPUTS | DIG_PROCESS_APP_HOOK);
+
 #if EEP_EMULATION
    EEP_process ();
    EEP_hw_process();
 #endif  /* EEP_EMULATION */
-
-   if (application_loop_callback != NULL)
-   {
-      (application_loop_callback)();
-   }
 }
 
 /**
  * Initialize the SOES stack.
  */
-void soes_init (void)
+void soes_init (esc_cfg_t * config)
 {
    DPRINT ("SOES (Simple Open EtherCAT Slave)\n");
 
    TXPDOsize = SM3_sml = sizeTXPDO();
    RXPDOsize = SM2_sml = sizeRXPDO();
 
-   /* Setup post config hooks */
-   static esc_cfg_t config =
-   {
-      .pre_state_change_hook = NULL,
-      .post_state_change_hook = post_state_change_hook
-   };
-   ESC_config ((esc_cfg_t *)&config);
+   /* Init watchdog */
+   watchdog_reset = config->watchdog_cnt;
+   watchdog = watchdog_reset;
+
+   ESC_config (config);
 
    ESC_reset();
-   ESC_init ((void *)spi_name);
+   ESC_init (config);
 
    /*  wait until ESC is started up */
    while ((ESCvar.DLstatus & 0x0001) == 0)

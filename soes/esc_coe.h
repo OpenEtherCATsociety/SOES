@@ -104,10 +104,16 @@ void ESC_coeprocess (void);
 uint16_t sizeTXPDO (void);
 uint16_t sizeRXPDO (void);
 
+#if SOES_IRQ
+void initDefaultOutputSyncMgrPara (void);
+int outputSyncMgrPara (uint16_t index,uint8_t subindex, void * buf, uint16_t datatype);
+extern const _objd SDO1C32[];
+extern const _objd SDO1C33[];
+#endif
+
 extern void ESC_objecthandler (uint16_t index, uint8_t subindex);
 extern const _objectlist SDOobjects[];
 extern const _objd SDO1C12[];
 extern const _objd SDO1C13[];
-
 
 #endif
