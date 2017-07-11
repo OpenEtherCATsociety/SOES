@@ -5,6 +5,9 @@ cmake_minimum_required (VERSION 2.8.4)
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake")
 project (SOES)
 
+set(HAL_SOURCES
+  ${SOES_SOURCE_DIR}/soes/hal/rt-kernel-lan9252/esc_hw.c
+  )
 set (SOES_VERSION_MAJOR 0)
 set (SOES_VERSION_MINOR 1)
 set (SOES_VERSION_PATCH 0)
@@ -17,13 +20,15 @@ configure_file (
 
 # Include paths
 include_directories("${SOES_SOURCE_DIR}/soes")
+include_directories("${SOES_SOURCE_DIR}/soes/include/sys/gcc/")
+include_directories("${SOES_SOURCE_DIR}/applications/rtl_lan9252demo/")
 
 # Platform flags and sources
 include(${CMAKE_SYSTEM_NAME} OPTIONAL)
 
 # Source paths
 add_subdirectory (soes)
-add_subdirectory (applications/rtl_slavedemo)
+add_subdirectory (applications/rtl_lan9252demo)
 
 message (STATUS "Building for ${CMAKE_SYSTEM_NAME}")
 
