@@ -1,5 +1,4 @@
-#include <kern.h>
-#include "slave.h"
+#include <stdio.h>
 
 /**
  * This function reads physical input values and assigns the corresponding members
@@ -41,9 +40,8 @@ void main_run(void * arg)
 
 int main(void)
 {
-   rprintf("Hello Main\n");
-   task_spawn ("soes", main_run, 8, 2048, NULL);
-
+   printf("Hello Main\n");
+   main_run(NULL);
    return 0;
 }
 
