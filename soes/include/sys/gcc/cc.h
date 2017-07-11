@@ -8,7 +8,7 @@ extern "C"
 
 #include <assert.h>
 #include <stdint.h>
-#include <machine/endian.h>
+#include <endian.h>
 
 #define CC_PACKED_BEGIN
 #define CC_PACKED_END
