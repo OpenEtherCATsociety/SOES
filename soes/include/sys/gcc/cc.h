@@ -8,7 +8,11 @@ extern "C"
 
 #include <assert.h>
 #include <stdint.h>
-#include <machine/endian.h>
+#ifdef __linux__
+   #include <endian.h>
+#else
+   #include <machine/endian.h>   
+#endif   
 
 #define CC_PACKED_BEGIN
 #define CC_PACKED_END
