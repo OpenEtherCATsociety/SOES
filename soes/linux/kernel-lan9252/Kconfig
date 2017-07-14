@@ -1,0 +1,4 @@
+config SPI_LAN9252
+	tristate "Microchip LAN9252(ehtercat device) support"
+	help
+	  SPI driver for Microchip LAN9252 ethercat Controller interface.

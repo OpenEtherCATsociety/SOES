@@ -155,7 +155,11 @@ void DIG_process (void)
 
 /********** TODO: Generic code beyond this point ***************/
 
-static const char *spi_name = "/spi1/lan9252";
+#ifdef __linux__
+   static const char *spi_name = "/dev/lan9252";
+#else 
+   static const char *spi_name = "/spi1/lan9252";
+#endif     
 
 /** Optional: Hook called after state change for application specific
  * actions for specific state changes.
