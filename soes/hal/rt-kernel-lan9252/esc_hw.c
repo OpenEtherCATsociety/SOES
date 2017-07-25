@@ -162,7 +162,7 @@ static void ESC_read_pram (uint16_t address, void *buf, uint16_t len)
 {
    uint32_t value;
    uint8_t * temp_buf = buf;
-   uint8_t byte_offset = 0;
+   uint16_t byte_offset = 0;
    uint8_t fifo_cnt, first_byte_position, temp_len, data[4];
 
    value = ESC_PRAM_CMD_ABORT;
@@ -230,7 +230,7 @@ static void ESC_write_pram (uint16_t address, void *buf, uint16_t len)
 {
    uint32_t value;
    uint8_t * temp_buf = buf;
-   uint8_t byte_offset = 0;
+   uint16_t byte_offset = 0;
    uint8_t fifo_cnt, first_byte_position, temp_len, data[3];
 
    value = ESC_PRAM_CMD_ABORT;
