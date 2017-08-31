@@ -1,0 +1,13 @@
+* Microchip LAN9252 stand-alone EtherCAT slave controller device tree bindings
+
+Required properties:
+ - compatible: Should be "lan9252".
+ - spi-max-frequency : Max spi frequency to use   
+ - reg: SPI chip select.
+
+Example:
+        ethercat: lan9252@1 {
+                compatible = "lan9252";
+                spi-max-frequency = <20000000>;
+                reg = <1>; 
+        };
