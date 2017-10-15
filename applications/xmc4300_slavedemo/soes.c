@@ -274,7 +274,9 @@ void soes_task (void)
    ESCvar.Time = etohl (ESCvar.Time);
 
    /* Check the state machine */
-   ESC_state ();
+   ESC_state();
+   /* Check the SM activation event */
+   ESC_sm_act_event();
 
    /* If else to two separate execution paths
     * If we're running BOOSTRAP
