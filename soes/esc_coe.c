@@ -1,29 +1,6 @@
 /*
- * SOES Simple Open EtherCAT Slave
- *
- * Copyright (C) 2007-2013 Arthur Ketels
- *
- * SOES is free software; you can redistribute it and/or modify it under
- * the terms of the GNU General Public License version 2 as published by the Free
- * Software Foundation.
- *
- * SOES is distributed in the hope that it will be useful, but WITHOUT ANY
- * WARRANTY; without even the implied warranty of MERCHANTABILITY or
- * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
- * for more details.
- *
- * As a special exception, if other files instantiate templates or use macros
- * or inline functions from this file, or you compile this file and link it
- * with other works to produce a work based on this file, this file does not
- * by itself cause the resulting work to be covered by the GNU General Public
- * License. However the source code for this file must still be made available
- * in accordance with section (3) of the GNU General Public License.
- *
- * This exception does not invalidate any other reasons why a work based on
- * this file might be covered by the GNU General Public License.
- *
- * The EtherCAT Technology, the trade name and logo "EtherCAT" are the intellectual
- * property of, and protected by Beckhoff Automation GmbH.
+ * Licensed under the GNU General Public License version 2 with exceptions. See
+ * LICENSE file in the project root for full license information
  */
 
  /** \file
@@ -40,121 +17,6 @@
 #include "esc_coe.h"
 
 #define BITS2BYTES(b) ((b + 7) >> 3)
-
-extern uint8_t txpdoitems;
-extern uint8_t rxpdoitems;
-
-/** Search for an object index matching the wanted value in the Object List.
- *
- * @param[in] index   = value on index of object we want to locate
- * @return local array index if we succeed, -1 if we didn't find the index.
- */
-int32_t SDO_findobject (uint16_t index)
-{
-   int32_t n = 0;
-   while (SDOobjects[n].index < index)
-   {
-      n++;
-   }
-   if (SDOobjects[n].index != index)
-   {
-      return -1;
-   }
-   return n;
-}
-
-/** Calculate the size in Bytes of TxPDOs by adding the objects in SyncManager
- * SDO 1C13.
- *
- * @return size of TxPDOs in Bytes.
- */
-uint16_t sizeTXPDO (void)
-{
-   uint16_t size = 0, hobj, l, si, c, sic;
-   int16_t nidx;
-   const _objd *objd;
-
-   if (SDO1C13[0].data)
-   {
-      si = *((uint8_t *) SDO1C13[0].data);
-   }
-   else
-   {
-      si = (uint8_t) SDO1C13[0].value;
-   }
-   if (si)
-   {
-      for (sic = 1; sic <= si; sic++)
-      {
-         if (SDO1C13[sic].data)
-         {
-            hobj = *((uint16_t *) SDO1C13[sic].data);
-            hobj = htoes(hobj);
-         }
-         else
-         {
-            hobj = (uint16_t) SDO1C13[sic].value;
-         }
-         nidx = SDO_findobject (hobj);
-         if (nidx > 0)
-         {
-            objd = SDOobjects[nidx].objdesc;
-            l = (uint8_t) objd->value;
-            for (c = 1; c <= l; c++)
-            {
-               size += ((objd + c)->value & 0xff);
-            }
-         }
-      }
-   }
-   return BITS2BYTES (size);
-}
-
-/** Calculate the size in Bytes of RxPDOs by adding the objects in SyncManager
- * SDO 1C12.
- *
- * @return size of RxPDOs in Bytes.
- */
-uint16_t sizeRXPDO (void)
-{
-   uint16_t size = 0, hobj, c, l, si, sic;
-   int16_t nidx;
-   const _objd *objd;
-
-   if (SDO1C12[0].data)
-   {
-      si = *((uint8_t *) SDO1C12[0].data);
-   }
-   else
-   {
-      si = (uint8_t) SDO1C12[0].value;
-   }if (si)
-   {
-      for (sic = 1; sic <= si; sic++)
-      {
-         if (SDO1C12[sic].data)
-         {
-            hobj = *((uint16_t *) SDO1C12[sic].data);
-            hobj = htoes(hobj);
-         }
-         else
-         {
-            hobj = (uint16_t) SDO1C12[sic].value;
-         }
-         nidx = SDO_findobject (hobj);
-         if (nidx > 0)
-         {
-            objd = SDOobjects[nidx].objdesc;
-            l = (uint8_t) objd->value;
-            for (c = 1; c <= l; c++)
-            {
-               size += ((objd + c)->value & 0xff);
-            }
-         }
-      }
-   }
-   return BITS2BYTES (size);
-}
 
 /** Search for an object sub-index.
  *
@@ -180,6 +42,204 @@ int16_t SDO_findsubindex (int16_t nidx, uint8_t subindex)
    return n;
 }
 
+/** Search for an object index matching the wanted value in the Object List.
+ *
+ * @param[in] index   = value on index of object we want to locate
+ * @return local array index if we succeed, -1 if we didn't find the index.
+ */
+int32_t SDO_findobject (uint16_t index)
+{
+   int32_t n = 0;
+   while (SDOobjects[n].index < index)
+   {
+      n++;
+   }
+   if (SDOobjects[n].index != index)
+   {
+      return -1;
+   }
+   return n;
+}
+
+/** Get the value for requested SDO 0x1C32 or 0x1C33 sub index
+ *
+ * @param[in] index    = value on index of object we want to locate
+ * @param[in] subindex = value on subindex of object we want to locate
+ * @param[out] buf     = buf to copy value to
+ * @param[in] datatype = EtherCAT datatype of buf
+ * @return 1 if value was found, else 0.
+ */
+int COE_getSyncMgrPara (uint16_t index, uint8_t subindex, void * buf, uint16_t datatype)
+{
+   int result = 0;
+   int32_t nidx;
+   int32_t snidx;
+   const _objd *objd;
+
+   nidx = SDO_findobject(index);
+
+   if(nidx < 0)
+   {
+      return result;
+   }
+   else if((index != 0x1c32) && (index != 0x1c33) && (index != 0x10F1))
+   {
+      return result;
+   }
+
+   snidx = SDO_findsubindex(nidx, subindex);
+
+   if(snidx >= 0)
+   {
+      objd = SDOobjects[nidx].objdesc;
+
+      if((objd[snidx].data != NULL) &&
+         (objd[snidx].datatype == datatype))
+      {
+         memcpy(buf, objd[snidx].data, objd[snidx].bitlength / 8 );
+         result = 1;
+      }
+      else
+      {
+         if((datatype == DTYPE_UNSIGNED32) &&
+            (objd[snidx].datatype == datatype))
+         {
+            *(uint32_t *)buf = objd[snidx].value;
+            result = 1;
+         }
+         else if((datatype == DTYPE_UNSIGNED16) &&
+                 (objd[snidx].datatype == datatype))
+         {
+            *(uint16_t *)buf = (uint16_t)objd[snidx].value;
+            result = 1;
+
+         }
+         else if((datatype == DTYPE_UNSIGNED8) &&
+                 (objd[snidx].datatype == datatype))
+         {
+            *(uint8_t *)buf = (uint8_t)objd[snidx].value;
+            result = 1;
+         }
+      }
+   }
+
+   return result;
+}
+
+/** Init default values for SDO Sync Objects
+ *
+ */
+void COE_initDefaultSyncMgrPara (void)
+{
+   uint32_t i,j;
+   const _objd *objd;
+   int32_t n = 0;
+
+   /* 1C3x */
+   for(i = 0x1C32; i <= 0x1C33; i ++)
+   {
+      /* Look if index is present */
+      n = SDO_findobject(i);
+      if(n < 0)
+      {
+         continue;
+      }
+
+      /* Load default values */
+      objd = SDOobjects[n].objdesc;
+      for(j = 1; j <= SDOobjects[n].maxsub; j++ )
+      {
+         if(objd[j].data != NULL)
+         {
+            *(uint32_t *)objd[j].data = objd[j].value;
+         }
+         if(objd[j].subindex >= SDOobjects[n].maxsub)
+         {
+            break;
+         }
+      }
+   }
+
+   /* Look if index is present */
+   n = SDO_findobject(0x10F1);
+   if(n >= 0)
+   {
+      /* Load default values */
+      objd = SDOobjects[n].objdesc;
+      for(j = 1; j <= objd[0].value; j++ )
+      {
+         if(objd[j].data != NULL)
+         {
+            *(uint32_t *)objd[j].data = objd[j].value;
+         }
+      }
+
+   }
+}
+
+/** Calculate the size in Bytes of RxPDO or TxPDOs by adding the objects
+ * in SyncManager
+ * SDO 1C1x.
+ *
+ * @return size of RxPDO or TxPDOs in Bytes.
+ */
+uint16_t sizeOfPDO (uint16_t index)
+{
+   uint16_t size = 0, hobj, l, si, c, sic;
+   int16_t nidx;
+   const _objd *objd;
+   const _objd *objd1c1x;
+
+   nidx = SDO_findobject (index);
+
+   if(nidx < 0)
+   {
+      return size;
+   }
+   else if((index != 0x1c12) && (index != 0x1c13))
+   {
+      return size;
+   }
+
+   objd1c1x = objd = SDOobjects[nidx].objdesc;
+
+   if (objd1c1x[0].data)
+   {
+      si = *((uint8_t *) objd1c1x[0].data);
+   }
+   else
+   {
+      si = (uint8_t) objd1c1x[0].value;
+   }
+   if (si)
+   {
+      for (sic = 1; sic <= si; sic++)
+      {
+         if (objd1c1x[sic].data)
+         {
+            hobj = *((uint16_t *) objd1c1x[sic].data);
+            hobj = htoes(hobj);
+         }
+         else
+         {
+            hobj = (uint16_t) objd1c1x[sic].value;
+         }
+         nidx = SDO_findobject (hobj);
+         if (nidx > 0)
+         {
+            objd = SDOobjects[nidx].objdesc;
+            l = (uint8_t) objd->value;
+            for (c = 1; c <= l; c++)
+            {
+               size += ((objd + c)->value & 0xff);
+            }
+         }
+      }
+   }
+   return BITS2BYTES (size);
+}
+
+
 /** Copy to mailbox.
  *
  * @param[in] source = pointer to source
@@ -204,7 +264,7 @@ void SDO_abort (uint16_t index, uint8_t subindex, uint32_t abortcode)
    MBXout = ESC_claimbuffer ();
    if (MBXout)
    {
-      coeres = (_COEsdo *) &MBX[MBXout];
+      coeres = (_COEsdo *) &MBX[MBXout * ESC_MBXSIZE];
       coeres->mbxheader.length = htoes (COE_DEFAULTLENGTH);
       coeres->mbxheader.mbxtype = MBXCOE;
       coeres->coeheader.numberservice =
@@ -244,7 +304,7 @@ void SDO_upload (void)
          MBXout = ESC_claimbuffer ();
          if (MBXout)
          {
-            coeres = (_COEsdo *) &MBX[MBXout];
+            coeres = (_COEsdo *) &MBX[MBXout * ESC_MBXSIZE];
             coeres->mbxheader.length = htoes (COE_DEFAULTLENGTH);
             coeres->mbxheader.mbxtype = MBXCOE;
             coeres->coeheader.numberservice =
@@ -292,13 +352,13 @@ void SDO_upload (void)
                /* convert bits to bytes */
                size = (size + 7) >> 3;
                coeres->size = htoel (size);
-               if ((size + COE_HEADERSIZE) > MBXDSIZE)
+               if ((size + COE_HEADERSIZE) > ESC_MBXDSIZE)
                {
                   /* segmented transfer needed */
                   /* set total size in bytes */
                   ESCvar.frags = size;
                   /* limit to mailbox size */
-                  size = MBXDSIZE - COE_HEADERSIZE;
+                  size = ESC_MBXDSIZE - COE_HEADERSIZE;
                   /* number of bytes done */
                   ESCvar.fragsleft = size;
                   /* signal segmented transfer */
@@ -342,18 +402,18 @@ void SDO_uploadsegment (void)
    MBXout = ESC_claimbuffer ();
    if (MBXout)
    {
-      coeres = (_COEsdo *) &MBX[MBXout];
+      coeres = (_COEsdo *) &MBX[MBXout * ESC_MBXSIZE];
       offset = ESCvar.fragsleft;
       size = ESCvar.frags - ESCvar.fragsleft;
       coeres->mbxheader.mbxtype = MBXCOE;
       coeres->coeheader.numberservice =
          htoes ((0 & 0x01f) | (COE_SDORESPONSE << 12));
       coeres->command = COE_COMMAND_UPLOADSEGMENT + (coesdo->command & COE_TOGGLEBIT);  // copy toggle bit
-      if ((size + COE_SEGMENTHEADERSIZE) > MBXDSIZE)
+      if ((size + COE_SEGMENTHEADERSIZE) > ESC_MBXDSIZE)
       {
          /* more segmented transfer needed */
          /* limit to mailbox size */
-         size = MBXDSIZE - COE_SEGMENTHEADERSIZE;
+         size = ESC_MBXDSIZE - COE_SEGMENTHEADERSIZE;
          /* number of bytes done */
          ESCvar.fragsleft += size;
          coeres->mbxheader.length = htoes (COE_SEGMENTHEADERSIZE + size);
@@ -383,26 +443,6 @@ void SDO_uploadsegment (void)
    ESCvar.xoe = 0;
 }
 
-/** Function to pre-qualify the incoming SDO download.
- *
- * @param[in] index      = index of SDO download request to check
- * @param[in] sub-index  = sub-index of SDO download request to check
- * @return 1 if the SDO Download is correct. 0 If not correct.
- */
-int ESC_pre_objecthandler (uint16_t index, uint8_t subindex)
-{
-   if ((index == 0x1c12) && (subindex > 0) && (rxpdoitems != 0))
-   {
-      SDO_abort (index, subindex, ABORT_READONLY);
-      return 0;
-   }
-   if ((index == 0x1c13) && (subindex > 0) && (txpdoitems != 0))
-   {
-      SDO_abort (index, subindex, ABORT_READONLY);
-      return 0;
-   }
-   return 1;
-}
 
 /** Function for handling incoming requested SDO Download, validating the
  * request and sending an response. On error an SDO Abort will be sent.
@@ -452,7 +492,7 @@ void SDO_download (void)
                   MBXout = ESC_claimbuffer ();
                   if (MBXout)
                   {
-                     coeres = (_COEsdo *) &MBX[MBXout];
+                     coeres = (_COEsdo *) &MBX[MBXout * ESC_MBXSIZE];
                      coeres->mbxheader.length = htoes (COE_DEFAULTLENGTH);
                      coeres->mbxheader.mbxtype = MBXCOE;
                      coeres->coeheader.numberservice =
@@ -508,7 +548,7 @@ void SDO_infoerror (uint32_t abortcode)
    MBXout = ESC_claimbuffer ();
    if (MBXout)
    {
-      coeres = (_COEobjdesc *) &MBX[MBXout];
+      coeres = (_COEobjdesc *) &MBX[MBXout * ESC_MBXSIZE];
       coeres->mbxheader.length = htoes ((uint16_t) 0x0a);
       coeres->mbxheader.mbxtype = MBXCOE;
       coeres->coeheader.numberservice =
@@ -520,10 +560,12 @@ void SDO_infoerror (uint32_t abortcode)
       coeres->infoheader.fragmentsleft = 0;
       coeres->index = htoel (abortcode);
       MBXcontrol[MBXout].state = MBXstate_outreq;
+      MBXcontrol[0].state = MBXstate_idle;
+      ESCvar.xoe = 0;
    }
 }
 
-#define ODLISTSIZE  ((MBX1_sml - MBXHSIZE - sizeof(_COEh) - sizeof(_INFOh) - 2) & 0xfffe)
+#define ODLISTSIZE  ((ESC_MBX1_sml - ESC_MBXHSIZE - sizeof(_COEh) - sizeof(_INFOh) - 2) & 0xfffe)
 
 /** Function for handling incoming requested SDO Get OD List, validating the
  * request and sending an response. On error an SDO Info Error will be sent.
@@ -556,7 +598,7 @@ void SDO_getodlist (void)
    }
    if (MBXout)
    {
-      coel = (_COEobjdesc *) &MBX[MBXout];
+      coel = (_COEobjdesc *) &MBX[MBXout * ESC_MBXSIZE];
       coel->mbxheader.mbxtype = MBXCOE;
       coel->coeheader.numberservice =
          htoes ((0 & 0x01f) | (COE_SDOINFORMATION << 12));
@@ -632,7 +674,7 @@ void SDO_getodlistcont (void)
    MBXout = ESC_claimbuffer ();
    if (MBXout)
    {
-      coel = (_COEobjdesc *) &MBX[MBXout];
+      coel = (_COEobjdesc *) &MBX[MBXout * ESC_MBXSIZE];
       coel->mbxheader.mbxtype = MBXCOE;
       coel->coeheader.numberservice =
          htoes ((0 & 0x01f) | (COE_SDOINFORMATION << 12));
@@ -686,7 +728,7 @@ void SDO_getod (void)
       MBXout = ESC_claimbuffer ();
       if (MBXout)
       {
-         coel = (_COEobjdesc *) &MBX[MBXout];
+         coel = (_COEobjdesc *) &MBX[MBXout * ESC_MBXSIZE];
          coel->mbxheader.mbxtype = MBXCOE;
          coel->coeheader.numberservice =
             htoes ((0 & 0x01f) | (COE_SDOINFORMATION << 12));
@@ -709,7 +751,7 @@ void SDO_getod (void)
          coel->objectcode = SDOobjects[nidx].objtype;
          s = (uint8_t *) SDOobjects[nidx].name;
          d = (uint8_t *) &(coel->name);
-         while (*s && (n < (MBXDSIZE - 0x0c)))
+         while (*s && (n < (ESC_MBXDSIZE - 0x0c)))
          {
             *d = *s;
             n++;
@@ -757,7 +799,7 @@ void SDO_geted (void)
          MBXout = ESC_claimbuffer ();
          if (MBXout)
          {
-            coel = (_COEentdesc *) &MBX[MBXout];
+            coel = (_COEentdesc *) &MBX[MBXout * ESC_MBXSIZE];
             coel->mbxheader.mbxtype = MBXCOE;
             coel->coeheader.numberservice =
                htoes ((0 & 0x01f) | (COE_SDOINFORMATION << 12));
@@ -774,7 +816,7 @@ void SDO_geted (void)
             coel->access = htoes ((objd + nsub)->access);
             s = (uint8_t *) (objd + nsub)->name;
             d = (uint8_t *) &(coel->name);
-            while (*s && (n < (MBXDSIZE - 0x10)))
+            while (*s && (n < (ESC_MBXDSIZE - 0x10)))
             {
                *d = *s;
                n++;

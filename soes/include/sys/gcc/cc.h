@@ -24,6 +24,13 @@ extern "C"
 #define CC_SWAP32(x) __builtin_bswap32 (x)
 #define CC_SWAP16(x) ((uint16_t)(x) >> 8 | ((uint16_t)(x) & 0xFF) << 8)
 
+#define CC_ATOMIC_SET(var,val)   __atomic_store_n(&var,val,__ATOMIC_SEQ_CST)
+#define CC_ATOMIC_GET(var)       __atomic_load_n(&var,__ATOMIC_SEQ_CST)
+#define CC_ATOMIC_ADD(var,val)   __atomic_add_fetch(&var,val,__ATOMIC_SEQ_CST)
+#define CC_ATOMIC_SUB(var,val)   __atomic_sub_fetch(&var,val,__ATOMIC_SEQ_CST)
+#define CC_ATOMIC_AND(var,val)   __atomic_and_fetch(&var,val,__ATOMIC_SEQ_CST)
+#define CC_ATOMIC_OR(var,val)    __atomic_or_fetch(&var,val,__ATOMIC_SEQ_CST)
+
 #if BYTE_ORDER == BIG_ENDIAN
 #define htoes(x) CC_SWAP16 (x)
 #define htoel(x) CC_SWAP32 (x)

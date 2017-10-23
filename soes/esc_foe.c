@@ -1,31 +1,6 @@
 /*
- * SOES Simple Open EtherCAT Slave
- *
- * Copyright (C) 2010 ZBE Inc.
- * Copyright (C) 2011-2013 Arthur Ketels.
- * Copyright (C) 2012-2013 rt-labs.
- *
- * SOES is free software; you can redistribute it and/or modify it under
- * the terms of the GNU General Public License version 2 as published by the Free
- * Software Foundation.
- *
- * SOES is distributed in the hope that it will be useful, but WITHOUT ANY
- * WARRANTY; without even the implied warranty of MERCHANTABILITY or
- * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
- * for more details.
- *
- * As a special exception, if other files instantiate templates or use macros
- * or inline functions from this file, or you compile this file and link it
- * with other works to produce a work based on this file, this file does not
- * by itself cause the resulting work to be covered by the GNU General Public
- * License. However the source code for this file must still be made available
- * in accordance with section (3) of the GNU General Public License.
- *
- * This exception does not invalidate any other reasons why a work based on
- * this file might be covered by the GNU General Public License.
- *
- * The EtherCAT Technology, the trade name and logo "EtherCAT" are the intellectual
- * property of, and protected by Beckhoff Automation GmbH.
+ * Licensed under the GNU General Public License version 2 with exceptions. See
+ * LICENSE file in the project root for full license information
  */
 
  /** \file
@@ -103,6 +78,7 @@ int FOE_fopen (char *name, uint8_t num_chars, uint32_t pass, uint8_t op)
       {
          foe_file = &foe_files[i];
          foe_file->address_offset = 0;
+         foe_file->total_size = 0;
          switch (op)
          {
             case FOE_OP_RRQ:
@@ -182,6 +158,8 @@ uint16_t FOE_fwrite (uint8_t *data, uint16_t length)
        ncopied++;
     }
 
+    foe_file->total_size += ncopied;
+
     DPRINT("FOE_fwrite END with : %d\n",ncopied);
     return ncopied;
 }
@@ -242,8 +220,8 @@ void FOE_abort (uint32_t code)
       mbxhandle = ESC_claimbuffer ();
       if (mbxhandle)
       {
-         foembx = (_FOE *) & MBX[mbxhandle];
-         foembx->mbxheader.length = htoes (FOEHSIZE);   /* Don't bother with error text for now. */
+         foembx = (_FOE *) &MBX[mbxhandle * ESC_MBXSIZE];
+         foembx->mbxheader.length = htoes (ESC_FOEHSIZE);   /* Don't bother with error text for now. */
          foembx->mbxheader.mbxtype = MBXFOE;
          foembx->foeheader.opcode = FOE_OP_ERR;
          foembx->foeheader.errorcode = htoel (code);
@@ -275,7 +253,7 @@ int FOE_send_data_packet ()
    mbxhandle = ESC_claimbuffer ();
    if (mbxhandle)
    {
-      foembx = (_FOE *) & MBX[mbxhandle];
+      foembx = (_FOE *) &MBX[mbxhandle * ESC_MBXSIZE];
       data_len = FOE_fread (foembx->data, FOE_DATA_SIZE);
       foembx->foeheader.opcode = FOE_OP_DATA;
       foembx->foeheader.packetnumber = htoel (FOEvar.foepacket);
@@ -306,8 +284,8 @@ int FOE_send_ack ()
    if (mbxhandle)
    {
       DPRINT("FOE_send_ack\n");
-      foembx = (_FOE *) & MBX[mbxhandle];
-      foembx->mbxheader.length = htoes (FOEHSIZE);
+      foembx = (_FOE *) &MBX[mbxhandle * ESC_MBXSIZE];
+      foembx->mbxheader.length = htoes (ESC_FOEHSIZE);
       foembx->mbxheader.mbxtype = MBXFOE;
       foembx->foeheader.opcode = FOE_OP_ACK;
       foembx->foeheader.packetnumber = htoel (FOEvar.foepacket);
@@ -349,7 +327,7 @@ void FOE_read ()
    data_len = etohs (foembx->mbxheader.length) - FOEHSIZE;
    password = etohl (foembx->foeheader.password);
 
-   res = FOE_fopen (foembx->filename, data_len, password, FOE_OP_RRQ);
+   res = FOE_fopen (&foembx->filename, data_len, password, FOE_OP_RRQ);
    if (res == 0)
    {
       FOEvar.foepacket = 1;
@@ -429,11 +407,11 @@ void FOE_write ()
 
    FOE_init ();
    foembx = (_FOE *) &MBX[0];
-   data_len = etohs (foembx->mbxheader.length) - FOEHSIZE;
+   data_len = etohs (foembx->mbxheader.length) - ESC_FOEHSIZE;
    password = etohl (foembx->foeheader.password);
 
    /* Get an address we can write the file to, if possible. */
-   res = FOE_fopen (foembx->filename, data_len, password, FOE_OP_WRQ);
+   res = FOE_fopen (&foembx->filename, data_len, password, FOE_OP_WRQ);
    DPRINT("FOE_write\n");
    if (res == 0)
    {
@@ -470,7 +448,7 @@ void FOE_data ()
    }
 
    foembx = (_FOE*)&MBX[0];
-   data_len = etohs(foembx->mbxheader.length) - FOEHSIZE;
+   data_len = etohs(foembx->mbxheader.length) - ESC_FOEHSIZE;
    packet = etohl(foembx->foeheader.packetnumber);
 
    if (packet != FOEvar.foepacket)
@@ -492,13 +470,13 @@ void FOE_data ()
    }
    else
    {
-      ncopied = FOE_fwrite (foembx->data, data_len);
+      ncopied = FOE_fwrite (&foembx->data, data_len);
       if (!ncopied)
       {
          DPRINT("FOE_data no copied\n");
          FOE_abort (FOE_ERR_PROGERROR);
       }
-      else if (data_len == FOE_DATA_SIZE)
+      else if (data_len == ESC_FOE_DATA_SIZE)
       {
          DPRINT("FOE_data data_len == FOE_DATA_SIZE\n");
          if (ncopied != data_len)
@@ -601,7 +579,7 @@ void ESC_foeprocess (void)
    {
       foembx = (_FOE *) &MBX[0];
       /* Verify the size of the file data. */
-      if (etohs (foembx->mbxheader.length) < FOEHSIZE)
+      if (etohs (foembx->mbxheader.length) < ESC_FOEHSIZE)
       {
          FOE_abort (MBXERR_SIZETOOSHORT);
       }

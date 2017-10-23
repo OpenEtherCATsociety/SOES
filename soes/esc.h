@@ -1,30 +1,6 @@
 /*
- * SOES Simple Open EtherCAT Slave
- *
- * Copyright (C) 2007-2013 Arthur Ketels
- * Copyright (C) 2012-2013 rt-labs.
- *
- * SOES is free software; you can redistribute it and/or modify it under
- * the terms of the GNU General Public License version 2 as published by the Free
- * Software Foundation.
- *
- * SOES is distributed in the hope that it will be useful, but WITHOUT ANY
- * WARRANTY; without even the implied warranty of MERCHANTABILITY or
- * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
- * for more details.
- *
- * As a special exception, if other files instantiate templates or use macros
- * or inline functions from this file, or you compile this file and link it
- * with other works to produce a work based on this file, this file does not
- * by itself cause the resulting work to be covered by the GNU General Public
- * License. However the source code for this file must still be made available
- * in accordance with section (3) of the GNU General Public License.
- *
- * This exception does not invalidate any other reasons why a work based on
- * this file might be covered by the GNU General Public License.
- *
- * The EtherCAT Technology, the trade name and logo "EtherCAT" are the intellectual
- * property of, and protected by Beckhoff Automation GmbH.
+ * Licensed under the GNU General Public License version 2 with exceptions. See
+ * LICENSE file in the project root for full license information
  */
 
 /** \file
@@ -36,31 +12,52 @@
 #define __esc__
 
 #include <cc.h>
-#include "config.h"
 
-#define ESCREG_ADDRESS           0x0010
-#define ESCREG_DLSTATUS          0x0110
-#define ESCREG_ALCONTROL         0x0120
-#define ESCREG_ALSTATUS          0x0130
-#define ESCREG_ALERROR           0x0134
-#define ESCREG_ALEVENT           0x0220
-#define ESCREG_ALEVENT_SM_MASK   0x0310
-#define ESCREG_ALEVENT_SMCHANGE  0x0010
-#define ESCREG_ALEVENT_CONTROL   0x0001
-#define ESCREG_ALEVENT_SM2       0x0400
-#define ESCREG_ALEVENT_SM3       0x0800
-#define ESCREG_WDSTATUS          0x0440
-#define ESCREG_SM0               0x0800
-#define ESCREG_SM0STATUS         (ESCREG_SM0 + 5)
-#define ESCREG_SM0PDI            (ESCREG_SM0 + 7)
-#define ESCREG_SM1               (ESCREG_SM0 + 0x08)
-#define ESCREG_SM2               (ESCREG_SM0 + 0x10)
-#define ESCREG_SM3               (ESCREG_SM0 + 0x18)
-#define ESCREG_LOCALTIME         0x0910
-#define ESCREG_SMENABLE_BIT      0x01
-#define ESCREG_AL_STATEMASK      0x001f
-#define ESCREG_AL_ALLBUTINITMASK 0x0e
-#define ESCREG_AL_ERRACKMASK     0x0f
+#define ESCREG_ADDRESS              0x0010
+#define ESCREG_DLSTATUS             0x0110
+#define ESCREG_ALCONTROL            0x0120
+#define ESCREG_ALSTATUS             0x0130
+#define ESCREG_ALERROR              0x0134
+#define ESCREG_ALEVENTMASK          0x0204
+#define ESCREG_ALEVENT              0x0220
+#define ESCREG_ALEVENT_SM_MASK      0x0310
+#define ESCREG_ALEVENT_SMCHANGE     0x0010
+#define ESCREG_ALEVENT_CONTROL      0x0001
+#define ESCREG_ALEVENT_DC_LATCH     0x0002
+#define ESCREG_ALEVENT_DC_SYNC0     0x0004
+#define ESCREG_ALEVENT_DC_SYNC1     0x0008
+#define ESCREG_ALEVENT_EEP          0x0020
+#define ESCREG_ALEVENT_SM0          0x0100
+#define ESCREG_ALEVENT_SM1          0x0200
+#define ESCREG_ALEVENT_SM2          0x0400
+#define ESCREG_ALEVENT_SM3          0x0800
+#define ESCREG_WDSTATUS             0x0440
+#define ESCREG_EECONTSTAT           0x0502
+#define ESCREG_EEDATA               0x0508
+#define ESCREG_SM0                  0x0800
+#define ESCREG_SM0STATUS            (ESCREG_SM0 + 5)
+#define ESCREG_SM0PDI               (ESCREG_SM0 + 7)
+#define ESCREG_SM1                  (ESCREG_SM0 + 0x08)
+#define ESCREG_SM2                  (ESCREG_SM0 + 0x10)
+#define ESCREG_SM3                  (ESCREG_SM0 + 0x18)
+#define ESCREG_LOCALTIME            0x0910
+#define ESCREG_SYNC_ACT             0x0981
+#define ESCREG_SYNC_ACT_ACTIVATED   0x01
+#define ESCREG_SYNC_SYNC0_EN        0x02
+#define ESCREG_SYNC_SYNC1_EN        0x04
+#define ESCREG_SYNC_AUTO_ACTIVATED  0x08
+#define ESCREG_SYNC0_CYCLE_TIME     0x09A0
+#define ESCREG_SYNC1_CYCLE_TIME     0x09A4
+#define ESCREG_SMENABLE_BIT         0x01
+#define ESCREG_AL_STATEMASK         0x001f
+#define ESCREG_AL_ALLBUTINITMASK    0x0e
+#define ESCREG_AL_ERRACKMASK        0x0f
+
+#define SYNCTYPE_SUPPORT_FREERUN    0x01
+#define SYNCTYPE_SUPPORT_SYNCHRON   0x02
+#define SYNCTYPE_SUPPORT_DCSYNC0    0x04
+#define SYNCTYPE_SUPPORT_DCSYNC1    0x08
+#define SYNCTYPE_SUPPORT_SUBCYCLE   0x10
 
 #define ESCinit                  0x01
 #define ESCpreop                 0x02
@@ -99,12 +96,16 @@
 #define ALERR_INVALIDSTATECHANGE    0x0011
 #define ALERR_UNKNOWNSTATE          0x0012
 #define ALERR_BOOTNOTSUPPORTED      0x0013
+#define ALERR_NOVALIDFIRMWARE       0x0014
 #define ALERR_INVALIDBOOTMBXCONFIG  0x0015
 #define ALERR_INVALIDMBXCONFIG      0x0016
 #define ALERR_INVALIDSMCONFIG       0x0017
+#define ALERR_SYNCERROR             0x001A
 #define ALERR_WATCHDOG              0x001B
 #define ALERR_INVALIDOUTPUTSM       0x001D
 #define ALERR_INVALIDINPUTSM        0x001E
+#define ALERR_DCINVALIDSYNCCFG      0x0030
+#define ALERR_DCSYNC0CYCLETIME      0x0036
 
 #define MBXERR_SYNTAX                   0x0001
 #define MBXERR_UNSUPPORTEDPROTOCOL      0x0002
@@ -163,9 +164,6 @@
 #define COE_VALUEINFO_MINIMUM           0x20
 #define COE_VALUEINFO_MAXIMUM           0x40
 #define COE_MINIMUM_LENGTH              8
-
-#define MBXHSIZE                       sizeof(_MBXh)
-#define MBXDSIZE                       MBXSIZE-MBXHSIZE
 
 #define MBXERR                         0x00
 #define MBXAOE                         0x01
@@ -350,12 +348,6 @@ typedef struct CC_PACKED
 
 typedef struct CC_PACKED
 {
-   _MBXh header;
-   uint8_t b[MBXDSIZE];
-} _MBX;
-
-typedef struct CC_PACKED
-{
    uint16_t numberservice;
 } _COEh;
 
@@ -430,18 +422,15 @@ typedef struct CC_PACKED
    };
 } _FOEh;
 
-#define FOEHSIZE        (sizeof(_FOEh))
-#define FOE_DATA_SIZE   (MBXSIZEBOOT - (MBXHSIZE+FOEHSIZE))
-
 typedef struct CC_PACKED
 {
    _MBXh mbxheader;
    _FOEh foeheader;
    union
    {
-      char filename[FOE_DATA_SIZE];
-      uint8_t data[FOE_DATA_SIZE];
-      char errortext[FOE_DATA_SIZE];
+      char filename;
+      uint8_t data;
+      char errortext;
    };
 } _FOE;
 
@@ -459,14 +448,89 @@ typedef struct
    uint8_t state;
 } _MBXcontrol;
 
+typedef struct sm_cfg
+{
+   unsigned int cfg_sma;
+   unsigned int cfg_sml;
+   unsigned int cfg_sme;
+   unsigned int cfg_smc;
+   unsigned int cfg_smact;
+}sm_cfg_t;
+
 typedef struct esc_cfg
 {
+   void * user_arg;
+   int use_interrupt;
+   int watchdog_cnt;
+   size_t mbxsize;
+   size_t mbxsizeboot;
+   int mbxbuffers;
+   sm_cfg_t mb[2];
+   sm_cfg_t mb_boot[2];
+   sm_cfg_t pdosm[2];
    void (*pre_state_change_hook) (uint8_t * as, uint8_t * an);
    void (*post_state_change_hook) (uint8_t * as, uint8_t * an);
+   void (*application_hook) (void);
+   void (*safeoutput_override) (void);
+   int (*pre_object_download_hook) (uint16_t index, uint8_t subindex);
+   void (*post_object_download_hook) (uint16_t index, uint8_t subindex);
+   void (*rxpdo_override) (void);
+   void (*txpdo_override) (void);
+   void (*esc_hw_interrupt_enable) (uint32_t mask);
+   void (*esc_hw_interrupt_disable) (uint32_t mask);
+   void (*esc_hw_eep_handler) (void);
 } esc_cfg_t;
+
+/* Stack reference to application configuration of the ESC */
+extern esc_cfg_t * esc_cfg;
+extern size_t ESC_MBXSIZE;
+extern unsigned int ESC_MBX0_sma;
+extern unsigned int ESC_MBX0_sml;
+extern unsigned int ESC_MBX0_sme;
+extern unsigned int ESC_MBX0_smc;
+extern unsigned int ESC_MBX1_sma;
+extern unsigned int ESC_MBX1_sml;
+extern unsigned int ESC_MBX1_sme;
+extern unsigned int ESC_MBX1_smc;
+
+#define ESC_MBXBUFFERS      (esc_cfg->mbxbuffers)
+
+#define ESC_MBXSIZE_s       (esc_cfg->mbxsize)
+#define ESC_MBX0_sma_s      (esc_cfg->mb[0].cfg_sma)
+#define ESC_MBX0_sml_s      (esc_cfg->mb[0].cfg_sml)
+#define ESC_MBX0_sme_s      (esc_cfg->mb[0].cfg_sme)
+#define ESC_MBX0_smc_s      (esc_cfg->mb[0].cfg_smc)
+#define ESC_MBX1_sma_s      (esc_cfg->mb[1].cfg_sma)
+#define ESC_MBX1_sml_s      (esc_cfg->mb[1].cfg_sml)
+#define ESC_MBX1_sme_s      (esc_cfg->mb[1].cfg_sme)
+#define ESC_MBX1_smc_s      (esc_cfg->mb[1].cfg_smc)
+#define ESC_MBXSIZE_b       (esc_cfg->mbxsizeboot)
+#define ESC_MBX0_sma_b      (esc_cfg->mb_boot[0].cfg_sma)
+#define ESC_MBX0_sml_b      (esc_cfg->mb_boot[0].cfg_sml)
+#define ESC_MBX0_sme_b      (esc_cfg->mb_boot[0].cfg_sme)
+#define ESC_MBX0_smc_b      (esc_cfg->mb_boot[0].cfg_smc)
+#define ESC_MBX1_sma_b      (esc_cfg->mb_boot[1].cfg_sma)
+#define ESC_MBX1_sml_b      (esc_cfg->mb_boot[1].cfg_sml)
+#define ESC_MBX1_sme_b      (esc_cfg->mb_boot[1].cfg_sme)
+#define ESC_MBX1_smc_b      (esc_cfg->mb_boot[1].cfg_smc)
+#define ESC_SM2_sma         (esc_cfg->pdosm[0].cfg_sma)
+#define ESC_SM2_smc         (esc_cfg->pdosm[0].cfg_smc)
+#define ESC_SM2_act         (esc_cfg->pdosm[0].cfg_smact)
+#define ESC_SM3_sma         (esc_cfg->pdosm[1].cfg_sma)
+#define ESC_SM3_smc         (esc_cfg->pdosm[1].cfg_smc)
+#define ESC_SM3_act         (esc_cfg->pdosm[1].cfg_smact)
+
+#define ESC_MBXHSIZE        sizeof(_MBXh)
+#define ESC_MBXDSIZE        (ESC_MBXSIZE - ESC_MBXHSIZE)
+#define ESC_FOEHSIZE        sizeof(_FOEh)
+#define ESC_FOE_DATA_SIZE   (ESC_MBXSIZE - (ESC_MBXHSIZE +ESC_FOEHSIZE))
 
 void ESC_config (esc_cfg_t * cfg);
 void ESC_ALerror (uint16_t errornumber);
+void ESC_ALeventwrite (uint32_t event);
+uint32_t ESC_ALeventread (void);
+void ESC_ALeventmaskwrite (uint32_t mask);
+uint32_t ESC_ALeventmaskread (void);
 void ESC_ALstatus (uint8_t status);
 void ESC_SMstatus (uint8_t n);
 uint8_t ESC_WDstatus (void);
@@ -481,21 +545,28 @@ void ESC_stopinput (void);
 uint8_t ESC_startoutput (uint8_t state);
 void ESC_stopoutput (void);
 void ESC_state (void);
+void ESC_sm_act_event (void);
 
 /* From hardware file */
 void ESC_read (uint16_t address, void *buf, uint16_t len);
 void ESC_write (uint16_t address, void *buf, uint16_t len);
-void ESC_init (const void * arg);
+void ESC_init (const esc_cfg_t * cfg);
 void ESC_reset (void);
+void ESC_interrupt_enable (uint32_t mask);
+void ESC_interrupt_disable (uint32_t mask);
 
 /* From application */
 extern void APP_safeoutput ();
-
 extern volatile _ESCvar ESCvar;
-extern _MBX MBX[MBXBUFFERS];
-extern _MBXcontrol MBXcontrol[MBXBUFFERS];
+extern uint8_t MBX[];
+extern _MBXcontrol MBXcontrol[];
 extern uint8_t MBXrun;
-extern uint16_t SM2_sml, SM3_sml;
+extern uint16_t ESC_SM2_sml, ESC_SM3_sml;
+extern uint8_t dc_sync;
+extern int8_t sync_counter;
+extern uint16_t sync_counter_limit;
+extern uint16_t TXPDOsize;
+extern uint16_t RXPDOsize;
 
 typedef struct
 {
@@ -507,5 +578,38 @@ typedef struct
 #define APPSTATE_OUTPUT    0x02
 
 extern _App App;
+
+void DIG_process (uint8_t flags);
+
+#define DIG_PROCESS_INPUTS_FLAG     0x01
+#define DIG_PROCESS_OUTPUTS_FLAG    0x02
+#define DIG_PROCESS_WD_FLAG         0x04
+#define DIG_PROCESS_APP_HOOK_FLAG   0x08
+
+/* ATOMIC operations are used when running interrupt driven */
+#ifndef CC_ATOMIC_SET
+#define CC_ATOMIC_SET(var,val)   (var = val)
+#endif
+
+#ifndef CC_ATOMIC_GET
+#define CC_ATOMIC_GET(var)       (var)
+#endif
+
+#ifndef CC_ATOMIC_ADD
+#define CC_ATOMIC_ADD(var,val)   (var += val)
+#endif
+
+#ifndef CC_ATOMIC_SUB
+#define CC_ATOMIC_SUB(var,val)   (var -= val)
+#endif
+
+#ifndef CC_ATOMIC_AND
+#define CC_ATOMIC_AND(var,val)   (var &= val)
+#endif
+
+#ifndef CC_ATOMIC_OR
+#define CC_ATOMIC_OR(var,val)    (var |= val)
+#endif
+
 
 #endif

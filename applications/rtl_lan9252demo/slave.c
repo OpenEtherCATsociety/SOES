@@ -1,13 +1,10 @@
 #include <stddef.h>
 #include "utypes.h"
-#include "soes/esc.h"
-#include "soes/esc_coe.h"
-#include "soes/esc_foe.h"
+#include "esc.h"
+#include "esc_coe.h"
+#include "esc_foe.h"
+#include "config.h"
 #include "slave.h"
-
-#ifndef EEP_EMULATION
-#define EEP_EMULATION   0       /* Set to 1 for EEPROM emulation */
-#endif
 
 #define WATCHDOG_RESET_VALUE 150
 #define DEFAULTTXPDOMAP    0x1a00
@@ -16,10 +13,11 @@
 #define DEFAULTRXPDOITEMS  1
 
 volatile _ESCvar  ESCvar;
-_MBX              MBX[MBXBUFFERS];
+/* Make room for largest MBX */
+uint8_t           MBX[MBXBUFFERS * MAX(MBXSIZE,MBXSIZEBOOT)];
 _MBXcontrol       MBXcontrol[MBXBUFFERS];
 uint8_t           MBXrun=0;
-uint16_t          SM2_sml,SM3_sml;
+uint16_t          ESC_SM2_sml, ESC_SM3_sml;
 _Rbuffer          Rb;
 _Wbuffer          Wb;
 _Cbuffer          Cb;
@@ -30,8 +28,29 @@ uint16_t          rxpdomap = DEFAULTRXPDOMAP;
 uint8_t           txpdoitems = DEFAULTTXPDOITEMS;
 uint8_t           rxpdoitems = DEFAULTTXPDOITEMS;
 
-static unsigned int watchdog = WATCHDOG_RESET_VALUE;
+static int watchdog = WATCHDOG_RESET_VALUE;
 static void (*application_loop_callback)(void) = NULL;
+
+/** Function to pre-qualify the incoming SDO download.
+ *
+ * @param[in] index      = index of SDO download request to check
+ * @param[in] sub-index  = sub-index of SDO download request to check
+ * @return 1 if the SDO Download is correct. 0 If not correct.
+ */
+int ESC_pre_objecthandler (uint16_t index, uint8_t subindex)
+{
+   if ((index == 0x1c12) && (subindex > 0) && (rxpdoitems != 0))
+   {
+      SDO_abort (index, subindex, ABORT_READONLY);
+      return 0;
+   }
+   if ((index == 0x1c13) && (subindex > 0) && (txpdoitems != 0))
+   {
+      SDO_abort (index, subindex, ABORT_READONLY);
+      return 0;
+   }
+   return 1;
+}
 
 /** Mandatory: Hook called from the slave stack SDO Download handler to act on
  * user specified Index and Sub-index.
@@ -54,7 +73,7 @@ void ESC_objecthandler (uint16_t index, uint8_t subindex)
       {
          rxpdomap = 0x1600;
       }
-      RXPDOsize = SM2_sml = sizeRXPDO();
+      RXPDOsize = SM2_sml = sizeOfPDO(RX_PDO_OBJIDX);
       break;
    }
    case 0x1c13:
@@ -68,7 +87,7 @@ void ESC_objecthandler (uint16_t index, uint8_t subindex)
       {
          txpdomap = 0x1A00;
       }
-      TXPDOsize = SM3_sml = sizeTXPDO();
+      TXPDOsize = ESC_SM3_sml = sizeOfPDO(TX_PDO_OBJIDX);
       break;
    }
    /* Handle post-write of parameter values */
@@ -131,7 +150,7 @@ void DIG_process (void)
          /* Set outputs */
          cb_set_LEDs();
       }
-      if (watchdog == 0)
+      if (watchdog <= 0)
       {
          DPRINT("DIG_process watchdog expired\n");
          ESC_stopoutput();
@@ -213,10 +232,6 @@ void soes (void)
       ESC_xoeprocess();
    }
    DIG_process();
-#if EEP_EMULATION
-   EEP_process ();
-   EEP_hw_process();
-#endif  /* EEP_EMULATION */
 
    if (application_loop_callback != NULL)
    {
@@ -231,18 +246,38 @@ void soes_init (void)
 {
    DPRINT ("SOES (Simple Open EtherCAT Slave)\n");
 
-   TXPDOsize = SM3_sml = sizeTXPDO();
-   RXPDOsize = SM2_sml = sizeRXPDO();
+   TXPDOsize = ESC_SM3_sml = sizeOfPDO(TX_PDO_OBJIDX);
+   RXPDOsize = ESC_SM2_sml = sizeOfPDO(RX_PDO_OBJIDX);
 
-   /* Setup post config hooks */
+   /* Setup config hooks */
    static esc_cfg_t config =
    {
-      .pre_state_change_hook = NULL,
-      .post_state_change_hook = post_state_change_hook
+      .use_interrupt = 0,
+      .user_arg = NULL,
+      .watchdog_cnt = 0,
+      .mbxsize = MBXSIZE,
+      .mbxsizeboot = MBXSIZEBOOT,
+      .mbxbuffers = MBXBUFFERS,
+      .mb[0] = {MBX0_sma, MBX0_sml, MBX0_sme, MBX0_smc, 0},
+      .mb[1] = {MBX1_sma, MBX1_sml, MBX1_sme, MBX1_smc, 0},
+      .mb_boot[0] = {MBX0_sma_b, MBX0_sml_b, MBX0_sme_b, MBX0_smc_b, 0},
+      .mb_boot[1] = {MBX1_sma_b, MBX1_sml_b, MBX1_sme_b, MBX1_smc_b, 0},
+      .pdosm[0] = {SM2_sma, 0, 0, SM2_smc, SM2_act},
+      .pdosm[1] = {SM3_sma, 0, 0, SM3_smc, SM3_act},      
+      .pre_state_change_hook = NULL, 
+      .post_state_change_hook = NULL,
+      .application_hook = NULL,
+      .safeoutput_override = NULL,
+      .pre_object_download_hook = NULL,
+      .post_object_download_hook = NULL,
+      .rxpdo_override = NULL,
+      .txpdo_override = NULL,
+      .esc_hw_interrupt_enable = NULL,
+      .esc_hw_interrupt_disable = NULL,
+      .esc_hw_eep_handler = NULL
    };
-   ESC_config ((esc_cfg_t *)&config);
-
-   ESC_reset();
+   
+   ESC_config (&config);
    ESC_init ((void *)spi_name);
 
    /*  wait until ESC is started up */

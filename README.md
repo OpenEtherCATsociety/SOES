@@ -11,7 +11,7 @@ SOES is an EtherCAT slave stack written in c. Its purpose is to learn and
 to use. All users are invited to study the source to get an understanding
 how an EtherCAT slave functions.
 
-Features as of 1.1.0:
+Features as of 2.0.0:
  - Address offset based HAL for easy ESC read/write access via any
    interface
  - Mailbox with data link layer
@@ -21,5 +21,12 @@ Features as of 1.1.0:
  - Easy portable C-code suited for embedded applications
  - Fixed PDO mapping
  - FoE with bootstrap template
- - Support for Little and Big endian targets.
- - Polling for interrupts
+ - Support for Little and Big endian targets
+ - Run polling, mixed polling/interrupt or interrupt
+ - Support for SM Synchronization 
+ - Support DC sync0 and DC Synchronization
+ - Add stack configuration via new configuration paramater to/or from 
+   "stack"_init
+
+TODO
+ - Update documentation
