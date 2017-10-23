@@ -40,6 +40,7 @@
 #include <esc_coe.h>
 #include <esc_foe.h>
 #include "utypes.h"
+#include "config.h"
 #include "bootstrap.h"
 
 #define WD_RESET           1000
@@ -52,10 +53,11 @@ uint32_t            encoder_scale;
 uint32_t            encoder_scale_mirror;
 
 volatile _ESCvar  ESCvar;
-_MBX              MBX[MBXBUFFERS];
+/* Make room for largest MBX */
+uint8_t           MBX[MBXBUFFERS * MAX(MBXSIZE,MBXSIZEBOOT)];
 _MBXcontrol       MBXcontrol[MBXBUFFERS];
 uint8_t           MBXrun=0;
-uint16_t          SM2_sml,SM3_sml;
+uint16_t          ESC_SM2_sml, ESC_SM3_sml;
 _Rbuffer          Rb;
 _Wbuffer          Wb;
 _Cbuffer          Cb;
@@ -73,6 +75,28 @@ uint8_t           rxpdoitems = DEFAULTTXPDOITEMS;
 extern uint32_t local_boot_state;
 
 static const char *spi_name = "/spi0/et1100";
+
+/** Function to pre-qualify the incoming SDO download.
+ *
+ * @param[in] index      = index of SDO download request to check
+ * @param[in] sub-index  = sub-index of SDO download request to check
+ * @return 1 if the SDO Download is correct. 0 If not correct.
+ */
+int ESC_pre_objecthandler (uint16_t index, uint8_t subindex)
+{
+   if ((index == 0x1c12) && (subindex > 0) && (rxpdoitems != 0))
+   {
+      SDO_abort (index, subindex, ABORT_READONLY);
+      return 0;
+   }
+   if ((index == 0x1c13) && (subindex > 0) && (txpdoitems != 0))
+   {
+      SDO_abort (index, subindex, ABORT_READONLY);
+      return 0;
+   }
+   return 1;
+}
+
 
 /** Mandatory: Hook called from the slave stack SDO Download handler to act on
  * user specified Index and Sub-index.
@@ -95,7 +119,7 @@ void ESC_objecthandler (uint16_t index, uint8_t subindex)
          {
             rxpdomap = 0x1600;
          }
-         RXPDOsize = SM2_sml = sizeRXPDO ();
+         RXPDOsize = ESC_SM2_sml = sizeOfPDO(RX_PDO_OBJIDX);
          break;
       }
       case 0x1c13:
@@ -109,7 +133,7 @@ void ESC_objecthandler (uint16_t index, uint8_t subindex)
          {
             txpdomap = 0x1A00;
          }
-         TXPDOsize = SM3_sml = sizeTXPDO ();
+         TXPDOsize = ESC_SM3_sml = sizeOfPDO(TX_PDO_OBJIDX);
          break;
       }
       case 0x7100:
@@ -232,18 +256,38 @@ void soes (void *arg)
 {
    DPRINT ("SOES (Simple Open EtherCAT Slave)\n");
 
-   TXPDOsize = SM3_sml = sizeTXPDO ();
-   RXPDOsize = SM2_sml = sizeRXPDO ();
+   TXPDOsize = ESC_SM3_sml = sizeOfPDO(TX_PDO_OBJIDX);
+   RXPDOsize = ESC_SM2_sml = sizeOfPDO(RX_PDO_OBJIDX);
 
-   /* Setup post config hooks */
+   /* Setup config hooks */
    static esc_cfg_t config =
    {
-      .pre_state_change_hook = NULL,
-      .post_state_change_hook = post_state_change_hook
+      .use_interrupt = 0,
+      .user_arg = NULL,
+      .watchdog_cnt = 0,
+      .mbxsize = MBXSIZE,
+      .mbxsizeboot = MBXSIZEBOOT,
+      .mbxbuffers = MBXBUFFERS,
+      .mb[0] = {MBX0_sma, MBX0_sml, MBX0_sme, MBX0_smc, 0},
+      .mb[1] = {MBX1_sma, MBX1_sml, MBX1_sme, MBX1_smc, 0},
+      .mb_boot[0] = {MBX0_sma_b, MBX0_sml_b, MBX0_sme_b, MBX0_smc_b, 0},
+      .mb_boot[1] = {MBX1_sma_b, MBX1_sml_b, MBX1_sme_b, MBX1_smc_b, 0},
+      .pdosm[0] = {SM2_sma, 0, 0, SM2_smc, SM2_act},
+      .pdosm[1] = {SM3_sma, 0, 0, SM3_smc, SM3_act},      
+      .pre_state_change_hook = NULL, 
+      .post_state_change_hook = NULL,
+      .application_hook = NULL,
+      .safeoutput_override = NULL,
+      .pre_object_download_hook = NULL,
+      .post_object_download_hook = NULL,
+      .rxpdo_override = NULL,
+      .txpdo_override = NULL,
+      .esc_hw_interrupt_enable = NULL,
+      .esc_hw_interrupt_disable = NULL,
+      .esc_hw_eep_handler = NULL
    };
-   ESC_config ((esc_cfg_t *)&config);
-
-   ESC_reset();
+   
+   ESC_config (&config);
    ESC_init (spi_name);
 
    task_delay (tick_from_ms (200));
