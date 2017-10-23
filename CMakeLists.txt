@@ -5,7 +5,7 @@ cmake_minimum_required (VERSION 2.8.4)
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake")
 project (SOES)
 
-set (SOES_VERSION_MAJOR 0)
+set (SOES_VERSION_MAJOR 1)
 set (SOES_VERSION_MINOR 1)
 set (SOES_VERSION_PATCH 0)
 
