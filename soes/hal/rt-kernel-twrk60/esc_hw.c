@@ -101,8 +101,6 @@ void ESC_read (uint16_t address, void *buf, uint16_t len)
 
    /* Un-select device. */
    spi_unselect (et1100);
-   /* result is never used */
-   return 0;
 }
 
 /** ESC write function used by the Slave stack.
@@ -121,8 +119,6 @@ void ESC_write (uint16_t address, void *buf, uint16_t len)
    write (et1100, buf, len);
    /* Un-select device. */
    spi_unselect (et1100);
-   /* result is never used */
-   return 0;
 }
 
 void ESC_reset (void)

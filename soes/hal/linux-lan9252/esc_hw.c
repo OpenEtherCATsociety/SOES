@@ -39,6 +39,7 @@
 #include <string.h>
 #include <fcntl.h>
 #include <stdlib.h>
+#include <unistd.h>
 
 #define BIT(x)	1 << (x)
 
@@ -83,6 +84,7 @@ static int lan9252 = -1;
 static void lan9252_write_32 (uint16_t address, uint32_t val)
 {
     uint8_t data[7];
+    int n;
 
     data[0] = ESC_CMD_SERIAL_WRITE;
     data[1] = ((address >> 8) & 0xFF);
@@ -93,7 +95,8 @@ static void lan9252_write_32 (uint16_t address, uint32_t val)
     data[6] = ((val >> 24) & 0xFF);
 
     /* Write data */
-    write (lan9252, data, sizeof(data));
+    n = write (lan9252, data, sizeof(data));
+    (void)n;
 }
 
 /* lan9252 single read */
@@ -102,13 +105,15 @@ static uint32_t lan9252_read_32 (uint32_t address)
    uint8_t data[2];
    uint8_t result[4];
    uint16_t lseek_addr;
+   int n;
 
    data[0] = ((address >>8) & 0xFF);
    data[1] = (address & 0xFF);
 
 	lseek_addr=((uint16_t)data[0] << 8) | data[1];
 	lseek (lan9252, lseek_addr, SEEK_SET);
-   read (lan9252, result, sizeof(result));
+   n = read (lan9252, result, sizeof(result));
+   (void)n;
 
    return ((result[3] << 24) |
            (result[2] << 16) |
@@ -155,11 +160,12 @@ static void ESC_read_pram (uint16_t address, void *buf, uint16_t len)
    uint32_t value;
    uint8_t * temp_buf = buf;
    uint16_t byte_offset = 0;
-   uint8_t fifo_cnt, first_byte_position, temp_len, data[2];
+   uint8_t fifo_cnt, first_byte_position, temp_len;
    uint8_t *buffer;
    int i, array_size, size;
    float quotient,remainder;
    uint32_t temp;
+   int n;
 
    value = ESC_PRAM_CMD_ABORT;
    lan9252_write_32(ESC_PRAM_RD_CMD_REG, value);
@@ -215,7 +221,8 @@ static void ESC_read_pram (uint16_t address, void *buf, uint16_t len)
         memset(buffer,0,size);    
 
         lseek (lan9252, ESC_PRAM_RD_FIFO_REG, SEEK_SET);        
-        read (lan9252, buffer, size);
+        n = read (lan9252, buffer, size);
+        (void)n;
                    
         while(len > 0)
         {
@@ -240,10 +247,11 @@ static void ESC_write_pram (uint16_t address, void *buf, uint16_t len)
    uint32_t value;
    uint8_t * temp_buf = buf;
    uint16_t byte_offset = 0;
-   uint8_t fifo_cnt, first_byte_position, temp_len, data[3];
+   uint8_t fifo_cnt, first_byte_position, temp_len;
    uint8_t *buffer;
    int i, array_size, size;
    float quotient,remainder;   
+   int n;
 
    value = ESC_PRAM_CMD_ABORT;
    lan9252_write_32(ESC_PRAM_WR_CMD_REG, value);
@@ -317,7 +325,8 @@ static void ESC_write_pram (uint16_t address, void *buf, uint16_t len)
                 byte_offset += temp_len;               
             }
         }        
-        write (lan9252, buffer, size);
+        n = write (lan9252, buffer, size);
+        (void)n;
         free(buffer);    
     }
 }
