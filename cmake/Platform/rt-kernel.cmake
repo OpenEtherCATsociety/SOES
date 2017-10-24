@@ -18,6 +18,7 @@ include_directories(
   ${RTK}/include/arch/${ARCH}
   ${RTK}/include/kern
   ${RTK}/include/drivers
+  ${RTK}/lwip/src/include
   ${RTK}/bsp/${BSP}/include
   ${SOES_SOURCE_DIR}/soes/include/sys/gcc
   )
