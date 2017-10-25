@@ -11,22 +11,18 @@
 #ifndef __esc_eep__
 #define __esc_eep__
 
-#include "cc.h"
-
-/* EEPROM emulation related ESC registers */
-#define ESCREG_EECONTSTAT	0x0502
-#define ESCREG_EEDATA		0x0508
-#define ESCREG_ALEVENT_EEP	0x0020
+#include <cc.h>
+#include "esc.h"
 
 /* EEPROM commands */
-#define EEP_CMD_IDLE		0x0
-#define EEP_CMD_READ		0x1
-#define EEP_CMD_WRITE		0x2
-#define EEP_CMD_RELOAD		0x3
+#define EEP_CMD_IDLE        0x0
+#define EEP_CMD_READ        0x1
+#define EEP_CMD_WRITE       0x2
+#define EEP_CMD_RELOAD      0x3
 
 /* read/write size */
-#define EEP_READ_SIZE		8
-#define EEP_WRITE_SIZE		2
+#define EEP_READ_SIZE       8
+#define EEP_WRITE_SIZE      2
 
 /* CONSTAT register content */
 typedef struct CC_PACKED
@@ -51,6 +47,24 @@ typedef struct CC_PACKED
 
    uint32_t addr;
 } eep_stat_t;
+
+/**
+ * ECAT EEPROM configuration area data structure
+ */
+typedef union eep_config
+{
+  struct
+  {
+    uint16_t pdi_control;
+    uint16_t pdi_configuration;
+    uint16_t sync_impulse_len;
+    uint16_t pdi_configuration2;
+    uint16_t configured_station_alias;
+    uint8_t  reserved[4];
+    uint16_t checksum;
+  };
+  uint32_t dword[4]; /**< Four 32 bit double word equivalent to 8 16 bit configuration area word. */
+}eep_config_t;
 
 /* periodic task */
 void EEP_process (void);
