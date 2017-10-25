@@ -13,6 +13,7 @@
 
 #include <cc.h>
 
+CC_PACKED_BEGIN
 typedef struct CC_PACKED
 {
    uint16_t subindex;
@@ -23,7 +24,9 @@ typedef struct CC_PACKED
    uint32_t value;
    void *data;
 } _objd;
+CC_PACKED_END
 
+CC_PACKED_BEGIN
 typedef struct CC_PACKED
 {
    uint16_t index;
@@ -33,6 +36,7 @@ typedef struct CC_PACKED
    const char *name;
    const _objd *objdesc;
 } _objectlist;
+CC_PACKED_END
 
 #define OBJH_READ               0
 #define OBJH_WRITE              1

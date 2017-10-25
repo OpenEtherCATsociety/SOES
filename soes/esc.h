@@ -207,6 +207,7 @@
 #define FOE_WAIT_FOR_DATA              3
 
 // Attention! this struct is always little-endian
+CC_PACKED_BEGIN
 typedef struct CC_PACKED
 {
    uint16_t PSA;
@@ -264,8 +265,10 @@ typedef struct CC_PACKED
    uint8_t PDIsm:1;
 #endif
 } _ESCsm;
+CC_PACKED_END
 
 /* Attention! this struct is always little-endian */
+CC_PACKED_BEGIN
 typedef struct CC_PACKED
 {
    uint16_t PSA;
@@ -275,14 +278,18 @@ typedef struct CC_PACKED
    uint8_t ActESC;
    uint8_t ActPDI;
 } _ESCsm2;
+CC_PACKED_END
 
+CC_PACKED_BEGIN
 typedef struct CC_PACKED
 {
    uint16_t PSA;
    uint16_t Length;
    uint8_t Command;
 } _ESCsmCompact;
+CC_PACKED_END
 
+CC_PACKED_BEGIN
 typedef struct CC_PACKED
 {
    uint16_t ALevent;
@@ -323,7 +330,9 @@ typedef struct CC_PACKED
    uint32_t Time;
    _ESCsm SM[4];
 } _ESCvar;
+CC_PACKED_END
 
+CC_PACKED_BEGIN
 typedef struct CC_PACKED
 {
    uint16_t length;
@@ -345,18 +354,24 @@ typedef struct CC_PACKED
    uint8_t mbxtype:4;
 #endif
 } _MBXh;
+CC_PACKED_END
 
+CC_PACKED_BEGIN
 typedef struct CC_PACKED
 {
    _MBXh header;
    uint8_t b[0];
 } _MBX;
+CC_PACKED_END
 
+CC_PACKED_BEGIN
 typedef struct CC_PACKED
 {
    uint16_t numberservice;
 } _COEh;
+CC_PACKED_END
 
+CC_PACKED_BEGIN
 typedef struct CC_PACKED
 {
 #if defined(EC_LITTLE_ENDIAN)
@@ -372,14 +387,18 @@ typedef struct CC_PACKED
    uint8_t reserved;
    uint16_t fragmentsleft;
 } _INFOh;
+CC_PACKED_END
 
+CC_PACKED_BEGIN
 typedef struct CC_PACKED
 {
    _MBXh mbxheader;
    uint16_t type;
    uint16_t detail;
 } _MBXerr;
+CC_PACKED_END
 
+CC_PACKED_BEGIN
 typedef struct CC_PACKED
 {
    _MBXh mbxheader;
@@ -389,7 +408,9 @@ typedef struct CC_PACKED
    uint8_t subindex;
    uint32_t size;
 } _COEsdo;
+CC_PACKED_END
 
+CC_PACKED_BEGIN
 typedef struct CC_PACKED
 {
    _MBXh mbxheader;
@@ -401,7 +422,9 @@ typedef struct CC_PACKED
    uint8_t objectcode;
    char name;
 } _COEobjdesc;
+CC_PACKED_END
 
+CC_PACKED_BEGIN
 typedef struct CC_PACKED
 {
    _MBXh mbxheader;
@@ -415,7 +438,9 @@ typedef struct CC_PACKED
    uint16_t access;
    char name;
 } _COEentdesc;
+CC_PACKED_END
 
+CC_PACKED_BEGIN
 typedef struct CC_PACKED
 {
    uint8_t opcode;
@@ -427,7 +452,9 @@ typedef struct CC_PACKED
       uint32_t errorcode;
    };
 } _FOEh;
+CC_PACKED_END
 
+CC_PACKED_BEGIN
 typedef struct CC_PACKED
 {
    _MBXh mbxheader;
@@ -439,7 +466,7 @@ typedef struct CC_PACKED
       char errortext[0];
    };
 } _FOE;
-
+CC_PACKED_END
 /* state definition in mailbox
  * 0 : idle
  * 1 : claimed for inbox
