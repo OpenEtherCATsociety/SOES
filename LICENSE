@@ -1,7 +1,8 @@
 SOES Simple Open EtherCAT Slave
-Copyright (C) 2007-2014 Arthur Ketels
-Copyright (C) 2012-2014 rt-labs
 
+Copyright (C) 2007-2017 Arthur Ketels
+Copyright (C) 2012-2017 rt-labs
+ 
 SOES is free software; you can redistribute it and/or modify it under
 the terms of the GNU General Public License version 2 as published by the Free
 Software Foundation.
