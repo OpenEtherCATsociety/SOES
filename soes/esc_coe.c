@@ -850,7 +850,7 @@ void ESC_coeprocess (void)
    _COEsdo *coesdo;
    _COEobjdesc *coeobjdesc;
    uint8_t service;
-   if (!MBXrun)
+   if (ESCvar.MBXrun == 0)
    {
       return;
    }

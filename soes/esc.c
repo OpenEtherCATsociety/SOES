@@ -15,17 +15,6 @@
  *
  * State machine and mailbox support.
  */
-/* Global variables used by the stack */
-esc_cfg_t * esc_cfg = NULL;
-size_t ESC_MBXSIZE;
-uint16_t ESC_MBX0_sma;
-uint16_t ESC_MBX0_sml;
-uint16_t ESC_MBX0_sme;
-uint8_t ESC_MBX0_smc;
-uint16_t ESC_MBX1_sma;
-uint16_t ESC_MBX1_sml;
-uint16_t ESC_MBX1_sme;
-uint8_t ESC_MBX1_smc;
 
 /** Write AL Status Code to the ESC.
  *
@@ -246,7 +235,7 @@ uint16_t ESC_checkDC (void)
       {
          ret = ALERR_DCINVALIDSYNCCFG;
       }
-      else if(COE_getSyncMgrPara(0x10F1, 0x2, &sync_counter_limit, DTYPE_UNSIGNED16) == 0)
+      else if(COE_getSyncMgrPara(0x10F1, 0x2, &ESCvar.synccounterlimit, DTYPE_UNSIGNED16) == 0)
       {
          ret = ALERR_DCINVALIDSYNCCFG;
       }
@@ -272,14 +261,14 @@ uint16_t ESC_checkDC (void)
       }
       else
       {
-         dc_sync = 1;
-         sync_counter = 0;
+         ESCvar.dcsync = 1;
+         ESCvar.synccounter = 0;
       }
    }
    else
    {
-         dc_sync = 0;
-         sync_counter = 0;
+      ESCvar.dcsync = 0;
+      ESCvar.synccounter = 0;
    }
 
    return ret;
@@ -331,15 +320,10 @@ uint8_t ESC_checkmbx (uint8_t state)
 uint8_t ESC_startmbx (uint8_t state)
 {
    /* Assign SM settings */
-   ESC_MBXSIZE = esc_cfg->mbxsize;
-   ESC_MBX0_sma = esc_cfg->mb[0].cfg_sma;
-   ESC_MBX0_sml = esc_cfg->mb[0].cfg_sml;
-   ESC_MBX0_sme = esc_cfg->mb[0].cfg_sme;
-   ESC_MBX0_smc = esc_cfg->mb[0].cfg_smc;
-   ESC_MBX1_sma = esc_cfg->mb[1].cfg_sma;
-   ESC_MBX1_sml = esc_cfg->mb[1].cfg_sml;
-   ESC_MBX1_sme = esc_cfg->mb[1].cfg_sme;
-   ESC_MBX1_smc = esc_cfg->mb[1].cfg_smc;
+   ESCvar.activembxsize = ESCvar.mbxsize;
+   ESCvar.activemb0 = &ESCvar.mb[0];
+   ESCvar.activemb1 = &ESCvar.mb[1];
+
 
    ESC_SMenable (0);
    ESC_SMenable (1);
@@ -348,12 +332,12 @@ uint8_t ESC_startmbx (uint8_t state)
    if ((state = ESC_checkmbx (state)) & ESCerror)
    {
       ESC_ALerror (ALERR_INVALIDMBXCONFIG);
-      MBXrun = 0;
+      ESCvar.MBXrun = 0;
    }
    else
    {
       ESCvar.toggle = ESCvar.SM[1].ECrep;       //sync repeat request toggle state
-      MBXrun = 1;
+      ESCvar.MBXrun = 1;
    }
    return state;
 }
@@ -370,15 +354,9 @@ uint8_t ESC_startmbx (uint8_t state)
 uint8_t ESC_startmbxboot (uint8_t state)
 {
    /* Assign SM settings */
-   ESC_MBXSIZE = esc_cfg->mbxsizeboot;
-   ESC_MBX0_sma = esc_cfg->mb_boot[0].cfg_sma;
-   ESC_MBX0_sml = esc_cfg->mb_boot[0].cfg_sml;
-   ESC_MBX0_sme = esc_cfg->mb_boot[0].cfg_sme;
-   ESC_MBX0_smc = esc_cfg->mb_boot[0].cfg_smc;
-   ESC_MBX1_sma = esc_cfg->mb_boot[1].cfg_sma;
-   ESC_MBX1_sml = esc_cfg->mb_boot[1].cfg_sml;
-   ESC_MBX1_sme = esc_cfg->mb_boot[1].cfg_sme;
-   ESC_MBX1_smc = esc_cfg->mb_boot[1].cfg_smc;
+   ESCvar.activembxsize = ESCvar.mbxsizeboot;
+   ESCvar.activemb0 = &ESCvar.mbboot[0];
+   ESCvar.activemb1 = &ESCvar.mbboot[1];
 
    ESC_SMenable (0);
    ESC_SMenable (1);
@@ -387,12 +365,12 @@ uint8_t ESC_startmbxboot (uint8_t state)
    if ((state = ESC_checkmbx (state)) & ESCerror)
    {
       ESC_ALerror (ALERR_INVALIDBOOTMBXCONFIG);
-      MBXrun = 0;
+      ESCvar.MBXrun = 0;
    }
    else
    {
       ESCvar.toggle = ESCvar.SM[1].ECrep;       //sync repeat request toggle state
-      MBXrun = 1;
+      ESCvar.MBXrun = 1;
    }
    return state;
 }
@@ -403,7 +381,7 @@ uint8_t ESC_startmbxboot (uint8_t state)
 void ESC_stopmbx (void)
 {
    uint8_t n;
-   MBXrun = 0;
+   ESCvar.MBXrun = 0;
    ESC_SMdisable (0);
    ESC_SMdisable (1);
    for (n = 0; n < ESC_MBXBUFFERS; n++)
@@ -500,7 +478,8 @@ uint8_t ESC_claimbuffer (void)
    {
       MBXcontrol[n].state = MBXstate_outclaim;
       MBh = (_MBXh *)&MBX[n * ESC_MBXSIZE];
-      ESCvar.mbxcnt = (++ESCvar.mbxcnt) & 0x07;
+      ESCvar.mbxcnt++;
+      ESCvar.mbxcnt = (ESCvar.mbxcnt & 0x07);
       if (ESCvar.mbxcnt == 0)
       {
          ESCvar.mbxcnt = 1;
@@ -560,7 +539,7 @@ uint8_t ESC_mbxprocess (void)
    uint8_t mbxhandle = 0;
    _MBXh *MBh = (_MBXh *)&MBX[0];
 
-   if (!MBXrun)
+   if (ESCvar.MBXrun == 0)
    {
       /* nothing to do */
       return 0;
@@ -676,11 +655,11 @@ uint8_t ESC_mbxprocess (void)
 void ESC_xoeprocess (void)
 {
    _MBXh *mbh;
-   if (!MBXrun)
+   if (ESCvar.MBXrun == 0)
    {
       return;
    }
-   if (!ESCvar.xoe && (MBXcontrol[0].state == MBXstate_inclaim))
+   if ((ESCvar.xoe == 0) && (MBXcontrol[0].state == MBXstate_inclaim))
    {
       mbh = (_MBXh *) &MBX[0];
       if ((mbh->mbxtype == 0) || (etohs (mbh->length) == 0))
@@ -707,7 +686,7 @@ uint8_t ESC_checkSM23 (uint8_t state)
    _ESCsm2 *SM;
    ESC_read (ESCREG_SM2, (void *) &ESCvar.SM[2], sizeof (ESCvar.SM[2]));
    SM = (_ESCsm2 *) & ESCvar.SM[2];
-   if ((etohs (SM->PSA) != ESC_SM2_sma) || (etohs (SM->Length) != ESC_SM2_sml)
+   if ((etohs (SM->PSA) != ESC_SM2_sma) || (etohs (SM->Length) != ESCvar.ESC_SM2_sml)
        || (SM->Command != ESC_SM2_smc) || !(SM->ActESC & ESC_SM2_act))
    {
       ESCvar.SMtestresult = SMRESULT_ERRSM2;
@@ -716,7 +695,7 @@ uint8_t ESC_checkSM23 (uint8_t state)
    }
    ESC_read (ESCREG_SM3, (void *) &ESCvar.SM[3], sizeof (ESCvar.SM[3]));
    SM = (_ESCsm2 *) & ESCvar.SM[3];
-   if ((etohs (SM->PSA) != ESC_SM3_sma) || (etohs (SM->Length) != ESC_SM3_sml)
+   if ((etohs (SM->PSA) != ESC_SM3_sma) || (etohs (SM->Length) != ESCvar.ESC_SM3_sml)
        || (SM->Command != ESC_SM3_smc) || !(SM->ActESC & ESC_SM3_act))
    {
       ESCvar.SMtestresult = SMRESULT_ERRSM3;
@@ -741,7 +720,7 @@ uint8_t ESC_startinput (uint8_t state)
    if (state != (ESCpreop | ESCerror))
    {
       ESC_SMenable (3);
-      CC_ATOMIC_SET(App.state, APPSTATE_INPUT);
+      CC_ATOMIC_SET(ESCvar.App.state, APPSTATE_INPUT);
    }
    else
    {
@@ -758,7 +737,7 @@ uint8_t ESC_startinput (uint8_t state)
    }
 
    /* Exit here if polling */
-   if (esc_cfg->use_interrupt == 0)
+   if (ESCvar.use_interrupt == 0)
    {
       return state;
    }
@@ -774,19 +753,20 @@ uint8_t ESC_startinput (uint8_t state)
 
          ESC_SMdisable (2);
          ESC_SMdisable (3);
-         CC_ATOMIC_SET(App.state, APPSTATE_IDLE);
+         CC_ATOMIC_SET(ESCvar.App.state, APPSTATE_IDLE);
       }
       else
       {
-         if (esc_cfg->esc_hw_interrupt_enable != NULL)
+         if (ESCvar.esc_hw_interrupt_enable != NULL)
          {
-            if(dc_sync > 0)
+            if(ESCvar.dcsync > 0)
             {
-               esc_cfg->esc_hw_interrupt_enable(ESCREG_ALEVENT_DC_SYNC0 | ESCREG_ALEVENT_SM2);
+               ESCvar.esc_hw_interrupt_enable(ESCREG_ALEVENT_DC_SYNC0 |
+                     ESCREG_ALEVENT_SM2);
             }
             else
             {
-               esc_cfg->esc_hw_interrupt_enable(ESCREG_ALEVENT_SM2);
+               ESCvar.esc_hw_interrupt_enable(ESCREG_ALEVENT_SM2);
             }
          }
       }
@@ -801,15 +781,16 @@ uint8_t ESC_startinput (uint8_t state)
  */
 void ESC_stopinput (void)
 {
-   CC_ATOMIC_SET(App.state, APPSTATE_IDLE);
+   CC_ATOMIC_SET(ESCvar.App.state, APPSTATE_IDLE);
    ESC_SMdisable (3);
    ESC_SMdisable (2);
 
    /* Call interrupt disable hook case it have been configured  */
-   if ((esc_cfg->use_interrupt != 0) &&
-         (esc_cfg->esc_hw_interrupt_disable != NULL))
+   if ((ESCvar.use_interrupt != 0) &&
+         (ESCvar.esc_hw_interrupt_disable != NULL))
    {
-      esc_cfg->esc_hw_interrupt_disable (ESCREG_ALEVENT_DC_SYNC0 | ESCREG_ALEVENT_SM2);
+      ESCvar.esc_hw_interrupt_disable (ESCREG_ALEVENT_DC_SYNC0 |
+            ESCREG_ALEVENT_SM2);
    }
 }
 
@@ -825,7 +806,7 @@ uint8_t ESC_startoutput (uint8_t state)
 {
 
    ESC_SMenable (2);
-   CC_ATOMIC_OR(App.state, APPSTATE_OUTPUT);
+   CC_ATOMIC_OR(ESCvar.App.state, APPSTATE_OUTPUT);
    return state;
 
 }
@@ -837,7 +818,7 @@ uint8_t ESC_startoutput (uint8_t state)
  */
 void ESC_stopoutput (void)
 {
-   CC_ATOMIC_AND(App.state, APPSTATE_INPUT);
+   CC_ATOMIC_AND(ESCvar.App.state, APPSTATE_INPUT);
    ESC_SMdisable (2);
    APP_safeoutput ();
 }
@@ -871,7 +852,7 @@ void ESC_sm_act_event (void)
     * is up and running
     */
    if ((as & ESCREG_AL_ALLBUTINITMASK) &&
-       ((as == ESCboot) == 0) && MBXrun)
+       ((as == ESCboot) == 0) && ESCvar.MBXrun)
    {
       /* Validate Sync Managers, reading the Activation register will
        * acknowledge the SyncManager Activation event making us enter
@@ -889,7 +870,7 @@ void ESC_sm_act_event (void)
       else if (ax == (ESCinit | ESCerror))
       {
          /* If we have activated Inputs and Outputs we need to disable them */
-         if (CC_ATOMIC_GET(App.state))
+         if (CC_ATOMIC_GET(ESCvar.App.state))
          {
             ESC_stopoutput ();
             ESC_stopinput ();
@@ -897,14 +878,14 @@ void ESC_sm_act_event (void)
          /* Stop mailboxes and update ALStatus code */
          ESC_stopmbx ();
          ESC_ALerror (ALERR_INVALIDMBXCONFIG);
-         MBXrun = 0;
+         ESCvar.MBXrun = 0;
          ESC_ALstatus (ax);
          return;
       }
       /* Have we been forced to step down to PREOP we will stop inputs
        * and outputs, update AL Status Code and exit ESC_state
        */
-      else if (CC_ATOMIC_GET(App.state) && (ax23 == (ESCpreop | ESCerror)))
+      else if (CC_ATOMIC_GET(ESCvar.App.state) && (ax23 == (ESCpreop | ESCerror)))
       {
          ESC_stopoutput ();
          ESC_stopinput ();
@@ -972,9 +953,9 @@ void ESC_state (void)
    as = (ac << 4) | (as & 0x0f);
 
    /* Call post state change hook case it have been configured  */
-   if (esc_cfg->pre_state_change_hook != NULL)
+   if (ESCvar.pre_state_change_hook != NULL)
    {
-      esc_cfg->pre_state_change_hook (&as, &an);
+      ESCvar.pre_state_change_hook (&as, &an);
    }
 
    /* Switch through the state change requested via AlControl from
@@ -1050,8 +1031,8 @@ void ESC_state (void)
       case PREOP_TO_SAFEOP:
       case SAFEOP_TO_SAFEOP:
       {
-         ESC_SM2_sml = sizeOfPDO (RX_PDO_OBJIDX);
-         ESC_SM3_sml = sizeOfPDO (TX_PDO_OBJIDX);
+         ESCvar.ESC_SM2_sml = sizeOfPDO (RX_PDO_OBJIDX);
+         ESCvar.ESC_SM3_sml = sizeOfPDO (TX_PDO_OBJIDX);
          an = ESC_startinput (ac);
          if (an == ac)
          {
@@ -1120,9 +1101,9 @@ void ESC_state (void)
    }
 
    /* Call post state change hook case it have been configured  */
-   if (esc_cfg->post_state_change_hook != NULL)
+   if (ESCvar.post_state_change_hook != NULL)
    {
-      esc_cfg->post_state_change_hook (&as, &an);
+      ESCvar.post_state_change_hook (&as, &an);
    }
 
    if (!(an & ESCerror) && (ESCvar.ALerror))
@@ -1135,13 +1116,36 @@ void ESC_state (void)
 
 }
 /** Function copying the application configuration variable
- * to the stack local pointer variable.
+ * data to the stack local variable.
  *
- * @param[in] cfg   = Pointer to by the Application static declared
- * configuration variable holding application specific details. Ex. post- and
- * pre state change hooks
+ * @param[in] cfg   = Pointer to the Application configuration variable
+ * holding application specific details. Data is copied.
  */
 void ESC_config (esc_cfg_t * cfg)
 {
-   esc_cfg = cfg;
+   /* Copy configuration data */
+   ESCvar.use_interrupt = cfg->use_interrupt;
+   ESCvar.watchdogcnt = cfg->watchdog_cnt;
+   ESCvar.mbxsize = cfg->mbxsize;
+   ESCvar.mbxsizeboot = cfg->mbxsizeboot;
+   ESCvar.mbxbuffers = cfg->mbxbuffers;
+
+   ESCvar.mb[0] = cfg->mb[0];
+   ESCvar.mb[1] = cfg->mb[1];
+   ESCvar.mbboot[0] = cfg->mb_boot[0];
+   ESCvar.mbboot[1] = cfg->mb_boot[1];
+   ESCvar.pdosm[0] = cfg->pdosm[0];
+   ESCvar.pdosm[1] = cfg->pdosm[1];
+
+   ESCvar.pre_state_change_hook = cfg->pre_state_change_hook;
+   ESCvar.post_state_change_hook = cfg->post_state_change_hook;
+   ESCvar.application_hook = cfg->application_hook;
+   ESCvar.safeoutput_override = cfg->safeoutput_override;
+   ESCvar.pre_object_download_hook = cfg->pre_object_download_hook;
+   ESCvar.post_object_download_hook = cfg->post_object_download_hook;
+   ESCvar.rxpdo_override = cfg->rxpdo_override;
+   ESCvar.txpdo_override = cfg->txpdo_override;
+   ESCvar.esc_hw_interrupt_enable = cfg->esc_hw_interrupt_enable;
+   ESCvar.esc_hw_interrupt_disable = cfg->esc_hw_interrupt_disable;
+   ESCvar.esc_hw_eep_handler = cfg->esc_hw_eep_handler;
 }

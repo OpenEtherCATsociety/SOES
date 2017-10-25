@@ -206,6 +206,48 @@
 #define FOE_WAIT_FOR_FINAL_ACK         2
 #define FOE_WAIT_FOR_DATA              3
 
+#define APPSTATE_IDLE                  0x00
+#define APPSTATE_INPUT                 0x01
+#define APPSTATE_OUTPUT                0x02
+
+typedef struct sm_cfg
+{
+   uint16_t cfg_sma;
+   uint16_t cfg_sml;
+   uint16_t cfg_sme;
+   uint8_t cfg_smc;
+   uint8_t cfg_smact;
+}sm_cfg_t;
+
+typedef struct esc_cfg
+{
+   void * user_arg;
+   int use_interrupt;
+   int watchdog_cnt;
+   size_t mbxsize;
+   size_t mbxsizeboot;
+   int mbxbuffers;
+   sm_cfg_t mb[2];
+   sm_cfg_t mb_boot[2];
+   sm_cfg_t pdosm[2];
+   void (*pre_state_change_hook) (uint8_t * as, uint8_t * an);
+   void (*post_state_change_hook) (uint8_t * as, uint8_t * an);
+   void (*application_hook) (void);
+   void (*safeoutput_override) (void);
+   int (*pre_object_download_hook) (uint16_t index, uint8_t subindex);
+   void (*post_object_download_hook) (uint16_t index, uint8_t subindex);
+   void (*rxpdo_override) (void);
+   void (*txpdo_override) (void);
+   void (*esc_hw_interrupt_enable) (uint32_t mask);
+   void (*esc_hw_interrupt_disable) (uint32_t mask);
+   void (*esc_hw_eep_handler) (void);
+} esc_cfg_t;
+
+typedef struct
+{
+   uint8_t state;
+} _App;
+
 // Attention! this struct is always little-endian
 CC_PACKED_BEGIN
 typedef struct CC_PACKED
@@ -292,7 +334,35 @@ CC_PACKED_END
 CC_PACKED_BEGIN
 typedef struct CC_PACKED
 {
-   uint16_t ALevent;
+   /* Configuration input is saved so the user variable may go out-of-scope */
+   int use_interrupt;
+   size_t mbxsize;
+   size_t mbxsizeboot;
+   int mbxbuffers;
+   sm_cfg_t  mb[2];
+   sm_cfg_t  mbboot[2];
+   sm_cfg_t  pdosm[2];
+   void (*pre_state_change_hook) (uint8_t * as, uint8_t * an);
+   void (*post_state_change_hook) (uint8_t * as, uint8_t * an);
+   void (*application_hook) (void);
+   void (*safeoutput_override) (void);
+   int (*pre_object_download_hook) (uint16_t index, uint8_t subindex);
+   void (*post_object_download_hook) (uint16_t index, uint8_t subindex);
+   void (*rxpdo_override) (void);
+   void (*txpdo_override) (void);
+   void (*esc_hw_interrupt_enable) (uint32_t mask);
+   void (*esc_hw_interrupt_disable) (uint32_t mask);
+   void (*esc_hw_eep_handler) (void);
+   uint8_t MBXrun;
+   size_t activembxsize;
+   sm_cfg_t * activemb0;
+   sm_cfg_t * activemb1;
+   uint16_t ESC_SM2_sml;
+   uint16_t ESC_SM3_sml;
+   uint16_t TXPDOsize;
+   uint16_t RXPDOsize;
+   uint8_t dcsync;
+   uint16_t synccounterlimit;
    uint16_t ALstatus;
    uint16_t ALcontrol;
    uint16_t ALerror;
@@ -325,10 +395,14 @@ typedef struct CC_PACKED
 
    uint8_t SMtestresult;
    int16_t temp;
-   uint16_t wdcnt;
    uint32_t PrevTime;
-   uint32_t Time;
    _ESCsm SM[4];
+   /* Volatile since it may be read from ISR */
+   volatile int watchdogcnt;
+   volatile uint32_t Time;
+   volatile uint16_t ALevent;
+   volatile int8_t synccounter;
+   volatile _App App;
 } _ESCvar;
 CC_PACKED_END
 
@@ -481,58 +555,23 @@ typedef struct
    uint8_t state;
 } _MBXcontrol;
 
-typedef struct sm_cfg
-{
-   uint16_t cfg_sma;
-   uint16_t cfg_sml;
-   uint16_t cfg_sme;
-   uint8_t cfg_smc;
-   uint8_t cfg_smact;
-}sm_cfg_t;
-
-typedef struct esc_cfg
-{
-   void * user_arg;
-   int use_interrupt;
-   int watchdog_cnt;
-   size_t mbxsize;
-   size_t mbxsizeboot;
-   int mbxbuffers;
-   sm_cfg_t mb[2];
-   sm_cfg_t mb_boot[2];
-   sm_cfg_t pdosm[2];
-   void (*pre_state_change_hook) (uint8_t * as, uint8_t * an);
-   void (*post_state_change_hook) (uint8_t * as, uint8_t * an);
-   void (*application_hook) (void);
-   void (*safeoutput_override) (void);
-   int (*pre_object_download_hook) (uint16_t index, uint8_t subindex);
-   void (*post_object_download_hook) (uint16_t index, uint8_t subindex);
-   void (*rxpdo_override) (void);
-   void (*txpdo_override) (void);
-   void (*esc_hw_interrupt_enable) (uint32_t mask);
-   void (*esc_hw_interrupt_disable) (uint32_t mask);
-   void (*esc_hw_eep_handler) (void);
-} esc_cfg_t;
-
 /* Stack reference to application configuration of the ESC */
-extern esc_cfg_t * esc_cfg;
-extern size_t ESC_MBXSIZE;
-extern uint16_t ESC_MBX0_sma;
-extern uint16_t ESC_MBX0_sml;
-extern uint16_t ESC_MBX0_sme;
-extern uint8_t ESC_MBX0_smc;
-extern uint16_t ESC_MBX1_sma;
-extern uint16_t ESC_MBX1_sml;
-extern uint16_t ESC_MBX1_sme;
-extern uint8_t ESC_MBX1_smc;
-
-#define ESC_MBXBUFFERS      (esc_cfg->mbxbuffers)
-#define ESC_SM2_sma         (esc_cfg->pdosm[0].cfg_sma)
-#define ESC_SM2_smc         (esc_cfg->pdosm[0].cfg_smc)
-#define ESC_SM2_act         (esc_cfg->pdosm[0].cfg_smact)
-#define ESC_SM3_sma         (esc_cfg->pdosm[1].cfg_sma)
-#define ESC_SM3_smc         (esc_cfg->pdosm[1].cfg_smc)
-#define ESC_SM3_act         (esc_cfg->pdosm[1].cfg_smact)
+#define ESC_MBXSIZE         (ESCvar.activembxsize)
+#define ESC_MBX0_sma        (ESCvar.activemb0->cfg_sma)
+#define ESC_MBX0_sml        (ESCvar.activemb0->cfg_sml)
+#define ESC_MBX0_sme        (ESCvar.activemb0->cfg_sme)
+#define ESC_MBX0_smc        (ESCvar.activemb0->cfg_smc)
+#define ESC_MBX1_sma        (ESCvar.activemb1->cfg_sma)
+#define ESC_MBX1_sml        (ESCvar.activemb1->cfg_sml)
+#define ESC_MBX1_sme        (ESCvar.activemb1->cfg_sme)
+#define ESC_MBX1_smc        (ESCvar.activemb1->cfg_smc)
+#define ESC_MBXBUFFERS      (ESCvar.mbxbuffers)
+#define ESC_SM2_sma         (ESCvar.pdosm[0].cfg_sma)
+#define ESC_SM2_smc         (ESCvar.pdosm[0].cfg_smc)
+#define ESC_SM2_act         (ESCvar.pdosm[0].cfg_smact)
+#define ESC_SM3_sma         (ESCvar.pdosm[1].cfg_sma)
+#define ESC_SM3_smc         (ESCvar.pdosm[1].cfg_smc)
+#define ESC_SM3_act         (ESCvar.pdosm[1].cfg_smact)
 
 #define ESC_MBXHSIZE        sizeof(_MBXh)
 #define ESC_MBXDSIZE        (ESC_MBXSIZE - ESC_MBXHSIZE)
@@ -569,34 +608,9 @@ void ESC_reset (void);
 
 /* From application */
 extern void APP_safeoutput ();
-extern volatile _ESCvar ESCvar;
-extern uint8_t MBX[];
+extern _ESCvar ESCvar;
 extern _MBXcontrol MBXcontrol[];
-extern uint8_t MBXrun;
-extern uint16_t ESC_SM2_sml, ESC_SM3_sml;
-extern uint8_t dc_sync;
-extern int8_t sync_counter;
-extern uint16_t sync_counter_limit;
-extern uint16_t TXPDOsize;
-extern uint16_t RXPDOsize;
-
-typedef struct
-{
-   uint8_t state;
-} _App;
-
-#define APPSTATE_IDLE      0x00
-#define APPSTATE_INPUT     0x01
-#define APPSTATE_OUTPUT    0x02
-
-extern _App App;
-
-void DIG_process (uint8_t flags);
-
-#define DIG_PROCESS_INPUTS_FLAG     0x01
-#define DIG_PROCESS_OUTPUTS_FLAG    0x02
-#define DIG_PROCESS_WD_FLAG         0x04
-#define DIG_PROCESS_APP_HOOK_FLAG   0x08
+extern uint8_t MBX[];
 
 /* ATOMIC operations are used when running interrupt driven */
 #ifndef CC_ATOMIC_SET

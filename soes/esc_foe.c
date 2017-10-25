@@ -563,7 +563,7 @@ void ESC_foeprocess (void)
    _MBXh *mbh;
    _FOE *foembx;
 
-   if (!MBXrun)
+   if (ESCvar.MBXrun == 0)
    {
       return;
    }

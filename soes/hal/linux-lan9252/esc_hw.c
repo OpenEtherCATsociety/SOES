@@ -10,7 +10,6 @@
  * Function to read and write commands to the ESC. Used to read/write ESC
  * registers and memory.
  */
-#include "utypes.h"
 #include "esc.h"
 #include <string.h>
 #include <fcntl.h>
@@ -426,10 +425,10 @@ void ESC_reset (void)
 
 }
 
-void ESC_init (const void * arg)
+void ESC_init (const esc_cfg_t * config)
 {
    uint32_t value;
-   const char * spi_name = (char *)arg;
+   const char * spi_name = (char *)config->user_arg;
    lan9252 = open (spi_name, O_RDWR, 0);
 
    /* Reset the ecat core here due to evb-lan9252-digio not having any GPIO

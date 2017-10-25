@@ -11,7 +11,6 @@
  * registers and memory.
  */
 
-#include "utypes.h"
 #include "../../esc.h"
 #include <spi/spi.h>
 #include <string.h>
@@ -119,9 +118,9 @@ void ESC_reset (void)
    DPRINT("esc_reset_ended\n");
 }
 
-void ESC_init (const void * arg)
+void ESC_init (const esc_cfg_t * config)
 {
-   const char * spi_name = (char *)arg;
+   const char * spi_name = (char *)config->user_arg;
    et1100 = open (spi_name, O_RDWR, 0);
    read_termination[sizeof(read_termination) - 1] = 0xFF;
 }

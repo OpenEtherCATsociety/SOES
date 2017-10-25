@@ -210,7 +210,7 @@ static void ecat_isr (void * arg)
 
    if(ESCvar.ALevent & ESCREG_ALEVENT_SM2)
    {
-      if(dc_sync == 0)
+      if(ESCvar.dcsync == 0)
       {
          DIG_process(DIG_PROCESS_OUTPUTS_FLAG | DIG_PROCESS_APP_HOOK_FLAG |
                DIG_PROCESS_INPUTS_FLAG);

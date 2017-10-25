@@ -1,3 +1,8 @@
+/*
+ * Licensed under the GNU General Public License version 2 with exceptions. See
+ * LICENSE file in the project root for full license information
+ */
+
 #ifndef CC_H
 #define CC_H
 
@@ -8,6 +13,8 @@ extern "C"
 
 #include <assert.h>
 #include <stdint.h>
+#include <stddef.h>
+#include <sys/param.h>
 #ifdef __linux__
    #include <endian.h>
 #else
