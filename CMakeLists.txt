@@ -11,19 +11,23 @@ set (SOES_VERSION_PATCH 0)
 
 # Generate version numbers
 configure_file (
-  "${SOES_SOURCE_DIR}/version.h.in"
-  "${SOES_SOURCE_DIR}/soes/version.h"
+  ${SOES_SOURCE_DIR}/version.h.in
+  ${SOES_SOURCE_DIR}/soes/version.h
   )
 
 # Include paths
-include_directories("${SOES_SOURCE_DIR}/soes")
+include_directories(
+  ${SOES_SOURCE_DIR}
+  ${SOES_SOURCE_DIR}/soes
+  )
 
 # Platform flags and sources
 include(${CMAKE_SYSTEM_NAME} OPTIONAL)
 
 # Source paths
 add_subdirectory (soes)
-add_subdirectory (applications/rtl_slavedemo)
+add_subdirectory (${SOES_DEMO})
+
 
 message (STATUS "Building for ${CMAKE_SYSTEM_NAME}")
 

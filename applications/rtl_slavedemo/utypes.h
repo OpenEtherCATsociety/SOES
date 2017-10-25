@@ -56,4 +56,8 @@ typedef struct
    uint32_t reset_counter;
 } _Cbuffer;
 
+extern _Rbuffer Rb;
+extern _Wbuffer Wb;
+extern _Cbuffer Cb;
+
 #endif

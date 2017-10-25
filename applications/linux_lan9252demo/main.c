@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include "slave.h"
 
 /**
  * This function reads physical input values and assigns the corresponding members
