@@ -78,6 +78,7 @@ int FOE_fopen (char *name, uint8_t num_chars, uint32_t pass, uint8_t op)
       {
          foe_file = &foe_files[i];
          foe_file->address_offset = 0;
+         foe_file->total_size = 0;
          switch (op)
          {
             case FOE_OP_RRQ:
@@ -156,6 +157,8 @@ uint16_t FOE_fwrite (uint8_t *data, uint16_t length)
        FOEvar.fposition++;
        ncopied++;
     }
+
+    foe_file->total_size += ncopied;
 
     DPRINT("FOE_fwrite END with : %d\n",ncopied);
     return ncopied;

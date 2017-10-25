@@ -27,9 +27,11 @@ struct foe_writefile_cfg
    uint32_t       dest_start_address;
    /** Current address during write of file */
    uint32_t       address_offset;
-   /* FoE password */
+   /** Calculated size of file received */
+   uint32_t       total_size;
+   /** FoE password */
    uint32_t       filepass;
-   /* Pointer to application foe write function */
+   /** Pointer to application foe write function */
    uint32_t       (*write_function) (foe_writefile_cfg_t * self, uint8_t * data);
 };
 
