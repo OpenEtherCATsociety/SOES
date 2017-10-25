@@ -15,7 +15,17 @@
  *
  * State machine and mailbox support.
  */
-static esc_cfg_t * esc_cfg = NULL;
+/* Global variables used by the stack */
+esc_cfg_t * esc_cfg = NULL;
+size_t ESC_MBXSIZE;
+uint16_t ESC_MBX0_sma;
+uint16_t ESC_MBX0_sml;
+uint16_t ESC_MBX0_sme;
+uint8_t ESC_MBX0_smc;
+uint16_t ESC_MBX1_sma;
+uint16_t ESC_MBX1_sml;
+uint16_t ESC_MBX1_sme;
+uint8_t ESC_MBX1_smc;
 
 /** Write AL Status Code to the ESC.
  *
@@ -28,6 +38,7 @@ void ESC_ALerror (uint16_t errornumber)
    dummy = htoes (errornumber);
    ESC_write (ESCREG_ALERROR, &dummy, sizeof (dummy));
 }
+
 /** Write AL Status to the ESC.
  *
  * @param[in] status   = Write current slave status to register 0x130 AL Status
@@ -143,8 +154,8 @@ uint8_t ESC_checkmbx (uint8_t state)
    ESC_read (ESCREG_SM0, (void *) &ESCvar.SM[0], sizeof (ESCvar.SM[0]));
    ESC_read (ESCREG_SM1, (void *) &ESCvar.SM[1], sizeof (ESCvar.SM[1]));
    SM = (_ESCsm2 *) & ESCvar.SM[0];
-   if ((etohs (SM->PSA) != MBX0_sma) || (etohs (SM->Length) != MBX0_sml)
-       || (SM->Command != MBX0_smc) || (ESCvar.SM[0].ECsm == 0))
+   if ((etohs (SM->PSA) != ESC_MBX0_sma) || (etohs (SM->Length) != ESC_MBX0_sml)
+       || (SM->Command != ESC_MBX0_smc) || (ESCvar.SM[0].ECsm == 0))
    {
       ESCvar.SMtestresult = SMRESULT_ERRSM0;
       ESC_SMdisable (0);
@@ -152,8 +163,8 @@ uint8_t ESC_checkmbx (uint8_t state)
       return (uint8_t) (ESCinit | ESCerror);      //fail state change
    }
    SM = (_ESCsm2 *) & ESCvar.SM[1];
-   if ((etohs (SM->PSA) != MBX1_sma) || (etohs (SM->Length) != MBX1_sml)
-       || (SM->Command != MBX1_smc) || (ESCvar.SM[1].ECsm == 0))
+   if ((etohs (SM->PSA) != ESC_MBX1_sma) || (etohs (SM->Length) != ESC_MBX1_sml)
+       || (SM->Command != ESC_MBX1_smc) || (ESCvar.SM[1].ECsm == 0))
    {
       ESCvar.SMtestresult = SMRESULT_ERRSM1;
       ESC_SMdisable (0);
@@ -173,6 +184,17 @@ uint8_t ESC_checkmbx (uint8_t state)
  */
 uint8_t ESC_startmbx (uint8_t state)
 {
+   /* Assign SM settings */
+   ESC_MBXSIZE = esc_cfg->mbxsize;
+   ESC_MBX0_sma = esc_cfg->mb[0].cfg_sma;
+   ESC_MBX0_sml = esc_cfg->mb[0].cfg_sml;
+   ESC_MBX0_sme = esc_cfg->mb[0].cfg_sme;
+   ESC_MBX0_smc = esc_cfg->mb[0].cfg_smc;
+   ESC_MBX1_sma = esc_cfg->mb[1].cfg_sma;
+   ESC_MBX1_sml = esc_cfg->mb[1].cfg_sml;
+   ESC_MBX1_sme = esc_cfg->mb[1].cfg_sme;
+   ESC_MBX1_smc = esc_cfg->mb[1].cfg_smc;
+
    ESC_SMenable (0);
    ESC_SMenable (1);
    ESC_SMstatus (0);
@@ -189,40 +211,6 @@ uint8_t ESC_startmbx (uint8_t state)
    }
    return state;
 }
-/** Check boostrap mailbox status by reading all SyncManager 0 and 1 data. The read values
- * are compared with local definitions for SM Physical Address, SM Length and SM Control.
- * If we check fails we disable Mailboxes by disabling SyncManager 0 and 1 and return
- * state Init with Error flag set.
- *
- * @param[in] state   = Current state request read from ALControl 0x0120
- * @return if all Mailbox values is correct we return incoming state request, otherwise
- * we return state Init with Error flag set.
- */
-uint8_t ESC_checkmbxboot (uint8_t state)
-{
-   _ESCsm2 *SM;
-   ESC_read (ESCREG_SM0, (void *) &ESCvar.SM[0], sizeof (ESCvar.SM[0]));
-   ESC_read (ESCREG_SM1, (void *) &ESCvar.SM[1], sizeof (ESCvar.SM[1]));
-   SM = (_ESCsm2 *) & ESCvar.SM[0];
-   if ((etohs (SM->PSA) != MBX0_sma_b) || (etohs (SM->Length) != MBX0_sml_b)
-       || (SM->Command != MBX0_smc_b) || (ESCvar.SM[0].ECsm == 0))
-   {
-      ESCvar.SMtestresult = SMRESULT_ERRSM0;
-      ESC_SMdisable (0);
-      ESC_SMdisable (1);
-      return (uint8_t) (ESCinit | ESCerror);      //fail state change
-   }
-   SM = (_ESCsm2 *) & ESCvar.SM[1];
-   if ((etohs (SM->PSA) != MBX1_sma_b) || (etohs (SM->Length) != MBX1_sml_b)
-       || (SM->Command != MBX1_smc_b) || (ESCvar.SM[1].ECsm == 0))
-   {
-      ESCvar.SMtestresult = SMRESULT_ERRSM1;
-      ESC_SMdisable (0);
-      ESC_SMdisable (1);
-      return (uint8_t) (ESCinit | ESCerror);      //fail state change
-   }
-   return state;
-}
 
 /** Try to start bootstrap mailboxes for current ALControl state request by enabling SyncManager 0 and 1.
  * If all mailbox settings is correct we return incoming state request, otherwise
@@ -235,11 +223,22 @@ uint8_t ESC_checkmbxboot (uint8_t state)
  */
 uint8_t ESC_startmbxboot (uint8_t state)
 {
+   /* Assign SM settings */
+   ESC_MBXSIZE = esc_cfg->mbxsizeboot;
+   ESC_MBX0_sma = esc_cfg->mb_boot[0].cfg_sma;
+   ESC_MBX0_sml = esc_cfg->mb_boot[0].cfg_sml;
+   ESC_MBX0_sme = esc_cfg->mb_boot[0].cfg_sme;
+   ESC_MBX0_smc = esc_cfg->mb_boot[0].cfg_smc;
+   ESC_MBX1_sma = esc_cfg->mb_boot[1].cfg_sma;
+   ESC_MBX1_sml = esc_cfg->mb_boot[1].cfg_sml;
+   ESC_MBX1_sme = esc_cfg->mb_boot[1].cfg_sme;
+   ESC_MBX1_smc = esc_cfg->mb_boot[1].cfg_smc;
+
    ESC_SMenable (0);
    ESC_SMenable (1);
    ESC_SMstatus (0);
    ESC_SMstatus (1);
-   if ((state = ESC_checkmbxboot (state)) & ESCerror)
+   if ((state = ESC_checkmbx (state)) & ESCerror)
    {
       ESC_ALerror (ALERR_INVALIDBOOTMBXCONFIG);
       MBXrun = 0;
@@ -261,7 +260,7 @@ void ESC_stopmbx (void)
    MBXrun = 0;
    ESC_SMdisable (0);
    ESC_SMdisable (1);
-   for (n = 0; n < MBXBUFFERS; n++)
+   for (n = 0; n < ESC_MBXBUFFERS; n++)
    {
       MBXcontrol[n].state = MBXstate_idle;
    }
@@ -283,39 +282,22 @@ void ESC_stopmbx (void)
  */
 void ESC_readmbx (void)
 {
-   _MBX *MB = &MBX[0];
+   _MBX *MB = (_MBX *)&MBX[0];
    uint16_t length;
 
-   if (ESCvar.ALstatus == ESCboot)
-   {
-      ESC_read (MBX0_sma_b, MB, MBXHSIZE);
-      length = etohs (MB->header.length);
+   ESC_read (ESC_MBX0_sma, MB, ESC_MBXHSIZE);
+   length = etohs (MB->header.length);
 
-      if (length > (MBX0_sml_b - MBXHSIZE))
-      {
-         length = MBX0_sml_b - MBXHSIZE;
-      }
-      ESC_read (MBX0_sma_b + MBXHSIZE, &(MB->b[0]), length);
-      if (length + MBXHSIZE < MBX0_sml_b)
-      {
-         ESC_read (MBX0_sme_b, &length, 1);
-      }
-   }
-   else
+   if (length > (ESC_MBX0_sml - ESC_MBXHSIZE))
    {
-      ESC_read (MBX0_sma, MB, MBXHSIZE);
-      length = etohs (MB->header.length);
-
-      if (length > (MBX0_sml - MBXHSIZE))
-      {
-         length = MBX0_sml - MBXHSIZE;
-      }
-      ESC_read (MBX0_sma + MBXHSIZE, &(MB->b[0]), length);
-      if (length + MBXHSIZE < MBX0_sml)
-      {
-         ESC_read (MBX0_sme, &length, 1);
-      }
+      length = ESC_MBX0_sml - ESC_MBXHSIZE;
    }
+   ESC_read (ESC_MBX0_sma + ESC_MBXHSIZE, MB->b, length);
+   if (length + ESC_MBXHSIZE < ESC_MBX0_sml)
+   {
+      ESC_read (ESC_MBX0_sme, &length, 1);
+   }
+
    MBXcontrol[0].state = MBXstate_inclaim;
 }
 /** Write local mailbox buffer ESCvar.MBX[n] to Send mailbox.
@@ -326,34 +308,21 @@ void ESC_readmbx (void)
  */
 void ESC_writembx (uint8_t n)
 {
-   _MBX *MB = &MBX[n];
+   _MBXh *MBh = (_MBXh *)&MBX[n * ESC_MBXSIZE];
    uint8_t dummy = 0;
    uint16_t length;
-   length = etohs (MB->header.length);
-   if (ESCvar.ALstatus == ESCboot)
+   length = etohs (MBh->length);
+
+   if (length > (ESC_MBX1_sml - ESC_MBXHSIZE))
    {
-      if (length > (MBX1_sml_b - MBXHSIZE))
-      {
-         length = MBX1_sml_b - MBXHSIZE;
-      }
-      ESC_write (MBX1_sma_b, MB, MBXHSIZE + length);
-      if (length + MBXHSIZE < MBX1_sml_b)
-      {
-         ESC_write (MBX1_sme_b, &dummy, 1);
-      }
+      length = ESC_MBX1_sml - ESC_MBXHSIZE;
    }
-   else
+   ESC_write (ESC_MBX1_sma, MBh, ESC_MBXHSIZE + length);
+   if (length + ESC_MBXHSIZE < ESC_MBX1_sml)
    {
-      if (length > (MBX1_sml - MBXHSIZE))
-      {
-         length = MBX1_sml - MBXHSIZE;
-      }
-      ESC_write (MBX1_sma, MB, MBXHSIZE + length);
-      if (length + MBXHSIZE < MBX1_sml)
-      {
-         ESC_write (MBX1_sme, &dummy, 1);
-      }
+      ESC_write (ESC_MBX1_sme, &dummy, 1);
    }
+
    ESCvar.mbxfree = 0;
 }
 
@@ -362,14 +331,8 @@ void ESC_writembx (uint8_t n)
 void ESC_ackmbxread (void)
 {
    uint8_t dummy = 0;
-   if (ESCvar.ALstatus == ESCboot)
-   {
-      ESC_write (MBX1_sma_b, &dummy, 1);
-   }
-   else
-   {
-      ESC_write (MBX1_sma, &dummy, 1);
-   }
+
+   ESC_write (ESC_MBX1_sma, &dummy, 1);
    ESCvar.mbxfree = 1;
 }
 
@@ -381,8 +344,8 @@ void ESC_ackmbxread (void)
  */
 uint8_t ESC_claimbuffer (void)
 {
-   _MBX *MB;
-   uint8_t n = MBXBUFFERS - 1;
+   _MBXh *MBh;
+   uint8_t n = ESC_MBXBUFFERS - 1;
    while ((n > 0) && (MBXcontrol[n].state))
    {
       n--;
@@ -390,16 +353,16 @@ uint8_t ESC_claimbuffer (void)
    if (n)
    {
       MBXcontrol[n].state = MBXstate_outclaim;
-      MB = &MBX[n];
+      MBh = (_MBXh *)&MBX[n * ESC_MBXSIZE];
       ESCvar.mbxcnt = (++ESCvar.mbxcnt) & 0x07;
       if (ESCvar.mbxcnt == 0)
       {
          ESCvar.mbxcnt = 1;
       }
-      MB->header.address = htoes (0x0000);      // destination is master
-      MB->header.channel = 0;
-      MB->header.priority = 0;
-      MB->header.mbxcnt = ESCvar.mbxcnt;
+      MBh->address = htoes (0x0000);      // destination is master
+      MBh->channel = 0;
+      MBh->priority = 0;
+      MBh->mbxcnt = ESCvar.mbxcnt;
       ESCvar.txcue++;
    }
    return n;
@@ -411,7 +374,7 @@ uint8_t ESC_claimbuffer (void)
  */
 uint8_t ESC_outreqbuffer (void)
 {
-   uint8_t n = MBXBUFFERS - 1;
+   uint8_t n = ESC_MBXBUFFERS - 1;
    while ((n > 0) && (MBXcontrol[n].state != MBXstate_outreq))
    {
       n--;
@@ -431,7 +394,7 @@ void MBX_error (uint16_t error)
    MBXout = ESC_claimbuffer ();
    if (MBXout)
    {
-      mbxerr = (_MBXerr *) & MBX[MBXout];
+      mbxerr = (_MBXerr *) &MBX[MBXout * ESC_MBXSIZE];
       mbxerr->mbxheader.length = htoes ((uint16_t) 0x04);
       mbxerr->mbxheader.mbxtype = MBXERR;
       mbxerr->type = htoes ((uint16_t) 0x01);
@@ -449,7 +412,7 @@ void MBX_error (uint16_t error)
 uint8_t ESC_mbxprocess (void)
 {
    uint8_t mbxhandle = 0;
-   _MBX *MB = &MBX[0];
+   _MBXh *MBh = (_MBXh *)&MBX[0];
 
    if (!MBXrun)
    {
@@ -544,18 +507,18 @@ uint8_t ESC_mbxprocess (void)
    {
       ESC_readmbx ();
       ESCvar.SM[0].MBXstat = 0;
-      if (etohs (MB->header.length) == 0)
+      if (etohs (MBh->length) == 0)
       {
          MBX_error (MBXERR_INVALIDHEADER);
          /* drop mailbox */
          MBXcontrol[0].state = MBXstate_idle;
       }
-      if ((MB->header.mbxcnt != 0) && (MB->header.mbxcnt == ESCvar.mbxincnt))
+      if ((MBh->mbxcnt != 0) && (MBh->mbxcnt == ESCvar.mbxincnt))
       {
          /* drop mailbox */
          MBXcontrol[0].state = MBXstate_idle;
       }
-      ESCvar.mbxincnt = MB->header.mbxcnt;
+      ESCvar.mbxincnt = MBh->mbxcnt;
       return 1;
    }
 
@@ -582,7 +545,7 @@ void ESC_xoeprocess (void)
    }
    if (!ESCvar.xoe && (MBXcontrol[0].state == MBXstate_inclaim))
    {
-      mbh = (_MBXh *) & MBX[0];
+      mbh = (_MBXh *) &MBX[0];
       if ((mbh->mbxtype == 0) || (etohs (mbh->length) == 0))
       {
          MBX_error (MBXERR_INVALIDHEADER);
@@ -606,18 +569,18 @@ uint8_t ESC_checkSM23 (uint8_t state)
 {
    _ESCsm2 *SM;
    ESC_read (ESCREG_SM2, (void *) &ESCvar.SM[2], sizeof (ESCvar.SM[2]));
-   ESC_read (ESCREG_SM3, (void *) &ESCvar.SM[3], sizeof (ESCvar.SM[3]));
    SM = (_ESCsm2 *) & ESCvar.SM[2];
-   if ((etohs (SM->PSA) != SM2_sma) || (etohs (SM->Length) != SM2_sml)
-       || (SM->Command != SM2_smc) || !(SM->ActESC & SM2_act))
+   if ((etohs (SM->PSA) != ESC_SM2_sma) || (etohs (SM->Length) != ESC_SM2_sml)
+       || (SM->Command != ESC_SM2_smc) || !(SM->ActESC & ESC_SM2_act))
    {
       ESCvar.SMtestresult = SMRESULT_ERRSM2;
       /* fail state change */
       return (ESCpreop | ESCerror);
    }
+   ESC_read (ESCREG_SM3, (void *) &ESCvar.SM[3], sizeof (ESCvar.SM[3]));
    SM = (_ESCsm2 *) & ESCvar.SM[3];
-   if ((etohs (SM->PSA) != SM3_sma) || (etohs (SM->Length) != SM3_sml)
-       || (SM->Command != SM3_smc) || !(SM->ActESC & SM3_act))
+   if ((etohs (SM->PSA) != ESC_SM3_sma) || (etohs (SM->Length) != ESC_SM3_sml)
+       || (SM->Command != ESC_SM3_smc) || !(SM->ActESC & ESC_SM3_act))
    {
       ESCvar.SMtestresult = SMRESULT_ERRSM3;
       /* fail state change */
@@ -786,7 +749,7 @@ void ESC_state (void)
    }
 
    /* Error state not acked, leave original */
-   if ((an & ESCerror) && !(ac & ESCerror))
+   if ((an & ESCerror) && ((ac & ESCerror) == 0))
    {
       return;
    }
@@ -795,7 +758,7 @@ void ESC_state (void)
    as = (ac << 4) | (as & 0x0f);
 
    /* Call post state change hook case it have been configured  */
-   if ((esc_cfg != NULL) && esc_cfg->pre_state_change_hook)
+   if (esc_cfg->pre_state_change_hook != NULL)
    {
       esc_cfg->pre_state_change_hook (&as, &an);
    }
@@ -865,8 +828,8 @@ void ESC_state (void)
       case PREOP_TO_SAFEOP:
       case SAFEOP_TO_SAFEOP:
       {
-         SM2_sml = sizeRXPDO ();
-         SM3_sml = sizeTXPDO ();
+         ESC_SM2_sml = sizeOfPDO (RX_PDO_OBJIDX);
+         ESC_SM3_sml = sizeOfPDO (TX_PDO_OBJIDX);
          an = ESC_startinput (ac);
          if (an == ac)
          {
@@ -932,7 +895,7 @@ void ESC_state (void)
    }
 
    /* Call post state change hook case it have been configured  */
-   if ((esc_cfg != NULL) && esc_cfg->post_state_change_hook)
+   if (esc_cfg->post_state_change_hook != NULL)
    {
       esc_cfg->post_state_change_hook (&as, &an);
    }

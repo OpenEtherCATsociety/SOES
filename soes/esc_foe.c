@@ -220,8 +220,8 @@ void FOE_abort (uint32_t code)
       mbxhandle = ESC_claimbuffer ();
       if (mbxhandle)
       {
-         foembx = (_FOE *) & MBX[mbxhandle];
-         foembx->mbxheader.length = htoes (FOEHSIZE);   /* Don't bother with error text for now. */
+         foembx = (_FOE *) &MBX[mbxhandle * ESC_MBXSIZE];
+         foembx->mbxheader.length = htoes (ESC_FOEHSIZE);   /* Don't bother with error text for now. */
          foembx->mbxheader.mbxtype = MBXFOE;
          foembx->foeheader.opcode = FOE_OP_ERR;
          foembx->foeheader.errorcode = htoel (code);
@@ -253,7 +253,7 @@ int FOE_send_data_packet ()
    mbxhandle = ESC_claimbuffer ();
    if (mbxhandle)
    {
-      foembx = (_FOE *) & MBX[mbxhandle];
+      foembx = (_FOE *) &MBX[mbxhandle * ESC_MBXSIZE];
       data_len = FOE_fread (foembx->data, FOE_DATA_SIZE);
       foembx->foeheader.opcode = FOE_OP_DATA;
       foembx->foeheader.packetnumber = htoel (FOEvar.foepacket);
@@ -284,8 +284,8 @@ int FOE_send_ack ()
    if (mbxhandle)
    {
       DPRINT("FOE_send_ack\n");
-      foembx = (_FOE *) & MBX[mbxhandle];
-      foembx->mbxheader.length = htoes (FOEHSIZE);
+      foembx = (_FOE *) &MBX[mbxhandle * ESC_MBXSIZE];
+      foembx->mbxheader.length = htoes (ESC_FOEHSIZE);
       foembx->mbxheader.mbxtype = MBXFOE;
       foembx->foeheader.opcode = FOE_OP_ACK;
       foembx->foeheader.packetnumber = htoel (FOEvar.foepacket);
@@ -407,7 +407,7 @@ void FOE_write ()
 
    FOE_init ();
    foembx = (_FOE *) &MBX[0];
-   data_len = etohs (foembx->mbxheader.length) - FOEHSIZE;
+   data_len = etohs (foembx->mbxheader.length) - ESC_FOEHSIZE;
    password = etohl (foembx->foeheader.password);
 
    /* Get an address we can write the file to, if possible. */
@@ -448,7 +448,7 @@ void FOE_data ()
    }
 
    foembx = (_FOE*)&MBX[0];
-   data_len = etohs(foembx->mbxheader.length) - FOEHSIZE;
+   data_len = etohs(foembx->mbxheader.length) - ESC_FOEHSIZE;
    packet = etohl(foembx->foeheader.packetnumber);
 
    if (packet != FOEvar.foepacket)
@@ -476,7 +476,7 @@ void FOE_data ()
          DPRINT("FOE_data no copied\n");
          FOE_abort (FOE_ERR_PROGERROR);
       }
-      else if (data_len == FOE_DATA_SIZE)
+      else if (data_len == ESC_FOE_DATA_SIZE)
       {
          DPRINT("FOE_data data_len == FOE_DATA_SIZE\n");
          if (ncopied != data_len)
@@ -579,7 +579,7 @@ void ESC_foeprocess (void)
    {
       foembx = (_FOE *) &MBX[0];
       /* Verify the size of the file data. */
-      if (etohs (foembx->mbxheader.length) < FOEHSIZE)
+      if (etohs (foembx->mbxheader.length) < ESC_FOEHSIZE)
       {
          FOE_abort (MBXERR_SIZETOOSHORT);
       }

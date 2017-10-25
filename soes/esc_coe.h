@@ -77,14 +77,15 @@ typedef struct CC_PACKED
 #define ATYPE_RXPDO             0x40
 #define ATYPE_TXPDO             0x80
 
+#define TX_PDO_OBJIDX           0x1c13
+#define RX_PDO_OBJIDX           0x1c12
+
 void ESC_coeprocess (void);
-uint16_t sizeTXPDO (void);
-uint16_t sizeRXPDO (void);
+uint16_t sizeOfPDO (uint16_t index);
+void SDO_abort (uint16_t index, uint8_t subindex, uint32_t abortcode);
 
 extern void ESC_objecthandler (uint16_t index, uint8_t subindex);
+extern int ESC_pre_objecthandler (uint16_t index, uint8_t subindex);
 extern const _objectlist SDOobjects[];
-extern const _objd SDO1C12[];
-extern const _objd SDO1C13[];
-
 
 #endif

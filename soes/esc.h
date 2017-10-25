@@ -12,7 +12,6 @@
 #define __esc__
 
 #include <cc.h>
-#include "config.h"
 
 #define ESCREG_ADDRESS           0x0010
 #define ESCREG_DLSTATUS          0x0110
@@ -139,9 +138,6 @@
 #define COE_VALUEINFO_MINIMUM           0x20
 #define COE_VALUEINFO_MAXIMUM           0x40
 #define COE_MINIMUM_LENGTH              8
-
-#define MBXHSIZE                       sizeof(_MBXh)
-#define MBXDSIZE                       MBXSIZE-MBXHSIZE
 
 #define MBXERR                         0x00
 #define MBXAOE                         0x01
@@ -327,7 +323,7 @@ typedef struct CC_PACKED
 typedef struct CC_PACKED
 {
    _MBXh header;
-   uint8_t b[MBXDSIZE];
+   uint8_t b[0];
 } _MBX;
 
 typedef struct CC_PACKED
@@ -406,18 +402,15 @@ typedef struct CC_PACKED
    };
 } _FOEh;
 
-#define FOEHSIZE        (sizeof(_FOEh))
-#define FOE_DATA_SIZE   (MBXSIZEBOOT - (MBXHSIZE+FOEHSIZE))
-
 typedef struct CC_PACKED
 {
    _MBXh mbxheader;
    _FOEh foeheader;
    union
    {
-      char filename[FOE_DATA_SIZE];
-      uint8_t data[FOE_DATA_SIZE];
-      char errortext[FOE_DATA_SIZE];
+      char filename[0];
+      uint8_t data[0];
+      char errortext[0];
    };
 } _FOE;
 
@@ -435,11 +428,63 @@ typedef struct
    uint8_t state;
 } _MBXcontrol;
 
+typedef struct sm_cfg
+{
+   uint16_t cfg_sma;
+   uint16_t cfg_sml;
+   uint16_t cfg_sme;
+   uint8_t cfg_smc;
+   uint8_t cfg_smact;
+}sm_cfg_t;
+
 typedef struct esc_cfg
 {
+   void * user_arg;
+   int use_interrupt;
+   int watchdog_cnt;
+   size_t mbxsize;
+   size_t mbxsizeboot;
+   int mbxbuffers;
+   sm_cfg_t mb[2];
+   sm_cfg_t mb_boot[2];
+   sm_cfg_t pdosm[2];
    void (*pre_state_change_hook) (uint8_t * as, uint8_t * an);
    void (*post_state_change_hook) (uint8_t * as, uint8_t * an);
+   void (*application_hook) (void);
+   void (*safeoutput_override) (void);
+   int (*pre_object_download_hook) (uint16_t index, uint8_t subindex);
+   void (*post_object_download_hook) (uint16_t index, uint8_t subindex);
+   void (*rxpdo_override) (void);
+   void (*txpdo_override) (void);
+   void (*esc_hw_interrupt_enable) (uint32_t mask);
+   void (*esc_hw_interrupt_disable) (uint32_t mask);
+   void (*esc_hw_eep_handler) (void);
 } esc_cfg_t;
+
+/* Stack reference to application configuration of the ESC */
+extern esc_cfg_t * esc_cfg;
+extern size_t ESC_MBXSIZE;
+extern uint16_t ESC_MBX0_sma;
+extern uint16_t ESC_MBX0_sml;
+extern uint16_t ESC_MBX0_sme;
+extern uint8_t ESC_MBX0_smc;
+extern uint16_t ESC_MBX1_sma;
+extern uint16_t ESC_MBX1_sml;
+extern uint16_t ESC_MBX1_sme;
+extern uint8_t ESC_MBX1_smc;
+
+#define ESC_MBXBUFFERS      (esc_cfg->mbxbuffers)
+#define ESC_SM2_sma         (esc_cfg->pdosm[0].cfg_sma)
+#define ESC_SM2_smc         (esc_cfg->pdosm[0].cfg_smc)
+#define ESC_SM2_act         (esc_cfg->pdosm[0].cfg_smact)
+#define ESC_SM3_sma         (esc_cfg->pdosm[1].cfg_sma)
+#define ESC_SM3_smc         (esc_cfg->pdosm[1].cfg_smc)
+#define ESC_SM3_act         (esc_cfg->pdosm[1].cfg_smact)
+
+#define ESC_MBXHSIZE        sizeof(_MBXh)
+#define ESC_MBXDSIZE        (ESC_MBXSIZE - ESC_MBXHSIZE)
+#define ESC_FOEHSIZE        sizeof(_FOEh)
+#define ESC_FOE_DATA_SIZE   (ESC_MBXSIZE - (ESC_MBXHSIZE +ESC_FOEHSIZE))
 
 void ESC_config (esc_cfg_t * cfg);
 void ESC_ALerror (uint16_t errornumber);
@@ -461,17 +506,16 @@ void ESC_state (void);
 /* From hardware file */
 void ESC_read (uint16_t address, void *buf, uint16_t len);
 void ESC_write (uint16_t address, void *buf, uint16_t len);
-void ESC_init (const void * arg);
+void ESC_init (const esc_cfg_t * cfg);
 void ESC_reset (void);
 
 /* From application */
 extern void APP_safeoutput ();
-
 extern volatile _ESCvar ESCvar;
-extern _MBX MBX[MBXBUFFERS];
-extern _MBXcontrol MBXcontrol[MBXBUFFERS];
+extern uint8_t MBX[];
+extern _MBXcontrol MBXcontrol[];
 extern uint8_t MBXrun;
-extern uint16_t SM2_sml, SM3_sml;
+extern uint16_t ESC_SM2_sml, ESC_SM3_sml;
 
 typedef struct
 {
