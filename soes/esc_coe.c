@@ -61,6 +61,122 @@ int32_t SDO_findobject (uint16_t index)
    return n;
 }
 
+/** Get the value for requested SDO 0x1C32 or 0x1C33 sub index
+ *
+ * @param[in] index    = value on index of object we want to locate
+ * @param[in] subindex = value on subindex of object we want to locate
+ * @param[out] buf     = buf to copy value to
+ * @param[in] datatype = EtherCAT datatype of buf
+ * @return 1 if value was found, else 0.
+ */
+int COE_getSyncMgrPara (uint16_t index, uint8_t subindex, void * buf, uint16_t datatype)
+{
+   int result = 0;
+   int32_t nidx;
+   int32_t snidx;
+   const _objd *objd;
+
+   nidx = SDO_findobject(index);
+
+   if(nidx < 0)
+   {
+      return result;
+   }
+   else if((index != 0x1c32) && (index != 0x1c33) && (index != 0x10F1))
+   {
+      return result;
+   }
+
+   snidx = SDO_findsubindex(nidx, subindex);
+
+   if(snidx >= 0)
+   {
+      objd = SDOobjects[nidx].objdesc;
+
+      if((objd[snidx].data != NULL) &&
+         (objd[snidx].datatype == datatype))
+      {
+         memcpy(buf, objd[snidx].data, objd[snidx].bitlength / 8 );
+         result = 1;
+      }
+      else
+      {
+         if((datatype == DTYPE_UNSIGNED32) &&
+            (objd[snidx].datatype == datatype))
+         {
+            *(uint32_t *)buf = objd[snidx].value;
+            result = 1;
+         }
+         else if((datatype == DTYPE_UNSIGNED16) &&
+                 (objd[snidx].datatype == datatype))
+         {
+            *(uint16_t *)buf = (uint16_t)objd[snidx].value;
+            result = 1;
+
+         }
+         else if((datatype == DTYPE_UNSIGNED8) &&
+                 (objd[snidx].datatype == datatype))
+         {
+            *(uint8_t *)buf = (uint8_t)objd[snidx].value;
+            result = 1;
+         }
+      }
+   }
+
+   return result;
+}
+
+/** Init default values for SDO Sync Objects
+ *
+ */
+void COE_initDefaultSyncMgrPara (void)
+{
+   uint32_t i,j;
+   const _objd *objd;
+   int32_t n = 0;
+
+   /* 1C3x */
+   for(i = 0x1C32; i <= 0x1C33; i ++)
+   {
+      /* Look if index is present */
+      n = SDO_findobject(i);
+      if(n < 0)
+      {
+         continue;
+      }
+
+      /* Load default values */
+      objd = SDOobjects[n].objdesc;
+      for(j = 1; j <= SDOobjects[n].maxsub; j++ )
+      {
+         if(objd[j].data != NULL)
+         {
+            *(uint32_t *)objd[j].data = objd[j].value;
+         }
+         if(objd[j].subindex >= SDOobjects[n].maxsub)
+         {
+            break;
+         }
+      }
+   }
+
+   /* Look if index is present */
+   n = SDO_findobject(0x10F1);
+   if(n >= 0)
+   {
+      /* Load default values */
+      objd = SDOobjects[n].objdesc;
+      for(j = 1; j <= objd[0].value; j++ )
+      {
+         if(objd[j].data != NULL)
+         {
+            *(uint32_t *)objd[j].data = objd[j].value;
+         }
+      }
+
+   }
+}
+
 /** Calculate the size in Bytes of RxPDO or TxPDOs by adding the objects
  * in SyncManager
  * SDO 1C1x.
@@ -443,6 +559,8 @@ void SDO_infoerror (uint32_t abortcode)
       coeres->infoheader.fragmentsleft = 0;
       coeres->index = htoel (abortcode);
       MBXcontrol[MBXout].state = MBXstate_outreq;
+      MBXcontrol[0].state = MBXstate_idle;
+      ESCvar.xoe = 0;
    }
 }
 

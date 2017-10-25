@@ -13,29 +13,51 @@
 
 #include <cc.h>
 
-#define ESCREG_ADDRESS           0x0010
-#define ESCREG_DLSTATUS          0x0110
-#define ESCREG_ALCONTROL         0x0120
-#define ESCREG_ALSTATUS          0x0130
-#define ESCREG_ALERROR           0x0134
-#define ESCREG_ALEVENT           0x0220
-#define ESCREG_ALEVENT_SM_MASK   0x0310
-#define ESCREG_ALEVENT_SMCHANGE  0x0010
-#define ESCREG_ALEVENT_CONTROL   0x0001
-#define ESCREG_ALEVENT_SM2       0x0400
-#define ESCREG_ALEVENT_SM3       0x0800
-#define ESCREG_WDSTATUS          0x0440
-#define ESCREG_SM0               0x0800
-#define ESCREG_SM0STATUS         (ESCREG_SM0 + 5)
-#define ESCREG_SM0PDI            (ESCREG_SM0 + 7)
-#define ESCREG_SM1               (ESCREG_SM0 + 0x08)
-#define ESCREG_SM2               (ESCREG_SM0 + 0x10)
-#define ESCREG_SM3               (ESCREG_SM0 + 0x18)
-#define ESCREG_LOCALTIME         0x0910
-#define ESCREG_SMENABLE_BIT      0x01
-#define ESCREG_AL_STATEMASK      0x001f
-#define ESCREG_AL_ALLBUTINITMASK 0x0e
-#define ESCREG_AL_ERRACKMASK     0x0f
+#define ESCREG_ADDRESS              0x0010
+#define ESCREG_DLSTATUS             0x0110
+#define ESCREG_ALCONTROL            0x0120
+#define ESCREG_ALSTATUS             0x0130
+#define ESCREG_ALERROR              0x0134
+#define ESCREG_ALEVENTMASK          0x0204
+#define ESCREG_ALEVENT              0x0220
+#define ESCREG_ALEVENT_SM_MASK      0x0310
+#define ESCREG_ALEVENT_SMCHANGE     0x0010
+#define ESCREG_ALEVENT_CONTROL      0x0001
+#define ESCREG_ALEVENT_DC_LATCH     0x0002
+#define ESCREG_ALEVENT_DC_SYNC0     0x0004
+#define ESCREG_ALEVENT_DC_SYNC1     0x0008
+#define ESCREG_ALEVENT_EEP          0x0020
+#define ESCREG_ALEVENT_SM0          0x0100
+#define ESCREG_ALEVENT_SM1          0x0200
+#define ESCREG_ALEVENT_SM2          0x0400
+#define ESCREG_ALEVENT_SM3          0x0800
+#define ESCREG_WDSTATUS             0x0440
+#define ESCREG_EECONTSTAT           0x0502
+#define ESCREG_EEDATA               0x0508
+#define ESCREG_SM0                  0x0800
+#define ESCREG_SM0STATUS            (ESCREG_SM0 + 5)
+#define ESCREG_SM0PDI               (ESCREG_SM0 + 7)
+#define ESCREG_SM1                  (ESCREG_SM0 + 0x08)
+#define ESCREG_SM2                  (ESCREG_SM0 + 0x10)
+#define ESCREG_SM3                  (ESCREG_SM0 + 0x18)
+#define ESCREG_LOCALTIME            0x0910
+#define ESCREG_SYNC_ACT             0x0981
+#define ESCREG_SYNC_ACT_ACTIVATED   0x01
+#define ESCREG_SYNC_SYNC0_EN        0x02
+#define ESCREG_SYNC_SYNC1_EN        0x04
+#define ESCREG_SYNC_AUTO_ACTIVATED  0x08
+#define ESCREG_SYNC0_CYCLE_TIME     0x09A0
+#define ESCREG_SYNC1_CYCLE_TIME     0x09A4
+#define ESCREG_SMENABLE_BIT         0x01
+#define ESCREG_AL_STATEMASK         0x001f
+#define ESCREG_AL_ALLBUTINITMASK    0x0e
+#define ESCREG_AL_ERRACKMASK        0x0f
+
+#define SYNCTYPE_SUPPORT_FREERUN    0x01
+#define SYNCTYPE_SUPPORT_SYNCHRON   0x02
+#define SYNCTYPE_SUPPORT_DCSYNC0    0x04
+#define SYNCTYPE_SUPPORT_DCSYNC1    0x08
+#define SYNCTYPE_SUPPORT_SUBCYCLE   0x10
 
 #define ESCinit                  0x01
 #define ESCpreop                 0x02
@@ -74,12 +96,16 @@
 #define ALERR_INVALIDSTATECHANGE    0x0011
 #define ALERR_UNKNOWNSTATE          0x0012
 #define ALERR_BOOTNOTSUPPORTED      0x0013
+#define ALERR_NOVALIDFIRMWARE       0x0014
 #define ALERR_INVALIDBOOTMBXCONFIG  0x0015
 #define ALERR_INVALIDMBXCONFIG      0x0016
 #define ALERR_INVALIDSMCONFIG       0x0017
+#define ALERR_SYNCERROR             0x001A
 #define ALERR_WATCHDOG              0x001B
 #define ALERR_INVALIDOUTPUTSM       0x001D
 #define ALERR_INVALIDINPUTSM        0x001E
+#define ALERR_DCINVALIDSYNCCFG      0x0030
+#define ALERR_DCSYNC0CYCLETIME      0x0036
 
 #define MBXERR_SYNTAX                   0x0001
 #define MBXERR_UNSUPPORTEDPROTOCOL      0x0002
@@ -488,6 +514,10 @@ extern uint8_t ESC_MBX1_smc;
 
 void ESC_config (esc_cfg_t * cfg);
 void ESC_ALerror (uint16_t errornumber);
+void ESC_ALeventwrite (uint32_t event);
+uint32_t ESC_ALeventread (void);
+void ESC_ALeventmaskwrite (uint32_t mask);
+uint32_t ESC_ALeventmaskread (void);
 void ESC_ALstatus (uint8_t status);
 void ESC_SMstatus (uint8_t n);
 uint8_t ESC_WDstatus (void);
@@ -502,6 +532,7 @@ void ESC_stopinput (void);
 uint8_t ESC_startoutput (uint8_t state);
 void ESC_stopoutput (void);
 void ESC_state (void);
+void ESC_sm_act_event (void);
 
 /* From hardware file */
 void ESC_read (uint16_t address, void *buf, uint16_t len);
@@ -516,6 +547,11 @@ extern uint8_t MBX[];
 extern _MBXcontrol MBXcontrol[];
 extern uint8_t MBXrun;
 extern uint16_t ESC_SM2_sml, ESC_SM3_sml;
+extern uint8_t dc_sync;
+extern int8_t sync_counter;
+extern uint16_t sync_counter_limit;
+extern uint16_t TXPDOsize;
+extern uint16_t RXPDOsize;
 
 typedef struct
 {
@@ -527,5 +563,38 @@ typedef struct
 #define APPSTATE_OUTPUT    0x02
 
 extern _App App;
+
+void DIG_process (uint8_t flags);
+
+#define DIG_PROCESS_INPUTS_FLAG     0x01
+#define DIG_PROCESS_OUTPUTS_FLAG    0x02
+#define DIG_PROCESS_WD_FLAG         0x04
+#define DIG_PROCESS_APP_HOOK_FLAG   0x08
+
+/* ATOMIC operations are used when running interrupt driven */
+#ifndef CC_ATOMIC_SET
+#define CC_ATOMIC_SET(var,val)   (var = val)
+#endif
+
+#ifndef CC_ATOMIC_GET
+#define CC_ATOMIC_GET(var)       (var)
+#endif
+
+#ifndef CC_ATOMIC_ADD
+#define CC_ATOMIC_ADD(var,val)   (var += val)
+#endif
+
+#ifndef CC_ATOMIC_SUB
+#define CC_ATOMIC_SUB(var,val)   (var -= val)
+#endif
+
+#ifndef CC_ATOMIC_AND
+#define CC_ATOMIC_AND(var,val)   (var &= val)
+#endif
+
+#ifndef CC_ATOMIC_OR
+#define CC_ATOMIC_OR(var,val)    (var |= val)
+#endif
+
 
 #endif

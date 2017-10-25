@@ -83,6 +83,8 @@ typedef struct CC_PACKED
 void ESC_coeprocess (void);
 uint16_t sizeOfPDO (uint16_t index);
 void SDO_abort (uint16_t index, uint8_t subindex, uint32_t abortcode);
+void COE_initDefaultSyncMgrPara (void);
+int COE_getSyncMgrPara (uint16_t index, uint8_t subindex, void * buf, uint16_t datatype);
 
 extern void ESC_objecthandler (uint16_t index, uint8_t subindex);
 extern int ESC_pre_objecthandler (uint16_t index, uint8_t subindex);
