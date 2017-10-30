@@ -8,11 +8,12 @@
  * ESC hardware specific EEPROM emulation functions.
  */
 
-#include "cc.h"
+#include <cc.h>
+#include <fce.h>
+#include <string.h>
+#include <drivers/nor/nor.h>
 #include "esc.h"
 #include "esc_hw_eep.h"
-
-#include <string.h>
 
 extern const uint8_t _binary_sii_eeprom_bin_start;
 extern const uint8_t _binary_sii_eeprom_bin_end;
@@ -20,17 +21,23 @@ extern const uint8_t _binary_sii_eeprom_bin_end;
 #define SII_EE_DEFLT (&_binary_sii_eeprom_bin_start)
 #define SII_EE_DEFLT_SIZE (uint32_t)(&_binary_sii_eeprom_bin_end - &_binary_sii_eeprom_bin_start)
 
+#define EEP_DEFAULT_BTN_INIT()   { }
+#define EEP_DEFAULT_BTN_STATE()  0
+
+#define EEP_BUSY_LED_INIT()      { }
+#define EEP_BUSY_LED_ON()        { }
+#define EEP_BUSY_LED_OFF()       { }
+
 #if EEP_BYTES_PER_BLOCK > EEP_BYTES_PER_SECTOR
 #error EEP_BYTES_PER_BLOCK needs to fit into EEP_BYTES_PER_SECTOR
 #endif
 
-static const XMC_FCE_t fce_config =
+/** CRC engine configuration */
+static const fce_kernel_cfg_t fce_config =
 {
-   .kernel_ptr = EPP_FCE_CRC32,
-   .fce_cfg_update.config_refin = XMC_FCE_REFIN_RESET,
-   .fce_cfg_update.config_refout = XMC_FCE_REFOUT_RESET,
-   .fce_cfg_update.config_xsel = XMC_FCE_INVSEL_RESET,
-   .seedvalue = 0
+   .crc_kernel_addr = FCE_KE0_BASE,
+   .kernel_cfg = 0,
+   .seed = 0xffffffff
 };
 
 static uint8_t eep_buf[EEP_EMU_BYTES];
@@ -47,51 +54,15 @@ static uint32_t eep_write_page;
 
 static eep_block_t eep_write_buf;
 
+static drv_t * drv;
+
 static void init_flash_data(void);
 static void find_latest_block(eep_block_t *addr);
 static eep_block_t *get_next_block(eep_block_t *block);
 static eep_block_t *cleanup_unused_sect(eep_block_t *block);
 
 static int32_t is_sector_empty(uint32_t *addr);
-static uint32_t crc32(const uint8_t *data, uint32_t length);
 
-#ifdef EEP_DEFAULT_BTN
-
-static const XMC_GPIO_CONFIG_t gpio_config_btn = {
-  .mode = XMC_GPIO_MODE_INPUT_INVERTED_PULL_UP,
-  .output_level = 0,
-  .output_strength = 0
-};
-
-#define EEP_DEFAULT_BTN_INIT()  XMC_GPIO_Init(EEP_DEFAULT_BTN, &gpio_config_btn)
-#define EEP_DEFAULT_BTN_STATE() XMC_GPIO_GetInput(EEP_DEFAULT_BTN)
-
-#else
-
-#define EEP_DEFAULT_BTN_INIT()  { }
-#define EEP_DEFAULT_BTN_STATE() 0
-
-#endif
-
-#ifdef EEP_BUSY_LED
-
-static const XMC_GPIO_CONFIG_t gpio_config_led = {
-  .mode = XMC_GPIO_MODE_OUTPUT_PUSH_PULL,
-  .output_level = XMC_GPIO_OUTPUT_LEVEL_LOW,
-  .output_strength = XMC_GPIO_OUTPUT_STRENGTH_STRONG_SOFT_EDGE
-};
-
-#define EEP_BUSY_LED_INIT() XMC_GPIO_Init(EEP_BUSY_LED, &gpio_config_led)
-#define EEP_BUSY_LED_ON()   XMC_GPIO_SetOutputHigh(EEP_BUSY_LED)
-#define EEP_BUSY_LED_OFF()  XMC_GPIO_SetOutputLow(EEP_BUSY_LED)
-
-#else
-
-#define EEP_BUSY_LED_INIT() { }
-#define EEP_BUSY_LED_ON()   { }
-#define EEP_BUSY_LED_OFF()  { }
-
-#endif
 
 /** Initialize EEPROM emulation (load default data, validate checksums, ...).
  *
@@ -101,15 +72,11 @@ void EEP_init (void)
    /* initialize write buffer */
    memset(&eep_write_buf, 0, EEP_BYTES_PER_BLOCK);
 
-   /* configure I/Os */
-   EEP_DEFAULT_BTN_INIT();
-   EEP_BUSY_LED_INIT();
-
-   /* Enable FCE module */
-   XMC_FCE_Enable();
-
    /* Initialize the FCE Configuration */
-   XMC_FCE_Init(&fce_config);
+   fce_init(&fce_config);
+
+   drv = dev_find_driver ("/pflash");
+   ASSERT (drv != NULL);
 
    /* try to find latest block in both sectors */
    eep_curr_block = NULL;
@@ -130,8 +97,6 @@ void EEP_init (void)
 
    /* copy data from block to emu buffer */
    memcpy(eep_buf, eep_curr_block->data, EEP_EMU_BYTES);
-
-   EEP_BUSY_LED_OFF();
 
    /* initialize state variables */
    eep_buf_dirty = 0;
@@ -157,9 +122,10 @@ void EEP_hw_process (void)
    /* check for write process */
    if (eep_next_block != NULL) {
       /* write flash page */
-      XMC_FLASH_ProgramPage(eep_write_dst, eep_write_src);
-      eep_write_src += XMC_FLASH_WORDS_PER_PAGE;
-      eep_write_dst += XMC_FLASH_WORDS_PER_PAGE;
+      nor_write(drv, EEP_FLASH_SECTOR_OFFSET((uint32_t)eep_write_dst),
+            EEP_BYTES_PER_PAGE, (const uint8_t *)eep_write_src);
+      eep_write_src += (EEP_BYTES_PER_PAGE / sizeof(*eep_write_src));
+      eep_write_dst += (EEP_BYTES_PER_PAGE / sizeof(*eep_write_dst));
 
       /* update counter */
       eep_write_page++;
@@ -169,8 +135,6 @@ void EEP_hw_process (void)
          /* update block pointer and reset write state */
          eep_curr_block = eep_next_block;
          eep_next_block = NULL;
-
-         EEP_BUSY_LED_OFF();
       }
 
       return;
@@ -188,7 +152,8 @@ void EEP_hw_process (void)
 
       /* setup header */
       eep_write_buf.header.seq = eep_curr_block->header.seq + 1;
-      eep_write_buf.header.crc = crc32 (eep_write_buf.data, EEP_DATA_BYTES);
+      eep_write_buf.header.crc = fce_crc32 (&fce_config,
+            (const uint32_t *)eep_write_buf.data, EEP_DATA_BYTES);
 
       /* initialize write position */
       eep_write_src = (uint32_t *) &eep_write_buf;
@@ -247,26 +212,33 @@ static void init_flash_data(void)
 {
    uint32_t i;
    const uint32_t *src;
-   uint32_t *dst;
+   uint32_t dst;
 
    /* erase both sectors */
-   XMC_FLASH_EraseSector(EEP_SECTOR_A);
-   XMC_FLASH_EraseSector(EEP_SECTOR_B);
+   nor_erase(drv, EEP_FLASH_SECTOR_OFFSET(EEP_SECTOR_A), EEP_BYTES_PER_SECTOR);
+   nor_erase(drv, EEP_FLASH_SECTOR_OFFSET(EEP_SECTOR_B), EEP_BYTES_PER_SECTOR);
 
    /* copy default data to write buffer */
-   memcpy(eep_write_buf.data, SII_EE_DEFLT, (SII_EE_DEFLT_SIZE < EEP_EMU_BYTES) ? SII_EE_DEFLT_SIZE : EEP_EMU_BYTES);
 
+   memcpy(eep_write_buf.data, SII_EE_DEFLT, (SII_EE_DEFLT_SIZE < EEP_EMU_BYTES) ? SII_EE_DEFLT_SIZE : EEP_EMU_BYTES);
+   /*
+    * memcpy(eep_write_buf.data, SII_EE_DEFLT, (SII_EE_DEFLT_SIZE < EEP_EMU_BYTES) ? SII_EE_DEFLT_SIZE : EEP_EMU_BYTES);
+    */
    /* setup header data */
    eep_write_buf.header.seq = 0;
-   eep_write_buf.header.crc = crc32 (eep_write_buf.data, EEP_DATA_BYTES);
+   eep_write_buf.header.crc = fce_crc32 (&fce_config,
+         (const uint32_t *)eep_write_buf.data, EEP_DATA_BYTES);
 
    /* write pages */
    src = (const uint32_t *) &eep_write_buf;
    dst = EEP_SECTOR_A;
    for (i = 0; i < EEP_PAGES_PER_BLOCK; i++) {
-      XMC_FLASH_ProgramPage(dst, src);
-      src += XMC_FLASH_WORDS_PER_PAGE;
-      dst += XMC_FLASH_WORDS_PER_PAGE;
+
+      nor_write(drv, EEP_FLASH_SECTOR_OFFSET(dst), EEP_BYTES_PER_PAGE,
+            (const uint8_t *)src);
+
+      src += (EEP_BYTES_PER_PAGE / sizeof(*src));
+      dst += EEP_BYTES_PER_PAGE;
    }
 
    /* set current block */
@@ -279,7 +251,8 @@ static void find_latest_block(eep_block_t *addr)
 
    for (blk = 0; blk < EPP_BLOCKS_PER_SECT; blk++, addr++) {
       /* check crc, skip invalid blocks */
-      crc = crc32 (addr->data, EEP_DATA_BYTES);
+      crc = fce_crc32 (&fce_config, (const uint32_t *) addr->data,
+            EEP_DATA_BYTES);
       if (addr->header.crc != crc) {
          continue;
       }
@@ -306,7 +279,8 @@ static eep_block_t *get_next_block(eep_block_t *block)
 static eep_block_t *cleanup_unused_sect(eep_block_t *block)
 {
    /* get other sector */
-   uint32_t *sect_addr = (uint32_t *) (((uint32_t)block) & ~(EEP_BYTES_PER_SECTOR - 1));
+   uint32_t sect_addr = (((uint32_t)block) & ~(EEP_BYTES_PER_SECTOR - 1));
+
    if (sect_addr == EEP_SECTOR_A) {
       sect_addr = EEP_SECTOR_B;
    } else {
@@ -314,8 +288,8 @@ static eep_block_t *cleanup_unused_sect(eep_block_t *block)
    }
 
    /* check if sector is empty, erase if not */
-   if (!is_sector_empty(sect_addr)) {
-      XMC_FLASH_EraseSector(sect_addr);
+   if (!is_sector_empty((uint32_t *)sect_addr)) {
+      nor_erase(drv, EEP_FLASH_SECTOR_OFFSET(sect_addr), EEP_BYTES_PER_SECTOR);
    }
 
    return (eep_block_t *) sect_addr;
@@ -334,14 +308,4 @@ static int32_t is_sector_empty(uint32_t *addr)
    return 1;
 }
 
-static uint32_t crc32(const uint8_t *data, uint32_t length)
-{
-   uint32_t crc;
-
-   XMC_FCE_InitializeSeedValue(&fce_config, 0xffffffff);
-   XMC_FCE_CalculateCRC32(&fce_config, (const uint32_t *) data, length & ~3L, &crc);
-   XMC_FCE_GetCRCResult(&fce_config, &crc);
-
-   return crc;
-}
 

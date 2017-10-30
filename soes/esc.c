@@ -1,30 +1,6 @@
 /*
- * SOES Simple Open EtherCAT Slave
- *
- * Copyright (C) 2007-2013 Arthur Ketels
- * Copyright (C) 2012-2013 rt-labs.
- *
- * SOES is free software; you can redistribute it and/or modify it under
- * the terms of the GNU General Public License version 2 as published by the Free
- * Software Foundation.
- *
- * SOES is distributed in the hope that it will be useful, but WITHOUT ANY
- * WARRANTY; without even the implied warranty of MERCHANTABILITY or
- * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
- * for more details.
- *
- * As a special exception, if other files instantiate templates or use macros
- * or inline functions from this file, or you compile this file and link it
- * with other works to produce a work based on this file, this file does not
- * by itself cause the resulting work to be covered by the GNU General Public
- * License. However the source code for this file must still be made available
- * in accordance with section (3) of the GNU General Public License.
- *
- * This exception does not invalidate any other reasons why a work based on
- * this file might be covered by the GNU General Public License.
- *
- * The EtherCAT Technology, the trade name and logo "EtherCAT" are the intellectual
- * property of, and protected by Beckhoff Automation GmbH.
+ * Licensed under the GNU General Public License version 2 with exceptions. See
+ * LICENSE file in the project root for full license information
  */
 #include <string.h>
 #include <cc.h>
@@ -39,7 +15,6 @@
  *
  * State machine and mailbox support.
  */
-static esc_cfg_t * esc_cfg = NULL;
 
 /** Write AL Status Code to the ESC.
  *
@@ -52,6 +27,7 @@ void ESC_ALerror (uint16_t errornumber)
    dummy = htoes (errornumber);
    ESC_write (ESCREG_ALERROR, &dummy, sizeof (dummy));
 }
+
 /** Write AL Status to the ESC.
  *
  * @param[in] status   = Write current slave status to register 0x130 AL Status
@@ -63,6 +39,51 @@ void ESC_ALstatus (uint8_t status)
    ESCvar.ALstatus = status;
    dummy = htoes ((uint16_t) status);
    ESC_write (ESCREG_ALSTATUS, &dummy, sizeof (dummy));
+}
+
+/** Write ALeventMask register 0x204.
+ *
+ * @param[in] n   = AL Event Mask
+ */
+void ESC_ALeventmaskwrite (uint32_t mask)
+{
+   uint32_t aleventmask;
+   aleventmask = htoel(mask);
+   ESC_write (ESCREG_ALEVENTMASK, &aleventmask, sizeof(aleventmask));
+}
+
+/** Read AleventMask register 0x204.
+ *
+ * @return value of register AL Event Mask
+ */
+uint32_t ESC_ALeventmaskread (void)
+{
+   uint32_t aleventmask;
+
+   ESC_read (ESCREG_ALEVENTMASK, &aleventmask, sizeof(aleventmask));
+   return htoel(aleventmask);
+}
+
+/** Write ALevent register 0x220.
+ *
+ * @param[in] n   = AL Event Mask
+ */
+void ESC_ALeventwrite (uint32_t event)
+{
+   uint32_t alevent;
+   alevent = htoel(event);
+   ESC_write (ESCREG_ALEVENT, &alevent, sizeof(alevent));
+}
+
+/** Read Alevent register 0x220.
+ *
+ * @return value of register AL Event Mask
+ */
+uint32_t ESC_ALeventread (void)
+{
+   uint32_t alevent;
+   ESC_read (ESCREG_ALEVENT, &alevent, sizeof(alevent));
+   return htoel(alevent);
 }
 
 /** Read SM Status register 0x805(+ offset to SyncManager n) to acknowledge a
@@ -152,6 +173,107 @@ uint8_t ESC_WDstatus (void)
    return (uint8_t) wdstatus;
 }
 
+/** Read SYNC Out Unit activation registers 0x981
+ *
+ * @return value of register Activation.
+ */
+uint8_t ESC_SYNCactivation (void)
+{
+   uint8_t activation;
+   ESC_read (ESCREG_SYNC_ACT, &activation, sizeof(activation));
+   return activation;
+}
+
+/** Read SYNC0 cycle time
+ *
+ * @return value of register SYNC0 cycle time
+ */
+uint32_t ESC_SYNC0cycletime (void)
+{
+   uint32_t cycletime;
+   ESC_read (ESCREG_SYNC0_CYCLE_TIME, &cycletime, sizeof(cycletime));
+   cycletime = etohl (cycletime);
+   return cycletime;
+}
+
+/** Read SYNC1 cycle time
+ *
+ * @return value of register SYNC1 cycle time
+ */
+uint32_t ESC_SYNC1cycletime (void)
+{
+   uint32_t cycletime;
+   ESC_read (ESCREG_SYNC1_CYCLE_TIME, &cycletime, 4);
+   cycletime = etohl (cycletime);
+   return cycletime;
+}
+
+
+/** Validate the DC values if the SYNC unit is activated.
+ *
+ * @return = 0 if OK, else ERROR code to be set by caller.
+ */
+uint16_t ESC_checkDC (void)
+{
+   uint16_t ret = 0;
+
+   uint8_t sync_act = ESC_SYNCactivation();
+   uint32_t sync0_cycletime = ESC_SYNC0cycletime();
+   uint16_t sync_type_supported1c32 = 0;
+   uint32_t mincycletime = 0;
+
+   /* Do we need to check sync settings? */
+   if((sync_act & (ESCREG_SYNC_ACT_ACTIVATED | ESCREG_SYNC_AUTO_ACTIVATED)) > 0)
+   {
+      /* If the sync unit is active at least on signal should be activated */
+      if(COE_getSyncMgrPara(0x1c32, 0x4, &sync_type_supported1c32, DTYPE_UNSIGNED16) == 0)
+      {
+         ret = ALERR_DCINVALIDSYNCCFG;
+
+      }
+      else if(COE_getSyncMgrPara(0x1c32, 0x5, &mincycletime, DTYPE_UNSIGNED32) == 0)
+      {
+         ret = ALERR_DCINVALIDSYNCCFG;
+      }
+      else if(COE_getSyncMgrPara(0x10F1, 0x2, &ESCvar.synccounterlimit, DTYPE_UNSIGNED16) == 0)
+      {
+         ret = ALERR_DCINVALIDSYNCCFG;
+      }
+      else if((sync_act & (ESCREG_SYNC_SYNC0_EN | ESCREG_SYNC_SYNC1_EN)) == 0)
+      {
+         ret = ALERR_DCINVALIDSYNCCFG;
+      }
+      /* Do we support activated signals */
+      else if(((sync_type_supported1c32 & SYNCTYPE_SUPPORT_DCSYNC0) == 0) &&
+            ((sync_act & ESCREG_SYNC_SYNC0_EN) > 0))
+      {
+         ret = ALERR_DCINVALIDSYNCCFG;
+      }
+      /* Do we support activated signals */
+      else if(((sync_type_supported1c32 & SYNCTYPE_SUPPORT_DCSYNC1) == 0) &&
+            ((sync_act & ESCREG_SYNC_SYNC1_EN) > 0))
+      {
+         ret = ALERR_DCINVALIDSYNCCFG;
+      }
+      else if((sync0_cycletime != 0) && (sync0_cycletime < mincycletime))
+      {
+         ret = ALERR_DCSYNC0CYCLETIME;
+      }
+      else
+      {
+         ESCvar.dcsync = 1;
+         ESCvar.synccounter = 0;
+      }
+   }
+   else
+   {
+      ESCvar.dcsync = 0;
+      ESCvar.synccounter = 0;
+   }
+
+   return ret;
+}
+
 /** Check mailbox status by reading all SyncManager 0 and 1 data. The read values
  * are compared with local definitions for SM Physical Address, SM Length and SM Control.
  * If we check fails we disable Mailboxes by disabling SyncManager 0 and 1 and return
@@ -167,8 +289,8 @@ uint8_t ESC_checkmbx (uint8_t state)
    ESC_read (ESCREG_SM0, (void *) &ESCvar.SM[0], sizeof (ESCvar.SM[0]));
    ESC_read (ESCREG_SM1, (void *) &ESCvar.SM[1], sizeof (ESCvar.SM[1]));
    SM = (_ESCsm2 *) & ESCvar.SM[0];
-   if ((etohs (SM->PSA) != MBX0_sma) || (etohs (SM->Length) != MBX0_sml)
-       || (SM->Command != MBX0_smc) || (ESCvar.SM[0].ECsm == 0))
+   if ((etohs (SM->PSA) != ESC_MBX0_sma) || (etohs (SM->Length) != ESC_MBX0_sml)
+       || (SM->Command != ESC_MBX0_smc) || (ESCvar.SM[0].ECsm == 0))
    {
       ESCvar.SMtestresult = SMRESULT_ERRSM0;
       ESC_SMdisable (0);
@@ -176,8 +298,8 @@ uint8_t ESC_checkmbx (uint8_t state)
       return (uint8_t) (ESCinit | ESCerror);      //fail state change
    }
    SM = (_ESCsm2 *) & ESCvar.SM[1];
-   if ((etohs (SM->PSA) != MBX1_sma) || (etohs (SM->Length) != MBX1_sml)
-       || (SM->Command != MBX1_smc) || (ESCvar.SM[1].ECsm == 0))
+   if ((etohs (SM->PSA) != ESC_MBX1_sma) || (etohs (SM->Length) != ESC_MBX1_sml)
+       || (SM->Command != ESC_MBX1_smc) || (ESCvar.SM[1].ECsm == 0))
    {
       ESCvar.SMtestresult = SMRESULT_ERRSM1;
       ESC_SMdisable (0);
@@ -197,6 +319,12 @@ uint8_t ESC_checkmbx (uint8_t state)
  */
 uint8_t ESC_startmbx (uint8_t state)
 {
+   /* Assign SM settings */
+   ESCvar.activembxsize = ESCvar.mbxsize;
+   ESCvar.activemb0 = &ESCvar.mb[0];
+   ESCvar.activemb1 = &ESCvar.mb[1];
+
+
    ESC_SMenable (0);
    ESC_SMenable (1);
    ESC_SMstatus (0);
@@ -204,46 +332,12 @@ uint8_t ESC_startmbx (uint8_t state)
    if ((state = ESC_checkmbx (state)) & ESCerror)
    {
       ESC_ALerror (ALERR_INVALIDMBXCONFIG);
-      MBXrun = 0;
+      ESCvar.MBXrun = 0;
    }
    else
    {
       ESCvar.toggle = ESCvar.SM[1].ECrep;       //sync repeat request toggle state
-      MBXrun = 1;
-   }
-   return state;
-}
-/** Check boostrap mailbox status by reading all SyncManager 0 and 1 data. The read values
- * are compared with local definitions for SM Physical Address, SM Length and SM Control.
- * If we check fails we disable Mailboxes by disabling SyncManager 0 and 1 and return
- * state Init with Error flag set.
- *
- * @param[in] state   = Current state request read from ALControl 0x0120
- * @return if all Mailbox values is correct we return incoming state request, otherwise
- * we return state Init with Error flag set.
- */
-uint8_t ESC_checkmbxboot (uint8_t state)
-{
-   _ESCsm2 *SM;
-   ESC_read (ESCREG_SM0, (void *) &ESCvar.SM[0], sizeof (ESCvar.SM[0]));
-   ESC_read (ESCREG_SM1, (void *) &ESCvar.SM[1], sizeof (ESCvar.SM[1]));
-   SM = (_ESCsm2 *) & ESCvar.SM[0];
-   if ((etohs (SM->PSA) != MBX0_sma_b) || (etohs (SM->Length) != MBX0_sml_b)
-       || (SM->Command != MBX0_smc_b) || (ESCvar.SM[0].ECsm == 0))
-   {
-      ESCvar.SMtestresult = SMRESULT_ERRSM0;
-      ESC_SMdisable (0);
-      ESC_SMdisable (1);
-      return (uint8_t) (ESCinit | ESCerror);      //fail state change
-   }
-   SM = (_ESCsm2 *) & ESCvar.SM[1];
-   if ((etohs (SM->PSA) != MBX1_sma_b) || (etohs (SM->Length) != MBX1_sml_b)
-       || (SM->Command != MBX1_smc_b) || (ESCvar.SM[1].ECsm == 0))
-   {
-      ESCvar.SMtestresult = SMRESULT_ERRSM1;
-      ESC_SMdisable (0);
-      ESC_SMdisable (1);
-      return (uint8_t) (ESCinit | ESCerror);      //fail state change
+      ESCvar.MBXrun = 1;
    }
    return state;
 }
@@ -259,19 +353,24 @@ uint8_t ESC_checkmbxboot (uint8_t state)
  */
 uint8_t ESC_startmbxboot (uint8_t state)
 {
+   /* Assign SM settings */
+   ESCvar.activembxsize = ESCvar.mbxsizeboot;
+   ESCvar.activemb0 = &ESCvar.mbboot[0];
+   ESCvar.activemb1 = &ESCvar.mbboot[1];
+
    ESC_SMenable (0);
    ESC_SMenable (1);
    ESC_SMstatus (0);
    ESC_SMstatus (1);
-   if ((state = ESC_checkmbxboot (state)) & ESCerror)
+   if ((state = ESC_checkmbx (state)) & ESCerror)
    {
       ESC_ALerror (ALERR_INVALIDBOOTMBXCONFIG);
-      MBXrun = 0;
+      ESCvar.MBXrun = 0;
    }
    else
    {
       ESCvar.toggle = ESCvar.SM[1].ECrep;       //sync repeat request toggle state
-      MBXrun = 1;
+      ESCvar.MBXrun = 1;
    }
    return state;
 }
@@ -282,10 +381,10 @@ uint8_t ESC_startmbxboot (uint8_t state)
 void ESC_stopmbx (void)
 {
    uint8_t n;
-   MBXrun = 0;
+   ESCvar.MBXrun = 0;
    ESC_SMdisable (0);
    ESC_SMdisable (1);
-   for (n = 0; n < MBXBUFFERS; n++)
+   for (n = 0; n < ESC_MBXBUFFERS; n++)
    {
       MBXcontrol[n].state = MBXstate_idle;
    }
@@ -307,39 +406,22 @@ void ESC_stopmbx (void)
  */
 void ESC_readmbx (void)
 {
-   _MBX *MB = &MBX[0];
+   _MBX *MB = (_MBX *)&MBX[0];
    uint16_t length;
 
-   if (ESCvar.ALstatus == ESCboot)
-   {
-      ESC_read (MBX0_sma_b, MB, MBXHSIZE);
-      length = etohs (MB->header.length);
+   ESC_read (ESC_MBX0_sma, MB, ESC_MBXHSIZE);
+   length = etohs (MB->header.length);
 
-      if (length > (MBX0_sml_b - MBXHSIZE))
-      {
-         length = MBX0_sml_b - MBXHSIZE;
-      }
-      ESC_read (MBX0_sma_b + MBXHSIZE, &(MB->b[0]), length);
-      if (length + MBXHSIZE < MBX0_sml_b)
-      {
-         ESC_read (MBX0_sme_b, &length, 1);
-      }
-   }
-   else
+   if (length > (ESC_MBX0_sml - ESC_MBXHSIZE))
    {
-      ESC_read (MBX0_sma, MB, MBXHSIZE);
-      length = etohs (MB->header.length);
-
-      if (length > (MBX0_sml - MBXHSIZE))
-      {
-         length = MBX0_sml - MBXHSIZE;
-      }
-      ESC_read (MBX0_sma + MBXHSIZE, &(MB->b[0]), length);
-      if (length + MBXHSIZE < MBX0_sml)
-      {
-         ESC_read (MBX0_sme, &length, 1);
-      }
+      length = ESC_MBX0_sml - ESC_MBXHSIZE;
    }
+   ESC_read (ESC_MBX0_sma + ESC_MBXHSIZE, MB->b, length);
+   if (length + ESC_MBXHSIZE < ESC_MBX0_sml)
+   {
+      ESC_read (ESC_MBX0_sme, &length, 1);
+   }
+
    MBXcontrol[0].state = MBXstate_inclaim;
 }
 /** Write local mailbox buffer ESCvar.MBX[n] to Send mailbox.
@@ -350,34 +432,21 @@ void ESC_readmbx (void)
  */
 void ESC_writembx (uint8_t n)
 {
-   _MBX *MB = &MBX[n];
+   _MBXh *MBh = (_MBXh *)&MBX[n * ESC_MBXSIZE];
    uint8_t dummy = 0;
    uint16_t length;
-   length = etohs (MB->header.length);
-   if (ESCvar.ALstatus == ESCboot)
+   length = etohs (MBh->length);
+
+   if (length > (ESC_MBX1_sml - ESC_MBXHSIZE))
    {
-      if (length > (MBX1_sml_b - MBXHSIZE))
-      {
-         length = MBX1_sml_b - MBXHSIZE;
-      }
-      ESC_write (MBX1_sma_b, MB, MBXHSIZE + length);
-      if (length + MBXHSIZE < MBX1_sml_b)
-      {
-         ESC_write (MBX1_sme_b, &dummy, 1);
-      }
+      length = ESC_MBX1_sml - ESC_MBXHSIZE;
    }
-   else
+   ESC_write (ESC_MBX1_sma, MBh, ESC_MBXHSIZE + length);
+   if (length + ESC_MBXHSIZE < ESC_MBX1_sml)
    {
-      if (length > (MBX1_sml - MBXHSIZE))
-      {
-         length = MBX1_sml - MBXHSIZE;
-      }
-      ESC_write (MBX1_sma, MB, MBXHSIZE + length);
-      if (length + MBXHSIZE < MBX1_sml)
-      {
-         ESC_write (MBX1_sme, &dummy, 1);
-      }
+      ESC_write (ESC_MBX1_sme, &dummy, 1);
    }
+
    ESCvar.mbxfree = 0;
 }
 
@@ -386,14 +455,8 @@ void ESC_writembx (uint8_t n)
 void ESC_ackmbxread (void)
 {
    uint8_t dummy = 0;
-   if (ESCvar.ALstatus == ESCboot)
-   {
-      ESC_write (MBX1_sma_b, &dummy, 1);
-   }
-   else
-   {
-      ESC_write (MBX1_sma, &dummy, 1);
-   }
+
+   ESC_write (ESC_MBX1_sma, &dummy, 1);
    ESCvar.mbxfree = 1;
 }
 
@@ -405,8 +468,8 @@ void ESC_ackmbxread (void)
  */
 uint8_t ESC_claimbuffer (void)
 {
-   _MBX *MB;
-   uint8_t n = MBXBUFFERS - 1;
+   _MBXh *MBh;
+   uint8_t n = ESC_MBXBUFFERS - 1;
    while ((n > 0) && (MBXcontrol[n].state))
    {
       n--;
@@ -414,16 +477,17 @@ uint8_t ESC_claimbuffer (void)
    if (n)
    {
       MBXcontrol[n].state = MBXstate_outclaim;
-      MB = &MBX[n];
-      ESCvar.mbxcnt = (++ESCvar.mbxcnt) & 0x07;
+      MBh = (_MBXh *)&MBX[n * ESC_MBXSIZE];
+      ESCvar.mbxcnt++;
+      ESCvar.mbxcnt = (ESCvar.mbxcnt & 0x07);
       if (ESCvar.mbxcnt == 0)
       {
          ESCvar.mbxcnt = 1;
       }
-      MB->header.address = htoes (0x0000);      // destination is master
-      MB->header.channel = 0;
-      MB->header.priority = 0;
-      MB->header.mbxcnt = ESCvar.mbxcnt;
+      MBh->address = htoes (0x0000);      // destination is master
+      MBh->channel = 0;
+      MBh->priority = 0;
+      MBh->mbxcnt = ESCvar.mbxcnt;
       ESCvar.txcue++;
    }
    return n;
@@ -435,7 +499,7 @@ uint8_t ESC_claimbuffer (void)
  */
 uint8_t ESC_outreqbuffer (void)
 {
-   uint8_t n = MBXBUFFERS - 1;
+   uint8_t n = ESC_MBXBUFFERS - 1;
    while ((n > 0) && (MBXcontrol[n].state != MBXstate_outreq))
    {
       n--;
@@ -455,7 +519,7 @@ void MBX_error (uint16_t error)
    MBXout = ESC_claimbuffer ();
    if (MBXout)
    {
-      mbxerr = (_MBXerr *) & MBX[MBXout];
+      mbxerr = (_MBXerr *) &MBX[MBXout * ESC_MBXSIZE];
       mbxerr->mbxheader.length = htoes ((uint16_t) 0x04);
       mbxerr->mbxheader.mbxtype = MBXERR;
       mbxerr->type = htoes ((uint16_t) 0x01);
@@ -473,9 +537,9 @@ void MBX_error (uint16_t error)
 uint8_t ESC_mbxprocess (void)
 {
    uint8_t mbxhandle = 0;
-   _MBX *MB = &MBX[0];
+   _MBXh *MBh = (_MBXh *)&MBX[0];
 
-   if (!MBXrun)
+   if (ESCvar.MBXrun == 0)
    {
       /* nothing to do */
       return 0;
@@ -520,7 +584,7 @@ uint8_t ESC_mbxprocess (void)
       if (ESCvar.mbxoutpost || ESCvar.mbxbackup)
       {
          /* if outmbx empty */
-         if (!ESCvar.mbxoutpost)
+         if (ESCvar.mbxoutpost == 0)
          {
             /* use backup mbx */
             ESC_writembx (ESCvar.mbxbackup);
@@ -563,33 +627,24 @@ uint8_t ESC_mbxprocess (void)
    }
 
    /* read mailbox if full and no xoe in progress */
-   if (ESCvar.SM[0].MBXstat && !MBXcontrol[0].state && !ESCvar.mbxoutpost
-       && !ESCvar.xoe)
+   if ((ESCvar.SM[0].MBXstat != 0) && (MBXcontrol[0].state == 0)
+         && (ESCvar.mbxoutpost == 0) && (ESCvar.xoe == 0))
    {
       ESC_readmbx ();
       ESCvar.SM[0].MBXstat = 0;
-      if (etohs (MB->header.length) == 0)
+      if (etohs (MBh->length) == 0)
       {
          MBX_error (MBXERR_INVALIDHEADER);
          /* drop mailbox */
          MBXcontrol[0].state = MBXstate_idle;
       }
-      if ((MB->header.mbxcnt != 0) && (MB->header.mbxcnt == ESCvar.mbxincnt))
+      if ((MBh->mbxcnt != 0) && (MBh->mbxcnt == ESCvar.mbxincnt))
       {
          /* drop mailbox */
          MBXcontrol[0].state = MBXstate_idle;
       }
-      ESCvar.mbxincnt = MB->header.mbxcnt;
+      ESCvar.mbxincnt = MBh->mbxcnt;
       return 1;
-   }
-
-   /* ack changes in non used SM */
-   if (ESCvar.ALevent & ESCREG_ALEVENT_SMCHANGE)
-   {
-      ESC_SMack (4);
-      ESC_SMack (5);
-      ESC_SMack (6);
-      ESC_SMack (7);
    }
 
    return 0;
@@ -600,13 +655,13 @@ uint8_t ESC_mbxprocess (void)
 void ESC_xoeprocess (void)
 {
    _MBXh *mbh;
-   if (!MBXrun)
+   if (ESCvar.MBXrun == 0)
    {
       return;
    }
-   if (!ESCvar.xoe && (MBXcontrol[0].state == MBXstate_inclaim))
+   if ((ESCvar.xoe == 0) && (MBXcontrol[0].state == MBXstate_inclaim))
    {
-      mbh = (_MBXh *) & MBX[0];
+      mbh = (_MBXh *) &MBX[0];
       if ((mbh->mbxtype == 0) || (etohs (mbh->length) == 0))
       {
          MBX_error (MBXERR_INVALIDHEADER);
@@ -630,18 +685,18 @@ uint8_t ESC_checkSM23 (uint8_t state)
 {
    _ESCsm2 *SM;
    ESC_read (ESCREG_SM2, (void *) &ESCvar.SM[2], sizeof (ESCvar.SM[2]));
-   ESC_read (ESCREG_SM3, (void *) &ESCvar.SM[3], sizeof (ESCvar.SM[3]));
    SM = (_ESCsm2 *) & ESCvar.SM[2];
-   if ((etohs (SM->PSA) != SM2_sma) || (etohs (SM->Length) != SM2_sml)
-       || (SM->Command != SM2_smc) || !(SM->ActESC & SM2_act))
+   if ((etohs (SM->PSA) != ESC_SM2_sma) || (etohs (SM->Length) != ESCvar.ESC_SM2_sml)
+       || (SM->Command != ESC_SM2_smc) || !(SM->ActESC & ESC_SM2_act))
    {
       ESCvar.SMtestresult = SMRESULT_ERRSM2;
       /* fail state change */
       return (ESCpreop | ESCerror);
    }
+   ESC_read (ESCREG_SM3, (void *) &ESCvar.SM[3], sizeof (ESCvar.SM[3]));
    SM = (_ESCsm2 *) & ESCvar.SM[3];
-   if ((etohs (SM->PSA) != SM3_sma) || (etohs (SM->Length) != SM3_sml)
-       || (SM->Command != SM3_smc) || !(SM->ActESC & SM3_act))
+   if ((etohs (SM->PSA) != ESC_SM3_sma) || (etohs (SM->Length) != ESCvar.ESC_SM3_sml)
+       || (SM->Command != ESC_SM3_smc) || !(SM->ActESC & ESC_SM3_act))
    {
       ESCvar.SMtestresult = SMRESULT_ERRSM3;
       /* fail state change */
@@ -659,11 +714,13 @@ uint8_t ESC_checkSM23 (uint8_t state)
  */
 uint8_t ESC_startinput (uint8_t state)
 {
+
    state = ESC_checkSM23 (state);
+
    if (state != (ESCpreop | ESCerror))
    {
       ESC_SMenable (3);
-      App.state = APPSTATE_INPUT;
+      CC_ATOMIC_SET(ESCvar.App.state, APPSTATE_INPUT);
    }
    else
    {
@@ -678,6 +735,43 @@ uint8_t ESC_startinput (uint8_t state)
          ESC_ALerror (ALERR_INVALIDOUTPUTSM);
       }
    }
+
+   /* Exit here if polling */
+   if (ESCvar.use_interrupt == 0)
+   {
+      return state;
+   }
+
+   if (state != (ESCpreop | ESCerror))
+   {
+      uint16_t dc_check_result;
+      dc_check_result = ESC_checkDC();
+      if(dc_check_result > 0)
+      {
+         ESC_ALerror (dc_check_result);
+         state = (ESCpreop | ESCerror);
+
+         ESC_SMdisable (2);
+         ESC_SMdisable (3);
+         CC_ATOMIC_SET(ESCvar.App.state, APPSTATE_IDLE);
+      }
+      else
+      {
+         if (ESCvar.esc_hw_interrupt_enable != NULL)
+         {
+            if(ESCvar.dcsync > 0)
+            {
+               ESCvar.esc_hw_interrupt_enable(ESCREG_ALEVENT_DC_SYNC0 |
+                     ESCREG_ALEVENT_SM2);
+            }
+            else
+            {
+               ESCvar.esc_hw_interrupt_enable(ESCREG_ALEVENT_SM2);
+            }
+         }
+      }
+   }
+
    return state;
 }
 
@@ -687,9 +781,17 @@ uint8_t ESC_startinput (uint8_t state)
  */
 void ESC_stopinput (void)
 {
-   App.state = APPSTATE_IDLE;
+   CC_ATOMIC_SET(ESCvar.App.state, APPSTATE_IDLE);
    ESC_SMdisable (3);
    ESC_SMdisable (2);
+
+   /* Call interrupt disable hook case it have been configured  */
+   if ((ESCvar.use_interrupt != 0) &&
+         (ESCvar.esc_hw_interrupt_disable != NULL))
+   {
+      ESCvar.esc_hw_interrupt_disable (ESCREG_ALEVENT_DC_SYNC0 |
+            ESCREG_ALEVENT_SM2);
+   }
 }
 
 
@@ -702,30 +804,121 @@ void ESC_stopinput (void)
  */
 uint8_t ESC_startoutput (uint8_t state)
 {
+
    ESC_SMenable (2);
-   App.state |= APPSTATE_OUTPUT;
+   CC_ATOMIC_OR(ESCvar.App.state, APPSTATE_OUTPUT);
    return state;
+
 }
 
 /** Unconditional stop of updating outputs by disabling Sync Manager 2.
- * Set the App.state to APPSTATE_ONPUT. Call application hook APP_safeoutput
+ * Set the App.state to APPSTATE_INPUT. Call application hook APP_safeoutput
  * letting the user to set safe state values on outputs.
  *
  */
 void ESC_stopoutput (void)
 {
-   App.state &= APPSTATE_INPUT;
+   CC_ATOMIC_AND(ESCvar.App.state, APPSTATE_INPUT);
    ESC_SMdisable (2);
    APP_safeoutput ();
 }
-/** The state handler acting on ALControl Bit(0) and SyncManager Activation BIT(4)
+
+/** The state handler acting on SyncManager Activation BIT(4)
+ * events in the Al Event Request register 0x220.
+ *
+ */
+void ESC_sm_act_event (void)
+{
+   uint8_t ac, an, as, ax, ax23;
+
+   /* Have at least on Sync Manager  changed */
+   if ((ESCvar.ALevent & ESCREG_ALEVENT_SMCHANGE) == 0)
+   {
+      /* nothing to do */
+      return;
+   }
+
+   /* Mask state request bits + Error ACK */
+   ac = ESCvar.ALcontrol & ESCREG_AL_STATEMASK;
+   as = ESCvar.ALstatus & ESCREG_AL_STATEMASK;
+   an = as;
+   if (((ac & ESCerror) || (ac == ESCinit)))
+   {
+      /* if error bit confirmed reset */
+      ac &= ESCREG_AL_ERRACKMASK;
+      an &= ESCREG_AL_ERRACKMASK;
+   }
+   /* Enter SM changed handling for all steps but Init and Boot when Mailboxes
+    * is up and running
+    */
+   if ((as & ESCREG_AL_ALLBUTINITMASK) &&
+       ((as == ESCboot) == 0) && ESCvar.MBXrun)
+   {
+      /* Validate Sync Managers, reading the Activation register will
+       * acknowledge the SyncManager Activation event making us enter
+       * this execution path.
+       */
+      ax = ESC_checkmbx (as);
+      ax23 = ESC_checkSM23 (as);
+      if ((an & ESCerror) && ((ac & ESCerror) == 0))
+      {
+         /* if in error then stay there */
+      }
+      /* Have we been forced to step down to INIT we will stop mailboxes,
+       * update AL Status Code and exit ESC_state
+       */
+      else if (ax == (ESCinit | ESCerror))
+      {
+         /* If we have activated Inputs and Outputs we need to disable them */
+         if (CC_ATOMIC_GET(ESCvar.App.state))
+         {
+            ESC_stopoutput ();
+            ESC_stopinput ();
+         }
+         /* Stop mailboxes and update ALStatus code */
+         ESC_stopmbx ();
+         ESC_ALerror (ALERR_INVALIDMBXCONFIG);
+         ESCvar.MBXrun = 0;
+         ESC_ALstatus (ax);
+         return;
+      }
+      /* Have we been forced to step down to PREOP we will stop inputs
+       * and outputs, update AL Status Code and exit ESC_state
+       */
+      else if (CC_ATOMIC_GET(ESCvar.App.state) && (ax23 == (ESCpreop | ESCerror)))
+      {
+         ESC_stopoutput ();
+         ESC_stopinput ();
+         if (ESCvar.SMtestresult & SMRESULT_ERRSM3)
+         {
+            ESC_ALerror (ALERR_INVALIDINPUTSM);
+         }
+         else
+         {
+            ESC_ALerror (ALERR_INVALIDOUTPUTSM);
+         }
+         ESC_ALstatus (ax23);
+      }
+   }
+   else
+   {
+      ESC_SMack (0);
+      ESC_SMack (1);
+      ESC_SMack (2);
+      ESC_SMack (3);
+      ESC_SMack (4);
+      ESC_SMack (5);
+      ESC_SMack (6);
+      ESC_SMack (7);
+   }
+}
+/** The state handler acting on ALControl Bit(0)
  * events in the Al Event Request register 0x220.
  *
  */
 void ESC_state (void)
 {
-   uint8_t ac, an, as, ax, ax23;
-   uint8_t handle_smchanged = 0;
+   uint8_t ac, an, as;
 
    /* Do we have a state change request pending */
    if (ESCvar.ALevent & ESCREG_ALEVENT_CONTROL)
@@ -733,11 +926,6 @@ void ESC_state (void)
       ESC_read (ESCREG_ALCONTROL, (void *) &ESCvar.ALcontrol,
                 sizeof (ESCvar.ALcontrol));
       ESCvar.ALcontrol = etohs (ESCvar.ALcontrol);
-   }
-   /* Have at least on Sync Manager  changed */
-   else if (ESCvar.ALevent & ESCREG_ALEVENT_SMCHANGE)
-   {
-      handle_smchanged  = 1;
    }
    else
    {
@@ -754,63 +942,9 @@ void ESC_state (void)
       ac &= ESCREG_AL_ERRACKMASK;
       an &= ESCREG_AL_ERRACKMASK;
    }
-   /* Enter SM changed handling for all steps but Init and Boot when Mailboxes
-    * is up and running
-    */
-   if (handle_smchanged && (as & ESCREG_AL_ALLBUTINITMASK) &&
-       !(as == ESCboot) && MBXrun)
-   {
-      /* Validate Sync Managers, reading the Activation register will
-       * acknowledge the SyncManager Activation event making us enter
-       * this execution path.
-       */
-      ax = ESC_checkmbx (as);
-      ax23 = ESC_checkSM23 (as);
-      if ((an & ESCerror) && !(ac & ESCerror))
-      {
-         /* if in error then stay there */
-         return;
-      }
-      /* Have we been forced to step down to INIT we will stop mailboxes,
-       * update AL Status Code and exit ESC_state
-       */
-      if (ax == (ESCinit | ESCerror))
-      {
-         /* If we have activated Inputs and Outputs we need to disable them */
-         if (App.state)
-         {
-            ESC_stopoutput ();
-            ESC_stopinput ();
-         }
-         /* Stop mailboxes and update ALStatus code */
-         ESC_stopmbx ();
-         ESC_ALerror (ALERR_INVALIDMBXCONFIG);
-         MBXrun = 0;
-         ESC_ALstatus (ax);
-         return;
-      }
-      /* Have we been forced to step down to PREOP we will stop inputs
-       * and outputs, update AL Status Code and exit ESC_state
-       */
-      if ((App.state) && (ax23 == (ESCpreop | ESCerror)))
-      {
-         ESC_stopoutput ();
-         ESC_stopinput ();
-         if (ESCvar.SMtestresult & SMRESULT_ERRSM3)
-         {
-            ESC_ALerror (ALERR_INVALIDINPUTSM);
-         }
-         else
-         {
-            ESC_ALerror (ALERR_INVALIDOUTPUTSM);
-         }
-         ESC_ALstatus (ax23);
-         return;
-      }
-   }
 
    /* Error state not acked, leave original */
-   if ((an & ESCerror) && !(ac & ESCerror))
+   if ((an & ESCerror) && ((ac & ESCerror) == 0))
    {
       return;
    }
@@ -819,9 +953,9 @@ void ESC_state (void)
    as = (ac << 4) | (as & 0x0f);
 
    /* Call post state change hook case it have been configured  */
-   if ((esc_cfg != NULL) && esc_cfg->pre_state_change_hook)
+   if (ESCvar.pre_state_change_hook != NULL)
    {
-      esc_cfg->pre_state_change_hook (&as, &an);
+      ESCvar.pre_state_change_hook (&as, &an);
    }
 
    /* Switch through the state change requested via AlControl from
@@ -839,6 +973,7 @@ void ESC_state (void)
       {
          /* get station address */
          ESC_address ();
+         COE_initDefaultSyncMgrPara ();
          an = ESC_startmbx (ac);
          break;
       }
@@ -860,10 +995,17 @@ void ESC_state (void)
       case OP_TO_INIT:
       {
          ESC_stopoutput ();
+         ESC_stopinput ();
+         ESC_stopmbx ();
+         an = ESCinit;
+         break;
       }
       case SAFEOP_TO_INIT:
       {
          ESC_stopinput ();
+         ESC_stopmbx ();
+         an = ESCinit;
+         break;
       }
       case PREOP_TO_INIT:
       {
@@ -889,8 +1031,8 @@ void ESC_state (void)
       case PREOP_TO_SAFEOP:
       case SAFEOP_TO_SAFEOP:
       {
-         SM2_sml = sizeRXPDO ();
-         SM3_sml = sizeTXPDO ();
+         ESCvar.ESC_SM2_sml = sizeOfPDO (RX_PDO_OBJIDX);
+         ESCvar.ESC_SM3_sml = sizeOfPDO (TX_PDO_OBJIDX);
          an = ESC_startinput (ac);
          if (an == ac)
          {
@@ -907,6 +1049,9 @@ void ESC_state (void)
       case OP_TO_PREOP:
       {
          ESC_stopoutput ();
+         ESC_stopinput ();
+         an = ESCpreop;
+         break;
       }
       case SAFEOP_TO_PREOP:
       {
@@ -956,9 +1101,9 @@ void ESC_state (void)
    }
 
    /* Call post state change hook case it have been configured  */
-   if ((esc_cfg != NULL) && esc_cfg->post_state_change_hook)
+   if (ESCvar.post_state_change_hook != NULL)
    {
-      esc_cfg->post_state_change_hook (&as, &an);
+      ESCvar.post_state_change_hook (&as, &an);
    }
 
    if (!(an & ESCerror) && (ESCvar.ALerror))
@@ -971,13 +1116,36 @@ void ESC_state (void)
 
 }
 /** Function copying the application configuration variable
- * to the stack local pointer variable.
+ * data to the stack local variable.
  *
- * @param[in] cfg   = Pointer to by the Application static declared
- * configuration variable holding application specific details. Ex. post- and
- * pre state change hooks
+ * @param[in] cfg   = Pointer to the Application configuration variable
+ * holding application specific details. Data is copied.
  */
 void ESC_config (esc_cfg_t * cfg)
 {
-   esc_cfg = cfg;
+   /* Copy configuration data */
+   ESCvar.use_interrupt = cfg->use_interrupt;
+   ESCvar.watchdogcnt = cfg->watchdog_cnt;
+   ESCvar.mbxsize = cfg->mbxsize;
+   ESCvar.mbxsizeboot = cfg->mbxsizeboot;
+   ESCvar.mbxbuffers = cfg->mbxbuffers;
+
+   ESCvar.mb[0] = cfg->mb[0];
+   ESCvar.mb[1] = cfg->mb[1];
+   ESCvar.mbboot[0] = cfg->mb_boot[0];
+   ESCvar.mbboot[1] = cfg->mb_boot[1];
+   ESCvar.pdosm[0] = cfg->pdosm[0];
+   ESCvar.pdosm[1] = cfg->pdosm[1];
+
+   ESCvar.pre_state_change_hook = cfg->pre_state_change_hook;
+   ESCvar.post_state_change_hook = cfg->post_state_change_hook;
+   ESCvar.application_hook = cfg->application_hook;
+   ESCvar.safeoutput_override = cfg->safeoutput_override;
+   ESCvar.pre_object_download_hook = cfg->pre_object_download_hook;
+   ESCvar.post_object_download_hook = cfg->post_object_download_hook;
+   ESCvar.rxpdo_override = cfg->rxpdo_override;
+   ESCvar.txpdo_override = cfg->txpdo_override;
+   ESCvar.esc_hw_interrupt_enable = cfg->esc_hw_interrupt_enable;
+   ESCvar.esc_hw_interrupt_disable = cfg->esc_hw_interrupt_disable;
+   ESCvar.esc_hw_eep_handler = cfg->esc_hw_eep_handler;
 }

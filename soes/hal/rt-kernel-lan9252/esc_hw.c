@@ -1,30 +1,6 @@
 /*
- * SOES Simple Open EtherCAT Slave
- *
- * Copyright (C) 2007-2017 Arthur Ketels
- * Copyright (C) 2012-2017 rt-labs.
- *
- * SOES is free software; you can redistribute it and/or modify it under
- * the terms of the GNU General Public License version 2 as published by the Free
- * Software Foundation.
- *
- * SOES is distributed in the hope that it will be useful, but WITHOUT ANY
- * WARRANTY; without even the implied warranty of MERCHANTABILITY or
- * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
- * for more details.
- *
- * As a special exception, if other files instantiate templates or use macros
- * or inline functions from this file, or you compile this file and link it
- * with other works to produce a work based on this file, this file does not
- * by itself cause the resulting work to be covered by the GNU General Public
- * License. However the source code for this file must still be made available
- * in accordance with section (3) of the GNU General Public License.
- *
- * This exception does not invalidate any other reasons why a work based on
- * this file might be covered by the GNU General Public License.
- *
- * The EtherCAT Technology, the trade name and logo "EtherCAT" are the intellectual
- * property of, and protected by Beckhoff Automation GmbH.
+ * Licensed under the GNU General Public License version 2 with exceptions. See
+ * LICENSE file in the project root for full license information
  */
 
  /** \file
@@ -35,7 +11,6 @@
  * registers and memory.
  */
 
-#include "utypes.h"
 #include "esc.h"
 #include <spi/spi.h>
 #include <string.h>
@@ -414,10 +389,10 @@ void ESC_reset (void)
 
 }
 
-void ESC_init (const void * arg)
+void ESC_init (const esc_cfg_t * config)
 {
    uint32_t value;
-   const char * spi_name = (char *)arg;
+   const char * spi_name = (char *)config->user_arg;
    lan9252 = open (spi_name, O_RDWR, 0);
 
    /* Reset the ecat core here due to evb-lan9252-digio not having any GPIO

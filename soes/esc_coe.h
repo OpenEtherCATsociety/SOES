@@ -1,29 +1,6 @@
 /*
- * SOES Simple Open EtherCAT Slave
- *
- * Copyright (C) 2007-2013 Arthur Ketels
- *
- * SOES is free software; you can redistribute it and/or modify it under
- * the terms of the GNU General Public License version 2 as published by the Free
- * Software Foundation.
- *
- * SOES is distributed in the hope that it will be useful, but WITHOUT ANY
- * WARRANTY; without even the implied warranty of MERCHANTABILITY or
- * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
- * for more details.
- *
- * As a special exception, if other files instantiate templates or use macros
- * or inline functions from this file, or you compile this file and link it
- * with other works to produce a work based on this file, this file does not
- * by itself cause the resulting work to be covered by the GNU General Public
- * License. However the source code for this file must still be made available
- * in accordance with section (3) of the GNU General Public License.
- *
- * This exception does not invalidate any other reasons why a work based on
- * this file might be covered by the GNU General Public License.
- *
- * The EtherCAT Technology, the trade name and logo "EtherCAT" are the intellectual
- * property of, and protected by Beckhoff Automation GmbH.
+ * Licensed under the GNU General Public License version 2 with exceptions. See
+ * LICENSE file in the project root for full license information
  */
 
  /** \file
@@ -36,6 +13,7 @@
 
 #include <cc.h>
 
+CC_PACKED_BEGIN
 typedef struct CC_PACKED
 {
    uint16_t subindex;
@@ -46,7 +24,9 @@ typedef struct CC_PACKED
    uint32_t value;
    void *data;
 } _objd;
+CC_PACKED_END
 
+CC_PACKED_BEGIN
 typedef struct CC_PACKED
 {
    uint16_t index;
@@ -56,6 +36,7 @@ typedef struct CC_PACKED
    const char *name;
    const _objd *objdesc;
 } _objectlist;
+CC_PACKED_END
 
 #define OBJH_READ               0
 #define OBJH_WRITE              1
@@ -100,14 +81,17 @@ typedef struct CC_PACKED
 #define ATYPE_RXPDO             0x40
 #define ATYPE_TXPDO             0x80
 
+#define TX_PDO_OBJIDX           0x1c13
+#define RX_PDO_OBJIDX           0x1c12
+
 void ESC_coeprocess (void);
-uint16_t sizeTXPDO (void);
-uint16_t sizeRXPDO (void);
+uint16_t sizeOfPDO (uint16_t index);
+void SDO_abort (uint16_t index, uint8_t subindex, uint32_t abortcode);
+void COE_initDefaultSyncMgrPara (void);
+int COE_getSyncMgrPara (uint16_t index, uint8_t subindex, void * buf, uint16_t datatype);
 
 extern void ESC_objecthandler (uint16_t index, uint8_t subindex);
+extern int ESC_pre_objecthandler (uint16_t index, uint8_t subindex);
 extern const _objectlist SDOobjects[];
-extern const _objd SDO1C12[];
-extern const _objd SDO1C13[];
-
 
 #endif
