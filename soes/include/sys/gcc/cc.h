@@ -28,6 +28,8 @@ extern "C"
 #define CC_ASSERT(exp) assert (exp)
 #define CC_STATIC_ASSERT(exp) _Static_assert (exp, "")
 
+#define CC_DEPRECATED   __attribute__((deprecated))
+
 #define CC_SWAP32(x) __builtin_bswap32 (x)
 #define CC_SWAP16(x) ((uint16_t)(x) >> 8 | ((uint16_t)(x) & 0xFF) << 8)
 

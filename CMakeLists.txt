@@ -6,7 +6,7 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake")
 project (SOES)
 
 set (SOES_VERSION_MAJOR 2)
-set (SOES_VERSION_MINOR 0)
+set (SOES_VERSION_MINOR 1)
 set (SOES_VERSION_PATCH 0)
 
 # Generate version numbers

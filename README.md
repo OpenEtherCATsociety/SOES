@@ -12,7 +12,7 @@ SOES is an EtherCAT slave stack written in c. Its purpose is to learn and
 to use. All users are invited to study the source to get an understanding
 how an EtherCAT slave functions.
 
-Features as of 2.0.0:
+Features as of 2.1.0:
  - Address offset based HAL for easy ESC read/write access via any
    interface
  - Mailbox with data link layer
