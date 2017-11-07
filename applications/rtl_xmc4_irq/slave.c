@@ -156,7 +156,7 @@ void DIG_process (uint8_t flags)
          CC_ATOMIC_SET(watchdog, ESCvar.watchdogcnt);
          if(ESCvar.dcsync > 0)
          {
-            CC_ATOMIC_ADD(ESCvar.synccounter,1);
+            CC_ATOMIC_ADD(ESCvar.synccounter, 1);
          }
          /* Set outputs */
          cb_set_LEDgroup0();
@@ -174,7 +174,7 @@ void DIG_process (uint8_t flags)
 
       if((CC_ATOMIC_GET(ESCvar.App.state) & APPSTATE_OUTPUT) > 0)
       {
-         CC_ATOMIC_SUB(ESCvar.synccounter,1);
+         CC_ATOMIC_SUB(ESCvar.synccounter, 1);
       }
 
       if((ESCvar.dcsync > 0) &&
@@ -212,11 +212,11 @@ void DIG_process (uint8_t flags)
 }
 
 /**
- * ISR function. It should be called from ISR for applications entirely driven by
- * interrupts.
- * Read and handle events for the EtherCAT state, status, mailbox and eeprom.
+ * Handler for SM change, SM0/1, AL CONTROL and EEPROM events, the application
+ * control what interrupts that should be served and re-activated with
+ * event mask argument
  */
-void ecat_slv_isr (void)
+void ecat_slv_worker (uint32_t event_mask)
 {
    do
    {
@@ -239,15 +239,22 @@ void ecat_slv_isr (void)
          (ESCvar.esc_hw_eep_handler)();
       }
 
-      CC_ATOMIC_SET(ESCvar.ALevent,ESC_ALeventread());
+      CC_ATOMIC_SET(ESCvar.ALevent, ESC_ALeventread());
 
-   }while(ESCvar.ALevent & (ESCREG_ALEVENT_CONTROL | ESCREG_ALEVENT_SMCHANGE
-         | ESCREG_ALEVENT_SM0 | ESCREG_ALEVENT_SM1 | ESCREG_ALEVENT_EEP));
+   }while(ESCvar.ALevent & event_mask);
 
-   ESC_ALeventmaskwrite(ESC_ALeventmaskread()
-         | (ESCREG_ALEVENT_CONTROL | ESCREG_ALEVENT_SMCHANGE
-         | ESCREG_ALEVENT_SM0 | ESCREG_ALEVENT_SM1
-         | ESCREG_ALEVENT_EEP));
+   ESC_ALeventmaskwrite(ESC_ALeventmaskread() | event_mask);
+}
+
+/**
+ * ISR function. It should be called from ISR for applications entirely driven by
+ * interrupts.
+ * Read and handle events for the EtherCAT state, status, mailbox and eeprom.
+ */
+void ecat_slv_isr (void)
+{
+   ecat_slv_worker(ESCREG_ALEVENT_CONTROL | ESCREG_ALEVENT_SMCHANGE
+            | ESCREG_ALEVENT_SM0 | ESCREG_ALEVENT_SM1 | ESCREG_ALEVENT_EEP);
 }
 
 /**

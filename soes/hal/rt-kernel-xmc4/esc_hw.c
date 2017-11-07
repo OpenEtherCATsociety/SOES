@@ -237,7 +237,8 @@ static void isr_run(void * arg)
    while(1)
    {
       sem_wait(ecat_isr_sem);
-      ecat_slv_isr();
+      ecat_slv_worker(ESCREG_ALEVENT_CONTROL | ESCREG_ALEVENT_SMCHANGE
+            | ESCREG_ALEVENT_SM0 | ESCREG_ALEVENT_SM1 | ESCREG_ALEVENT_EEP);
    }
 }
 

@@ -38,10 +38,20 @@ void cb_post_write_variableRW(int subindex);
 void DIG_process (uint8_t flags);
 
 /**
+ * Handler for SM change, SM0/1, AL CONTROL and EEPROM events, the application
+ * control what interrupts that should be served and re-activated with
+ * event mask argument
+ *
+ * @param[in]   event_mask = Event mask for interrupts to serve and re-activate
+ *                           after served
+ */
+void ecat_slv_worker (uint32_t event_mask);
+
+/**
  * ISR for SM0/1, EEPROM and AL CONTROL events in a SM/DC
  * synchronization application
  */
-void ecat_slv_isr (void);
+CC_DEPRECATED void ecat_slv_isr (void);
 
 /**
  * Poll SM0/1, EEPROM and AL CONTROL events in a SM/DC synchronization
