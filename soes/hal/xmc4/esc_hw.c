@@ -11,7 +11,9 @@
  * registers and memory.
  */
 
+#include "esc_hw.h"
 #include "esc.h"
+#include "esc_hw_eep.h"
 #include "esc_eep.h"
 
 #include "xmc_gpio.h"
@@ -286,6 +288,14 @@ void ESC_write (uint16_t address, void *buf, uint16_t len)
    memcpy(ESCADDR(address), buf, len);
 }
 
+/** ESC emulated EEPROM handler
+ */
+void ESC_eep_handler(void)
+{
+   EEP_process ();
+   EEP_hw_process();
+}
+
 void ESC_reset (void)
 {
   /* disable ESC to force reset */
@@ -295,9 +305,11 @@ void ESC_reset (void)
   EEP_init();
 }
 
-void ESC_init (const void * arg)
+void ESC_init (const esc_cfg_t * cfg)
 {
   XMC_ECAT_CONFIG_t ecat_config;
+
+  ESC_reset();
 
   /* configure inputs */
   init_input(ECAT_P0_LINK_STATUS);
