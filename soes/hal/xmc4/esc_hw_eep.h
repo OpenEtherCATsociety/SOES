@@ -11,9 +11,8 @@
 #ifndef __esc_hw_eep__
 #define __esc_hw_eep__
 
+#include "esc_hw.h"
 #include "cc.h"
-#include "esc_eep.h"
-
 #include "xmc_gpio.h"
 #include "xmc_flash.h"
 #include "xmc_fce.h"

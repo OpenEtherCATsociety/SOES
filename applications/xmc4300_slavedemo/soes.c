@@ -224,8 +224,6 @@ void soes_init (void)
 {
    DPRINT ("SOES (Simple Open EtherCAT Slave)\n");
 
-   ESC_reset();
-
    // configure I/O
    XMC_GPIO_Init(P_BTN, &gpio_config_btn);
    XMC_GPIO_Init(P_LED, &gpio_config_led);
