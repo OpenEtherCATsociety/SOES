@@ -150,7 +150,7 @@ uint16_t FOE_fwrite (uint8_t *data, uint16_t length)
        foe_cfg->fbuffer[FOEvar.fbufposition++] = *(data++);
        if(FOEvar.fbufposition >= foe_cfg->buffer_size)
        {
-          failed = foe_file->write_function (foe_file, foe_cfg->fbuffer);
+          failed = foe_file->write_function (foe_file, foe_cfg->fbuffer, FOEvar.fbufposition);
           FOEvar.fbufposition = 0;
           foe_file->address_offset += foe_cfg->buffer_size;
        }
@@ -172,23 +172,14 @@ uint16_t FOE_fwrite (uint8_t *data, uint16_t length)
  */
 uint32_t FOE_fclose (void)
 {
-   uint32_t i;
    uint32_t failed = 0;
 
    DPRINT("FOE_fclose\n");
-   if (FOEvar.fbufposition)
-   {
+   
+   failed = foe_file->write_function (foe_file, foe_cfg->fbuffer, FOEvar.fbufposition);
+   foe_file->address_offset += FOEvar.fbufposition;
+   FOEvar.fbufposition = 0;
 
-      DPRINT("FOE_fclose EXTRA write\n");
-      for(i = FOEvar.fbufposition; i < foe_cfg->buffer_size; i++)
-      {
-         foe_cfg->fbuffer[FOEvar.fbufposition++] = foe_cfg->empty_write;
-      }
-      failed = foe_file->write_function (foe_file, foe_cfg->fbuffer);
-      FOEvar.fbufposition = 0;
-      foe_file->address_offset += foe_cfg->buffer_size;
-      DPRINT("FOE_fclose EXTRA write ended\n");
-   }
    return failed;
 }
 
