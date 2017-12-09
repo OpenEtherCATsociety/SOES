@@ -32,15 +32,13 @@ struct foe_writefile_cfg
    /** FoE password */
    uint32_t       filepass;
    /** Pointer to application foe write function */
-   uint32_t       (*write_function) (foe_writefile_cfg_t * self, uint8_t * data);
+   uint32_t       (*write_function) (foe_writefile_cfg_t * self, uint8_t * data, size_t length);
 };
 
 typedef struct foe_cfg
 {
    /** Allocate static in caller func to fit buffer_size */
    uint8_t * fbuffer;
-   /** Write this to fill-up, ex. 0xFF for "non write" */
-   uint8_t   empty_write;
    /** Buffer size before we flush to destination */
    uint32_t  buffer_size;
    /** Number of files used in firmware update */
