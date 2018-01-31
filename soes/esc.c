@@ -86,15 +86,15 @@ uint32_t ESC_ALeventread (void)
    return htoel(alevent);
 }
 
-/** Read SM Status register 0x805(+ offset to SyncManager n) to acknowledge a
+/** Read SM Activate register 0x806(+ offset to SyncManager n) to acknowledge a
  * Sync Manager event Bit 3 in ALevent. The result is not used.
  *
  * @param[in] n   = Read Sync Manager no. n
  */
 void ESC_SMack (uint8_t n)
 {
-   uint16_t dummy;
-   ESC_read (ESCREG_SM0STATUS + (n << 3), &dummy, 2);
+   uint8_t dummy;
+   ESC_read (ESCREG_SM0ACTIVATE + (n << 3), &dummy, 1);
 }
 
 /** Read SM Status register 0x805(+ offset to SyncManager n) and save the
@@ -105,18 +105,8 @@ void ESC_SMack (uint8_t n)
 void ESC_SMstatus (uint8_t n)
 {
    _ESCsm2 *sm;
-   uint16_t temp;
-   sm = (_ESCsm2 *) & ESCvar.SM[n];
-   ESC_read (ESCREG_SM0STATUS + (n << 3), &temp, 2);
-#if defined(EC_LITTLE_ENDIAN)
-   sm->ActESC = temp >> 8;
-   sm->Status = temp;
-#endif
-
-#if defined(EC_BIG_ENDIAN)
-   sm->ActESC = temp;
-   sm->Status = temp >> 8;
-#endif
+   sm = (_ESCsm2 *)&ESCvar.SM[n];
+   ESC_read (ESCREG_SM0STATUS + (n << 3), &(sm->Status), 1);
 }
 
 /** Write ESCvar.SM[n] data to ESC PDI control register 0x807(+ offset to SyncManager n).
@@ -126,7 +116,7 @@ void ESC_SMstatus (uint8_t n)
 void ESC_SMwritepdi (uint8_t n)
 {
    _ESCsm2 *sm;
-   sm = (_ESCsm2 *) & ESCvar.SM[n];
+   sm = (_ESCsm2 *)&ESCvar.SM[n];
    ESC_write (ESCREG_SM0PDI + (n << 3), &(sm->ActPDI), 1);
 }
 
@@ -137,7 +127,7 @@ void ESC_SMwritepdi (uint8_t n)
 void ESC_SMenable (uint8_t n)
 {
    _ESCsm2 *sm;
-   sm = (_ESCsm2 *) & ESCvar.SM[n];
+   sm = (_ESCsm2 *)&ESCvar.SM[n];
    sm->ActPDI &= ~ESCREG_SMENABLE_BIT;
    ESC_SMwritepdi (n);
 }
@@ -148,7 +138,7 @@ void ESC_SMenable (uint8_t n)
 void ESC_SMdisable (uint8_t n)
 {
    _ESCsm2 *sm;
-   sm = (_ESCsm2 *) & ESCvar.SM[n];
+   sm = (_ESCsm2 *)&ESCvar.SM[n];
    sm->ActPDI |= ESCREG_SMENABLE_BIT;
    ESC_SMwritepdi (n);
 }
@@ -545,8 +535,8 @@ uint8_t ESC_mbxprocess (void)
       return 0;
    }
 
-   /* SM0/1 access or SMn change event */
-   if (ESCvar.ALevent & ESCREG_ALEVENT_SM_MASK)
+   /* SM0/1 access */
+   if (ESCvar.ALevent & (ESCREG_ALEVENT_SM0 | ESCREG_ALEVENT_SM1))
    {
       ESC_SMstatus (0);
       ESC_SMstatus (1);
