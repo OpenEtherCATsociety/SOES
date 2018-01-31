@@ -36,11 +36,13 @@
 #define ESCREG_EEDATA               0x0508
 #define ESCREG_SM0                  0x0800
 #define ESCREG_SM0STATUS            (ESCREG_SM0 + 5)
+#define ESCREG_SM0ACTIVATE          (ESCREG_SM0 + 6)
 #define ESCREG_SM0PDI               (ESCREG_SM0 + 7)
 #define ESCREG_SM1                  (ESCREG_SM0 + 0x08)
 #define ESCREG_SM2                  (ESCREG_SM0 + 0x10)
 #define ESCREG_SM3                  (ESCREG_SM0 + 0x18)
 #define ESCREG_LOCALTIME            0x0910
+#define ESCREG_LOCALTIME_OFFSET     0x0920
 #define ESCREG_SYNC_ACT             0x0981
 #define ESCREG_SYNC_ACT_ACTIVATED   0x01
 #define ESCREG_SYNC_SYNC0_EN        0x02
