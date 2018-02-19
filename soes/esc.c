@@ -543,7 +543,7 @@ uint8_t ESC_mbxprocess (void)
    }
 
    /* outmbx read by master */
-   if (ESCvar.mbxoutpost && ESCvar.SM[1].IntR)
+   if (ESCvar.mbxoutpost && (ESCvar.ALevent & ESCREG_ALEVENT_SM1))
    {
       ESC_ackmbxread ();
       /* dispose old backup */
