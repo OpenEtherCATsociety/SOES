@@ -6,8 +6,8 @@ Required properties:
  - reg: SPI chip select.
 
 Example:
-        ethercat: lan9252@1 {
-                compatible = "lan9252";
-                spi-max-frequency = <20000000>;
-                reg = <1>; 
-        };
+	ethercat: lan9252@1 {
+		compatible = "lan9252";
+		spi-max-frequency = <20000000>;
+		reg = <1>;
+	};
