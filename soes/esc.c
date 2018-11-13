@@ -606,6 +606,8 @@ uint8_t ESC_mbxprocess (void)
       if (mbxhandle)
       {
          ESC_writembx (mbxhandle);
+         /* Refresh SM status */
+         ESC_SMstatus (1);
          /* change state */
          MBXcontrol[mbxhandle].state = MBXstate_outpost;
          ESCvar.mbxoutpost = mbxhandle;
