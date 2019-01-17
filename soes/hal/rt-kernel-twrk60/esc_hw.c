@@ -16,6 +16,8 @@
 #include <string.h>
 #include <gpio.h>
 
+#define MAX_READ_SIZE   128
+
 #define ESC_CMD_READ    0x02
 #define ESC_CMD_READWS  0x03
 #define ESC_CMD_WRITE   0x04
@@ -24,7 +26,7 @@
 #define ESC_NEXT        0x00
 
 static int et1100 = -1;
-static uint8_t read_termination[MAX(sizeof(Wb), 128)] = { 0 };
+static uint8_t read_termination[MAX_READ_SIZE] = { 0 };
 
 #define GPIO_ECAT_RESET    1 /* specific function to hold ESC reset on startup
                               * when emulating EEPROM
@@ -56,7 +58,7 @@ static void esc_address (uint16_t address, uint8_t command)
  */
 void ESC_read (uint16_t address, void *buf, uint16_t len)
 {
-   ASSERT(len <= sizeof(read_termination));
+   ASSERT(len <= MAX_READ_SIZE);
 
    /* Select device. */
    spi_select (et1100);
@@ -69,7 +71,7 @@ void ESC_read (uint16_t address, void *buf, uint16_t len)
     * Read (and write termination bytes).
     */
    spi_bidirectionally_transfer (et1100, buf, read_termination +
-                                 (sizeof(read_termination) - len), len);
+                                 (MAX_READ_SIZE - len), len);
 
    /* Un-select device. */
    spi_unselect (et1100);
@@ -122,5 +124,5 @@ void ESC_init (const esc_cfg_t * config)
 {
    const char * spi_name = (char *)config->user_arg;
    et1100 = open (spi_name, O_RDWR, 0);
-   read_termination[sizeof(read_termination) - 1] = 0xFF;
+   read_termination[MAX_READ_SIZE - 1] = 0xFF;
 }

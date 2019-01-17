@@ -41,7 +41,7 @@ set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${MACHINE_FLAGS}" CACHE STRING "" FORCE)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${MACHINE_FLAGS}" CACHE STRING "" FORCE)
 
 # Default libs
-set(RTK_LIBS "-l${BSP} -l${ARCH} -lkern -ldev -lsio -lblock -lfs -lusb -llwip -lptpd -leth -li2c -lrtc -lcan -lnand -lspi -lnor -lpwm -ladc -ltrace -lcounter -lc -lm")
+set(RTK_LIBS "-l${BSP} -l${ARCH} -lkern -ldev -lsio -lblock -lfs -lusb -llwip -lptpd -leth -li2c -lrtc -lcan -lnand -lspi -lnor -lpwm -ladc -ltrace -lcounter -lc -lm -lshell")
 
 set(CMAKE_CXX_LINK_EXECUTABLE "<CMAKE_CXX_COMPILER> <FLAGS> <CMAKE_CXX_LINK_FLAGS> <LINK_FLAGS> <OBJECTS> -o <TARGET> -nostartfiles -T${RTK}/bsp/${BSP}/${BSP}.ld -Wl,--start-group <LINK_LIBRARIES> ${RTK_LIBS} -Wl,--end-group")
 set(CMAKE_C_LINK_EXECUTABLE   "<CMAKE_C_COMPILER>   <FLAGS> <CMAKE_C_LINK_FLAGS>   <LINK_FLAGS> <OBJECTS> -o <TARGET> -nostartfiles -T${RTK}/bsp/${BSP}/${BSP}.ld -Wl,--start-group <LINK_LIBRARIES> ${RTK_LIBS} -Wl,--end-group")
