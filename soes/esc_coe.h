@@ -38,6 +38,12 @@ typedef struct CC_PACKED
 } _objectlist;
 CC_PACKED_END
 
+typedef struct
+{
+   const _objd * obj;
+   uint16_t offset;
+} _SMmap;
+
 #define OBJH_READ               0
 #define OBJH_WRITE              1
 
@@ -75,21 +81,33 @@ CC_PACKED_END
 #define DTYPE_BIT7              0x0036
 #define DTYPE_BIT8              0x0037
 
-#define ATYPE_RO                0x07
-#define ATYPE_RW                0x3F
-#define ATYPE_RWpre             0x0F
+#define ATYPE_Rpre              0x01
+#define ATYPE_Rsafe             0x02
+#define ATYPE_Rop               0x04
+#define ATYPE_Wpre              0x08
+#define ATYPE_Wsafe             0x10
+#define ATYPE_Wop               0x20
 #define ATYPE_RXPDO             0x40
 #define ATYPE_TXPDO             0x80
+
+#define ATYPE_RO                (ATYPE_Rpre | ATYPE_Rsafe | ATYPE_Rop)
+#define ATYPE_RW                (ATYPE_Wpre | ATYPE_Wsafe | ATYPE_Wop | ATYPE_RO)
+#define ATYPE_RWpre             (ATYPE_Wpre | ATYPE_RO)
 
 #define TX_PDO_OBJIDX           0x1c13
 #define RX_PDO_OBJIDX           0x1c12
 
 void ESC_coeprocess (void);
-uint16_t sizeOfPDO (uint16_t index);
+uint16_t sizeOfPDO (uint16_t index, int * nmappings, _SMmap * sm, int max_mappings);
 void SDO_abort (uint16_t index, uint8_t subindex, uint32_t abortcode);
-void COE_initDefaultSyncMgrPara (void);
+void COE_initDefaultValues (void);
+
+void COE_pdoPack (uint8_t * buffer, int nmappings, _SMmap * sm);
+void COE_pdoUnpack (uint8_t * buffer, int nmappings, _SMmap * sm);
+uint8_t COE_maxSub (uint16_t index);
+
 extern void ESC_objecthandler (uint16_t index, uint8_t subindex, bool isCA);
-extern int ESC_pre_objecthandler (uint16_t index,
+extern uint32_t ESC_pre_objecthandler (uint16_t index,
       uint8_t subindex,
       void * data,
       size_t size,

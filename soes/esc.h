@@ -12,6 +12,7 @@
 #define __esc__
 
 #include <cc.h>
+#include <esc_coe.h>
 
 #define ESCREG_ADDRESS              0x0010
 #define ESCREG_DLSTATUS             0x0110
@@ -124,6 +125,8 @@
 #define ABORT_UNSUPPORTED               0x06010000
 #define ABORT_WRITEONLY                 0x06010001
 #define ABORT_READONLY                  0x06010002
+#define ABORT_SUBINDEX0_NOT_ZERO        0x06010003
+#define ABORT_EXCEEDS_MBOX_SIZE         0x06010005
 #define ABORT_NOOBJECT                  0x06020000
 #define ABORT_TYPEMISMATCH              0x06070010
 #define ABORT_NOSUBINDEX                0x06090011
@@ -237,8 +240,10 @@ typedef struct esc_cfg
    size_t mbxsize;
    size_t mbxsizeboot;
    int mbxbuffers;
-   void * rxpdosaddress;
-   void * txpdosaddress;
+   void * rxpdos_address;
+   int rxpdos_mappings;
+   void * txpdos_address;
+   int txpdos_mappings;
    sm_cfg_t mb[2];
    sm_cfg_t mb_boot[2];
    sm_cfg_t pdosm[2];
@@ -357,8 +362,10 @@ typedef struct
    size_t mbxsize;
    size_t mbxsizeboot;
    int mbxbuffers;
-   void * rxpdosaddress;
-   void * txpdosaddress;
+   void * rxpdos_address;
+   int rxpdos_mappings;
+   void * txpdos_address;
+   int txpdos_mappings;
    sm_cfg_t  mb[2];
    sm_cfg_t  mbboot[2];
    sm_cfg_t  pdosm[2];
@@ -408,6 +415,8 @@ typedef struct
 
    uint8_t toggle;
 
+   int sm2mappings;
+   int sm3mappings;
 
    uint8_t SMtestresult;
    uint32_t PrevTime;
@@ -650,6 +659,8 @@ extern void APP_safeoutput ();
 extern _ESCvar ESCvar;
 extern _MBXcontrol MBXcontrol[];
 extern uint8_t MBX[];
+extern _SMmap SMmap2[];
+extern _SMmap SMmap3[];
 
 /* ATOMIC operations are used when running interrupt driven */
 #ifndef CC_ATOMIC_SET

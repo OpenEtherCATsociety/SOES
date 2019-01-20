@@ -6,8 +6,13 @@
 #include "esc_foe.h"
 #include "ecat_slv.h"
 
+#define IS_RXPDO(index) ((index) >= 0x1600 && (index) < 0x1800)
+#define IS_TXPDO(index) ((index) >= 0x1A00 && (index) < 0x1C00)
+
 /* Global variables used by the stack */
-extern _ESCvar     ESCvar;
+extern _ESCvar ESCvar;
+extern _SMmap  SMmap2[];
+extern _SMmap  SMmap3[];
 
 /* Private variables */
 static volatile int watchdog;
@@ -16,26 +21,37 @@ static volatile int watchdog;
  *
  * @param[in] index      = index of SDO download request to check
  * @param[in] sub-index  = sub-index of SDO download request to check
- * @return 1 if the SDO Download is correct. 0 If not correct.
+ * @return SDO abort code, or 0 on success
  */
-int ESC_pre_objecthandler (uint16_t index,
+uint32_t ESC_pre_objecthandler (uint16_t index,
       uint8_t subindex,
       void * data,
       size_t size,
       bool isCA)
 {
-   int result = 1;
+   int abort = 0;
 
-   if(ESCvar.pre_object_download_hook)
+   if (IS_RXPDO (index) ||
+       IS_TXPDO (index) ||
+       index == RX_PDO_OBJIDX ||
+       index == TX_PDO_OBJIDX)
    {
-      result = (ESCvar.pre_object_download_hook)(index,
+      if (subindex > 0 && COE_maxSub (index) != 0)
+      {
+         abort = ABORT_SUBINDEX0_NOT_ZERO;
+      }
+   }
+
+   if (ESCvar.pre_object_download_hook)
+   {
+      abort = (ESCvar.pre_object_download_hook) (index,
             subindex,
             data,
             size,
             isCA);
    }
 
-   return result;
+   return abort;
 }
 
 /** Mandatory: Hook called from the slave stack SDO Download handler to act on
@@ -46,25 +62,9 @@ int ESC_pre_objecthandler (uint16_t index,
  */
 void ESC_objecthandler (uint16_t index, uint8_t subindex, bool isCA)
 {
-   switch (index)
+   if (ESCvar.post_object_download_hook != NULL)
    {
-
-   default:
-   {
-      if ((index >= 0x1600 && index < 0x1800) || index == RX_PDO_OBJIDX)
-      {
-         ;
-      }
-      else if ((index >= 0x1A00 && index < 0x1C00) || index == TX_PDO_OBJIDX)
-      {
-         ;
-      }
-      else if(ESCvar.post_object_download_hook != NULL)
-      {
-         (ESCvar.post_object_download_hook)(index, subindex, isCA);
-      }
-      break;
-   }
+      (ESCvar.post_object_download_hook)(index, subindex, isCA);
    }
 }
 
@@ -92,7 +92,8 @@ void TXPDO_update (void)
    }
    else
    {
-      ESC_write (ESC_SM3_sma, ESCvar.txpdosaddress , ESCvar.ESC_SM3_sml);
+      COE_pdoPack (ESCvar.txpdos_address, ESCvar.sm3mappings, SMmap3);
+      ESC_write (ESC_SM3_sma, ESCvar.txpdos_address , ESCvar.ESC_SM3_sml);
    }
 }
 
@@ -106,7 +107,8 @@ void RXPDO_update (void)
    }
    else
    {
-      ESC_read (ESC_SM2_sma, ESCvar.rxpdosaddress, ESCvar.ESC_SM2_sml);
+      ESC_read (ESC_SM2_sma, ESCvar.rxpdos_address, ESCvar.ESC_SM2_sml);
+      COE_pdoUnpack (ESCvar.rxpdos_address, ESCvar.sm2mappings, SMmap2);
    }
 }
 
@@ -254,9 +256,6 @@ void ecat_slv (void)
 void ecat_slv_init (esc_cfg_t * config)
 {
    DPRINT ("Slave stack init started\n");
-
-   ESCvar.ESC_SM3_sml = sizeOfPDO(TX_PDO_OBJIDX);
-   ESCvar.ESC_SM2_sml = sizeOfPDO(RX_PDO_OBJIDX);
 
    /* Init watchdog */
    watchdog = config->watchdog_cnt;

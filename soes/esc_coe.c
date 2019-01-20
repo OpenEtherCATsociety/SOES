@@ -18,6 +18,10 @@
 
 #define BITS2BYTES(b) ((b + 7) >> 3)
 
+/* Fetch value from object dictionary */
+#define OBJ_VALUE_FETCH(v, o) \
+   ((o).data ? *(__typeof__ (v) *)(o).data : (__typeof__ (v))(o).value)
+
 /** Search for an object sub-index.
  *
  * @param[in] nidx   = local array index of object we want to find sub-index to
@@ -61,117 +65,98 @@ int32_t SDO_findobject (uint16_t index)
    return n;
 }
 
-/** Init default values for SDO Sync Objects
+/**
+ * Calculate the size in Bytes of RxPDO or TxPDOs by adding the
+ * objects in SyncManager SDO 1C1x.
  *
- */
-void COE_initDefaultSyncMgrPara (void)
-{
-   uint32_t i,j;
-   const _objd *objd;
-   int32_t n = 0;
-
-   /* 1C3x */
-   for(i = 0x1C32; i <= 0x1C33; i ++)
-   {
-      /* Look if index is present */
-      n = SDO_findobject(i);
-      if(n < 0)
-      {
-         continue;
-      }
-
-      /* Load default values */
-      objd = SDOobjects[n].objdesc;
-      for(j = 1; j <= SDOobjects[n].maxsub; j++ )
-      {
-         if(objd[j].data != NULL)
-         {
-            *(uint32_t *)objd[j].data = objd[j].value;
-         }
-         if(objd[j].subindex >= SDOobjects[n].maxsub)
-         {
-            break;
-         }
-      }
-   }
-
-   /* Look if index is present */
-   n = SDO_findobject(0x10F1);
-   if(n >= 0)
-   {
-      /* Load default values */
-      objd = SDOobjects[n].objdesc;
-      for(j = 1; j <= objd[0].value; j++ )
-      {
-         if(objd[j].data != NULL)
-         {
-            *(uint32_t *)objd[j].data = objd[j].value;
-         }
-      }
-
-   }
-}
-
-/** Calculate the size in Bytes of RxPDO or TxPDOs by adding the objects
- * in SyncManager
- * SDO 1C1x.
- *
+ * @param[in] index = SM index
+ * @param[out] nmappings = number of mapped objects in SM, or -1 if
+ *   mapping is invalid
+ * @param[out] mappings = list of mapped objects in SM
+ * @param[out] max_mappings = max number of mapped objects in SM
  * @return size of RxPDO or TxPDOs in Bytes.
  */
-uint16_t sizeOfPDO (uint16_t index)
+uint16_t sizeOfPDO (uint16_t index, int * nmappings,_SMmap * mappings,
+                    int max_mappings)
 {
-   uint16_t size = 0, hobj, l, si, c, sic;
+   uint16_t offset = 0, hobj;
+   uint8_t si, sic, c;
    int16_t nidx;
    const _objd *objd;
    const _objd *objd1c1x;
+   int mapIx = 0;
+
+   if ((index != RX_PDO_OBJIDX) && (index != TX_PDO_OBJIDX))
+   {
+      return 0;
+   }
 
    nidx = SDO_findobject (index);
-
    if(nidx < 0)
    {
-      return size;
-   }
-   else if((index != RX_PDO_OBJIDX) && (index != TX_PDO_OBJIDX))
-   {
-      return size;
+      return 0;
    }
 
-   objd1c1x = objd = SDOobjects[nidx].objdesc;
+   objd1c1x = SDOobjects[nidx].objdesc;
 
-   if (objd1c1x[0].data)
-   {
-      si = *((uint8_t *) objd1c1x[0].data);
-   }
-   else
-   {
-      si = (uint8_t) objd1c1x[0].value;
-   }
+   si = OBJ_VALUE_FETCH (si, objd1c1x[0]);
    if (si)
    {
       for (sic = 1; sic <= si; sic++)
       {
-         if (objd1c1x[sic].data)
-         {
-            hobj = *((uint16_t *) objd1c1x[sic].data);
-            hobj = htoes(hobj);
-         }
-         else
-         {
-            hobj = (uint16_t) objd1c1x[sic].value;
-         }
+         hobj = OBJ_VALUE_FETCH (hobj, objd1c1x[sic]);
          nidx = SDO_findobject (hobj);
-         if (nidx > 0)
+         if (nidx >= 0)
          {
+            uint8_t maxsub;
+
             objd = SDOobjects[nidx].objdesc;
-            l = (uint8_t) objd->value;
-            for (c = 1; c <= l; c++)
+            maxsub = OBJ_VALUE_FETCH (maxsub, objd[0]);
+
+            for (c = 1; c <= maxsub; c++)
             {
-               size += ((objd + c)->value & 0xff);
+               uint32_t value = OBJ_VALUE_FETCH (value, objd[c]);
+               uint16_t index = value >> 16;
+               uint8_t subindex = (value >> 8) & 0xFF;
+               uint8_t bitlength = value & 0xFF;
+               const _objd * mapping;
+
+               if (mapIx == max_mappings)
+               {
+                  /* Too many mapped objects */
+                  *nmappings = -1;
+                  return 0;
+               }
+
+               DPRINT ("%04x:%02x @ %d\n", index, subindex, offset);
+               nidx = SDO_findobject (index);
+               if (nidx >= 0)
+               {
+                  int16_t nsub;
+
+                  nsub = SDO_findsubindex (nidx, subindex);
+                  if (nsub < 0)
+                  {
+                     mapping = NULL;
+                  }
+
+                  mapping = &SDOobjects[nidx].objdesc[nsub];
+               }
+               else
+               {
+                  mapping = NULL;
+               }
+
+               mappings[mapIx].obj = mapping;
+               mappings[mapIx++].offset = offset;
+
+               offset += bitlength;
             }
          }
       }
    }
-   return BITS2BYTES (size);
+   *nmappings = mapIx;
+   return BITS2BYTES (offset);
 }
 
 /** Copy to mailbox.
@@ -391,6 +376,8 @@ void SDO_download (void)
    uint16_t size, actsize;
    const _objd *objd;
    uint32_t *mbxdata;
+   uint32_t abort;
+
    coesdo = (_COEsdo *) &MBX[0];
    index = etohs (coesdo->index);
    subindex = coesdo->subindex;
@@ -421,11 +408,14 @@ void SDO_download (void)
             actsize = ((objd + nsub)->bitlength + 7) >> 3;
             if (actsize == size)
             {
-               if (ESC_pre_objecthandler (index,
-                     subindex,
-                     mbxdata,
-                     size,
-                     false))
+               abort = ESC_pre_objecthandler (
+                  index,
+                  subindex,
+                  mbxdata,
+                  size,
+                  false
+               );
+               if (abort == 0)
                {
                   copy2mbx (mbxdata, (objd + nsub)->data, size);
                   MBXout = ESC_claimbuffer ();
@@ -442,8 +432,12 @@ void SDO_download (void)
                      coeres->size = htoel (0);
                      MBXcontrol[MBXout].state = MBXstate_outreq;
                   }
-                 /* external object write handler */
-                 ESC_objecthandler (index, subindex, false);
+                  /* external object write handler */
+                  ESC_objecthandler (index, subindex, false);
+               }
+               else
+               {
+                  SDO_abort (index, subindex, abort);
                }
             }
             else
@@ -896,4 +890,319 @@ void ESC_coeprocess (void)
          }
       }
    }
+}
+
+/**
+ * Get value from bitmap
+ *
+ * This function gets a value from a bitmap.
+ *
+ * @param[in] bitmap = bitmap containing value
+ * @param[in] offset = start offset
+ * @param[in] length = number of bits to get
+ * @return bitslice value
+ */
+static uint64_t COE_bitsliceGet (uint64_t * bitmap, int offset, int length)
+{
+   const int word_offset = offset / 64;
+   const int bit_offset = offset % 64;
+   const uint64_t mask = (length == 64) ? UINT64_MAX : (1ULL << length) - 1;
+   uint64_t w0;
+   uint64_t w1 = 0;
+
+   /* Get the least significant word */
+   w0 = bitmap[word_offset];
+   w0 = w0 >> bit_offset;
+
+   /* Get the most significant word, if required */
+   if (length + bit_offset > 64)
+   {
+      w1 = bitmap[word_offset + 1];
+      w1 = w1 << (64 - bit_offset);
+   }
+
+   w0 = (w1 | w0);
+   return (w0 & mask);
+}
+
+/**
+ * Set value in bitmap
+ *
+ * This function sets a value in a bitmap.
+ *
+ * @param[in] bitmap = bitmap to contain value
+ * @param[in] offset = start offset
+ * @param[in] length = number of bits to set
+ * @param[in] value  = value to set
+ */
+static void COE_bitsliceSet (uint64_t * bitmap, int offset, int length,
+                             uint64_t value)
+{
+   const int word_offset = offset / 64;
+   const int bit_offset = offset % 64;
+   const uint64_t mask = (length == 64) ? UINT64_MAX : (1ULL << length) - 1;
+   const uint64_t mask0 = mask << bit_offset;
+   uint64_t v0 = value << bit_offset;
+   uint64_t w0 = bitmap[word_offset];
+
+   /* Set the least significant word */
+   w0 = (w0 & ~mask0) | (v0 & mask0);
+   bitmap[word_offset] = w0;
+
+   /* Set the most significant word, if required */
+   if (length + bit_offset > 64)
+   {
+      const uint64_t mask1 = mask >> (64 - bit_offset);
+      uint64_t v1 = value >> (64 - bit_offset);
+      uint64_t w1 = bitmap[word_offset + 1];
+
+      w1 = (w1 & ~mask1) | (v1 & mask1);
+      bitmap[word_offset + 1] = w1;
+   }
+}
+
+/**
+ * Get object value
+ *
+ * This function atomically gets an object value.
+ *
+ * @param[in] obj   = object description
+ * @return object value
+ */
+static uint64_t COE_getValue (const _objd * obj)
+{
+   uint64_t value = 0;
+
+   /* TODO: const data */
+
+   switch(obj->datatype)
+   {
+   case DTYPE_BIT1:
+   case DTYPE_BIT2:
+   case DTYPE_BIT3:
+   case DTYPE_BIT4:
+   case DTYPE_BIT5:
+   case DTYPE_BIT6:
+   case DTYPE_BIT7:
+   case DTYPE_BIT8:
+   case DTYPE_BOOLEAN:
+   case DTYPE_UNSIGNED8:
+   case DTYPE_INTEGER8:
+      value = *(uint8_t *)obj->data;
+      break;
+
+   case DTYPE_UNSIGNED16:
+   case DTYPE_INTEGER16:
+      value = *(uint16_t *)obj->data;
+      break;
+
+   case DTYPE_REAL32:
+   case DTYPE_UNSIGNED32:
+   case DTYPE_INTEGER32:
+      value = *(uint32_t *)obj->data;
+      break;
+
+   case DTYPE_REAL64:
+   case DTYPE_UNSIGNED64:
+   case DTYPE_INTEGER64:
+      /* FIXME: must be atomic */
+      value = *(uint64_t *)obj->data;
+      break;
+
+   default:
+      CC_ASSERT (0);
+   }
+
+   return value;
+}
+
+/**
+ * Set object value
+ *
+ * This function atomically sets an object value.
+ *
+ * @param[in] obj   = object description
+ * @param[in] value = new value
+ */
+static void COE_setValue (const _objd * obj, uint64_t value)
+{
+   switch(obj->datatype)
+   {
+   case DTYPE_BIT1:
+   case DTYPE_BIT2:
+   case DTYPE_BIT3:
+   case DTYPE_BIT4:
+   case DTYPE_BIT5:
+   case DTYPE_BIT6:
+   case DTYPE_BIT7:
+   case DTYPE_BIT8:
+   case DTYPE_BOOLEAN:
+   case DTYPE_UNSIGNED8:
+   case DTYPE_INTEGER8:
+      *(uint8_t *)obj->data = value & UINT8_MAX;
+      break;
+
+   case DTYPE_UNSIGNED16:
+   case DTYPE_INTEGER16:
+      *(uint16_t *)obj->data = value & UINT16_MAX;
+      break;
+
+   case DTYPE_REAL32:
+   case DTYPE_UNSIGNED32:
+   case DTYPE_INTEGER32:
+      *(uint32_t *)obj->data = value & UINT32_MAX;
+      break;
+
+   case DTYPE_REAL64:
+   case DTYPE_UNSIGNED64:
+   case DTYPE_INTEGER64:
+      /* FIXME: must be atomic */
+      *(uint64_t *)obj->data = value;
+      break;
+
+   default:
+      DPRINT ("ignored\n");
+      break;
+   }
+}
+
+/**
+ * Init default values for SDO objects
+ */
+void COE_initDefaultValues (void)
+{
+   int i;
+   const _objd *objd;
+   int n;
+   uint8_t maxsub;
+
+   for (n = 0; SDOobjects[n].index != 0xffff; n++)
+   {
+      objd = SDOobjects[n].objdesc;
+      maxsub = SDOobjects[n].maxsub;
+
+      i = 0;
+      do
+      {
+         if (objd[i].data != NULL)
+         {
+            /* TODO: bitlength > 64 */
+            COE_setValue (&objd[i], objd[i].value);
+            DPRINT ("%04x:%02x = %x\n", SDOobjects[n].index, objd[i].subindex, objd[i].value);
+         }
+      } while (objd[i++].subindex < maxsub);
+   }
+}
+
+/**
+ * Pack process data
+ *
+ * This function reads mapped objects and constructs the process data
+ * inputs (TXPDO).
+ *
+ * @param[in] buffer     = input process data
+ * @param[in] nmappings  = number of mappings in sync manager
+ * @param[in] mappings   = list of mapped objects in sync manager
+ */
+void COE_pdoPack (uint8_t * buffer, int nmappings, _SMmap * mappings)
+{
+   int ix;
+
+   /* Check that buffer is aligned on 64-bit boundary */
+   CC_ASSERT (((uintptr_t)buffer & 0x07) == 0);
+
+   for (ix = 0; ix < nmappings; ix++)
+   {
+      const _objd * obj = mappings[ix].obj;
+      uint16_t offset = mappings[ix].offset;
+
+      if (obj != NULL)
+      {
+         if (obj->bitlength > 64)
+         {
+            memcpy (
+               &buffer[BITS2BYTES (offset)],
+               obj->data,
+               BITS2BYTES (obj->bitlength)
+            );
+         }
+         else
+         {
+            /* Atomically get object value */
+            uint64_t value = COE_getValue (obj);
+            COE_bitsliceSet (
+               (uint64_t *)buffer,
+               offset,
+               obj->bitlength,
+               value
+            );
+         }
+      }
+   }
+}
+
+/**
+ * Unpack process data
+ *
+ * This function unpacks process data output (RXPDO) and writes to the
+ * mapped objects.
+ *
+ * @param[in] buffer    = output process data
+ * @param[in] nmappings = number of mappings in sync manager
+ * @param[in] mappings  = list of mapped objects in sync manager
+ */
+void COE_pdoUnpack (uint8_t * buffer, int nmappings, _SMmap * mappings)
+{
+   int ix;
+
+   /* Check that buffer is aligned on 64-bit boundary */
+   CC_ASSERT (((uintptr_t)buffer & 0x07) == 0);
+
+   for (ix = 0; ix < nmappings; ix++)
+   {
+      const _objd * obj = mappings[ix].obj;
+      uint16_t offset = mappings[ix].offset;
+
+      if (obj != NULL)
+      {
+         if (obj->bitlength > 64)
+         {
+            memcpy (
+               obj->data,
+               &buffer[BITS2BYTES (offset)],
+               BITS2BYTES (obj->bitlength)
+            );
+         }
+         else
+         {
+            /* Atomically set object value */
+            uint64_t value = COE_bitsliceGet (
+               (uint64_t *)buffer,
+               offset,
+               obj->bitlength
+            );
+            COE_setValue (obj, value);
+         }
+      }
+   }
+}
+
+/**
+ * Fetch max subindex
+ *
+ * This function fetches the value of subindex 0 (max subindex).
+ *
+ * @param[in] index = object index
+ */
+uint8_t COE_maxSub (uint16_t index)
+{
+   int nidx;
+   uint8_t maxsub;
+
+   nidx = SDO_findobject (index);
+   if (nidx == -1)
+      return 0;
+
+   maxsub = OBJ_VALUE_FETCH (maxsub, SDOobjects[nidx].objdesc[0]);
+   return maxsub;
 }

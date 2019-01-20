@@ -978,7 +978,7 @@ void ESC_state (void)
       {
          /* get station address */
          ESC_address ();
-         COE_initDefaultSyncMgrPara ();
+         COE_initDefaultValues ();
          an = ESC_startmbx (ac);
          break;
       }
@@ -1036,8 +1036,24 @@ void ESC_state (void)
       case PREOP_TO_SAFEOP:
       case SAFEOP_TO_SAFEOP:
       {
-         ESCvar.ESC_SM2_sml = sizeOfPDO (RX_PDO_OBJIDX);
-         ESCvar.ESC_SM3_sml = sizeOfPDO (TX_PDO_OBJIDX);
+         ESCvar.ESC_SM2_sml = sizeOfPDO (RX_PDO_OBJIDX, &ESCvar.sm2mappings,
+                                         SMmap2, ESCvar.rxpdos_mappings);
+         if (ESCvar.sm2mappings < 0)
+         {
+            an = ESCpreop | ESCerror;
+            ESC_ALerror (ALERR_INVALIDOUTPUTSM);
+            break;
+         }
+
+         ESCvar.ESC_SM3_sml = sizeOfPDO (TX_PDO_OBJIDX, &ESCvar.sm3mappings,
+                                         SMmap3, ESCvar.txpdos_mappings);
+         if (ESCvar.sm3mappings < 0)
+         {
+            an = ESCpreop | ESCerror;
+            ESC_ALerror (ALERR_INVALIDINPUTSM);
+            break;
+         }
+
          an = ESC_startinput (ac);
          if (an == ac)
          {
@@ -1118,7 +1134,7 @@ void ESC_state (void)
    }
 
    ESC_ALstatus (an);
-
+   DPRINT ("state %x\n", an);
 }
 /** Function copying the application configuration variable
  * data to the stack local variable.
@@ -1135,8 +1151,10 @@ void ESC_config (esc_cfg_t * cfg)
    ESCvar.mbxsizeboot = cfg->mbxsizeboot;
    ESCvar.mbxbuffers = cfg->mbxbuffers;
 
-   ESCvar.rxpdosaddress = cfg->rxpdosaddress;
-   ESCvar.txpdosaddress = cfg->txpdosaddress;
+   ESCvar.rxpdos_address = cfg->rxpdos_address;
+   ESCvar.rxpdos_mappings = cfg->rxpdos_mappings;
+   ESCvar.txpdos_address = cfg->txpdos_address;
+   ESCvar.txpdos_mappings = cfg->txpdos_mappings;
 
    ESCvar.mb[0] = cfg->mb[0];
    ESCvar.mb[1] = cfg->mb[1];
