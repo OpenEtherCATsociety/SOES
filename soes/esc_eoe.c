@@ -170,7 +170,7 @@ typedef struct eoe_param
 static _EOEvar EOEvar;
 
 /** Main FoE configuration pointer data array. Structure is allocated and filled
- * by the application defining what preferences it require.
+ * by the application defining what preferences it requires.
  */
 static eoe_cfg_t * eoe_cfg;
 
