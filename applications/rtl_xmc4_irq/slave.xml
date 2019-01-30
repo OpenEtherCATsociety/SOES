@@ -13,12 +13,12 @@
     </Groups>
     <Devices>
       <Device Physics="YY">
-        <Type ProductCode="4300" RevisionNo="0">xmc43_slave</Type>
+        <Type ProductCode="#x4300" RevisionNo="0">xmc43_slave</Type>
         <Name LcId="1033">xmc43relax</Name>
         <GroupType>xmc4</GroupType>
         <Profile>
           <ProfileNo>5001</ProfileNo>
-          <AddInfo>400</AddInfo>
+          <AddInfo>0</AddInfo>
           <Dictionary>
             <DataTypes>
               <DataType>
@@ -680,7 +680,7 @@
                   <SubItem>
                     <Name>Product Code</Name>
                     <Info>
-                      <DefaultValue>4300</DefaultValue>
+                      <DefaultValue>#x4300</DefaultValue>
                     </Info>
                   </SubItem>
                   <SubItem>
@@ -1140,7 +1140,7 @@
         <Fmmu>MBoxState</Fmmu>
         <Sm ControlByte="#x26" DefaultSize="128" Enable="1" StartAddress="#x1000">MBoxOut</Sm>
         <Sm ControlByte="#x22" DefaultSize="128" Enable="1" StartAddress="#x1080">MBoxIn</Sm>
-        <Sm ControlByte="#x24" Enable="1" StartAddress="#x1100">Outputs</Sm>
+        <Sm ControlByte="#x64" Enable="1" StartAddress="#x1100">Outputs</Sm>
         <Sm ControlByte="#x20" Enable="1" StartAddress="#x1180">Inputs</Sm>
         <RxPdo Fixed="true" Mandatory="true" Sm="2">
           <Index>#x1600</Index>

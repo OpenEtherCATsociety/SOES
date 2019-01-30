@@ -237,6 +237,8 @@ typedef struct esc_cfg
    size_t mbxsize;
    size_t mbxsizeboot;
    int mbxbuffers;
+   void * rxpdosaddress;
+   void * txpdosaddress;
    sm_cfg_t mb[2];
    sm_cfg_t mb_boot[2];
    sm_cfg_t pdosm[2];
@@ -244,8 +246,14 @@ typedef struct esc_cfg
    void (*post_state_change_hook) (uint8_t * as, uint8_t * an);
    void (*application_hook) (void);
    void (*safeoutput_override) (void);
-   int (*pre_object_download_hook) (uint16_t index, uint8_t subindex);
-   void (*post_object_download_hook) (uint16_t index, uint8_t subindex);
+   int (*pre_object_download_hook) (uint16_t index,
+         uint8_t subindex,
+         void * data,
+         size_t size,
+         uint16_t flags);
+   void (*post_object_download_hook) (uint16_t index,
+         uint8_t subindex,
+         uint16_t flags);
    void (*rxpdo_override) (void);
    void (*txpdo_override) (void);
    void (*esc_hw_interrupt_enable) (uint32_t mask);
@@ -349,6 +357,8 @@ typedef struct
    size_t mbxsize;
    size_t mbxsizeboot;
    int mbxbuffers;
+   void * rxpdosaddress;
+   void * txpdosaddress;
    sm_cfg_t  mb[2];
    sm_cfg_t  mbboot[2];
    sm_cfg_t  pdosm[2];
@@ -356,8 +366,14 @@ typedef struct
    void (*post_state_change_hook) (uint8_t * as, uint8_t * an);
    void (*application_hook) (void);
    void (*safeoutput_override) (void);
-   int (*pre_object_download_hook) (uint16_t index, uint8_t subindex);
-   void (*post_object_download_hook) (uint16_t index, uint8_t subindex);
+   int (*pre_object_download_hook) (uint16_t index,
+         uint8_t subindex,
+         void * data,
+         size_t size,
+         uint16_t flags);
+   void (*post_object_download_hook) (uint16_t index,
+         uint8_t subindex,
+         uint16_t flags);
    void (*rxpdo_override) (void);
    void (*txpdo_override) (void);
    void (*esc_hw_interrupt_enable) (uint32_t mask);
@@ -370,8 +386,6 @@ typedef struct
    sm_cfg_t * activemb1;
    uint16_t ESC_SM2_sml;
    uint16_t ESC_SM3_sml;
-   uint16_t TXPDOsize;
-   uint16_t RXPDOsize;
    uint8_t dcsync;
    uint16_t synccounterlimit;
    uint16_t ALstatus;

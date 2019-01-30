@@ -16,9 +16,9 @@
 #include <eru.h>
 #include <string.h>
 #include "esc_hw.h"
-#include "slave.h"
 #include "esc_eep.h"
-
+#include "ecat_slv.h"
+#include "esc_hw_eep.h"
 
 #define ESCADDR(x)   (((uint8_t *) ECAT0_BASE) + x)
 
@@ -175,7 +175,6 @@ void ESC_interrupt_disable (uint32_t mask)
       mask &= ~ESCREG_ALEVENT_DC_LATCH;
       UASSERT(0,EARG);
    }
-
    ecat0->AL_EVENT_MASK &= ~mask;
 }
 
@@ -193,6 +192,22 @@ void ESC_eep_handler(void)
  */
 static void sync0_isr (void * arg)
 {
+   /* Subtract the sync counter to check the pace compared to the SM IRQ */
+   if((CC_ATOMIC_GET(ESCvar.App.state) & APPSTATE_OUTPUT) > 0)
+   {
+      CC_ATOMIC_SUB(ESCvar.synccounter, 1);
+   }
+   /* Check so we're inside the limit */
+   if((CC_ATOMIC_GET(ESCvar.synccounter) < -ESCvar.synccounterlimit) ||
+          (CC_ATOMIC_GET(ESCvar.synccounter) > ESCvar.synccounterlimit))
+   {
+      if((CC_ATOMIC_GET(ESCvar.App.state) & APPSTATE_OUTPUT) > 0)
+      {
+         DPRINT("sync error = %d\n", ESCvar.synccounter);
+         ESC_ALstatusgotoerror((ESCsafeop | ESCerror), ALERR_SYNCERROR);
+         CC_ATOMIC_SET(ESCvar.synccounter, 0);
+      }
+   }
    DIG_process(DIG_PROCESS_APP_HOOK_FLAG | DIG_PROCESS_INPUTS_FLAG);
    read_ack = ecat0->DC_SYNC0_STAT;
 }
@@ -203,13 +218,14 @@ static void sync0_isr (void * arg)
  */
 static void ecat_isr (void * arg)
 {
-
    ESC_read (ESCREG_LOCALTIME, (void *) &ESCvar.Time, sizeof (ESCvar.Time));
    ESCvar.Time = etohl (ESCvar.Time);
    CC_ATOMIC_SET(ESCvar.ALevent, etohl(ecat0->AL_EVENT_REQ));
 
+   /* Handle SM2 interrupt */
    if(ESCvar.ALevent & ESCREG_ALEVENT_SM2)
    {
+      /* Is DC active or not */
       if(ESCvar.dcsync == 0)
       {
          DIG_process(DIG_PROCESS_OUTPUTS_FLAG | DIG_PROCESS_APP_HOOK_FLAG |
@@ -217,10 +233,16 @@ static void ecat_isr (void * arg)
       }
       else
       {
+         /* Add the sync counter to check the pace compared to the SM IRQ */
+         if((CC_ATOMIC_GET(ESCvar.App.state) & APPSTATE_OUTPUT) > 0)
+         {
+            CC_ATOMIC_ADD(ESCvar.synccounter, 1);
+         }
          DIG_process(DIG_PROCESS_OUTPUTS_FLAG);
       }
    }
 
+   /* Handle low prio interrupts */
    if(ESCvar.ALevent & (ESCREG_ALEVENT_CONTROL | ESCREG_ALEVENT_SMCHANGE
          | ESCREG_ALEVENT_SM0 | ESCREG_ALEVENT_SM1 | ESCREG_ALEVENT_EEP))
    {
@@ -229,16 +251,38 @@ static void ecat_isr (void * arg)
             | ESCREG_ALEVENT_SM0 | ESCREG_ALEVENT_SM1 | ESCREG_ALEVENT_EEP);
       sem_signal(ecat_isr_sem);
    }
+
+   /* SM watchdog */
+   if(ESCvar.ALevent & ESCREG_ALEVENT_WD)
+   {
+      uint16_t wd;
+      /* Ack the WD IRQ */
+      wd = ecat0->WD_STAT_PDATA;
+      /* Check if the WD have expired and if we're in OP */
+      if(((wd & 0x1) == 0)  &&
+         ((CC_ATOMIC_GET(ESCvar.App.state) & APPSTATE_OUTPUT) > 0))
+      {
+         ESC_ALstatusgotoerror((ESCsafeop | ESCerror), ALERR_WATCHDOG);
+         ecat0->AL_EVENT_MASK &= ~ESCREG_ALEVENT_WD;
+      }
+   }
 }
 
-/* Function for PDI ISR serving task */
+/* Function for low prio PDI interrupts and flushing of EEPROM RAM buffer
+ * to flash.
+ */
 static void isr_run(void * arg)
 {
    while(1)
    {
       sem_wait(ecat_isr_sem);
-      ecat_slv_worker(ESCREG_ALEVENT_CONTROL | ESCREG_ALEVENT_SMCHANGE
-            | ESCREG_ALEVENT_SM0 | ESCREG_ALEVENT_SM1 | ESCREG_ALEVENT_EEP);
+      /* Do while to handle write of eeprom, the write to flash is delayed */
+      do
+      {
+         ecat_slv_worker(ESCREG_ALEVENT_CONTROL | ESCREG_ALEVENT_SMCHANGE
+               | ESCREG_ALEVENT_SM0 | ESCREG_ALEVENT_SM1 | ESCREG_ALEVENT_EEP);
+
+      }while(eep_write_pending);
    }
 }
 

@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Slave fileVersion="1" id="xmc43_slave" productCode="4300">
+<Slave fileVersion="1" id="xmc43_slave" productCode="0x4300">
   <Name>xmc43relax</Name>
   <Vendor>
     <Id>0x1337</Id>
@@ -14,7 +14,7 @@
   <Fmmu>MBoxState</Fmmu>
   <Sm ControlByte="0x26" DefaultSize="128" StartAddress="0x1000">MBoxOut</Sm>
   <Sm ControlByte="0x22" DefaultSize="128" StartAddress="0x1080">MBoxIn</Sm>
-  <Sm ControlByte="0x24" DefaultSize="0" StartAddress="0x1100">Outputs</Sm>
+  <Sm ControlByte="0x64" DefaultSize="0" StartAddress="0x1100">Outputs</Sm>
   <Sm ControlByte="0x20" DefaultSize="0" StartAddress="0x1180">Inputs</Sm>
   <Mailbox CoE="true" FoE="true">
     <Bootstrap Length="256" Start="0x1000"/>
@@ -69,7 +69,7 @@
         <Name>Product Code</Name>
         <Index>0x02</Index>
         <DataType>UNSIGNED32</DataType>
-        <DefaultValue>4300</DefaultValue>
+        <DefaultValue>0x4300</DefaultValue>
       </SubItem>
       <SubItem>
         <Name>Revision Number</Name>

@@ -21,7 +21,7 @@ typedef struct CC_PACKED
    uint16_t bitlength;
    uint16_t access;
    const char *name;
-   uint32_t value;
+   uint64_t value;
    void *data;
 } _objd;
 CC_PACKED_END
@@ -88,9 +88,12 @@ void ESC_coeprocess (void);
 uint16_t sizeOfPDO (uint16_t index);
 void SDO_abort (uint16_t index, uint8_t subindex, uint32_t abortcode);
 void COE_initDefaultSyncMgrPara (void);
-
-extern void ESC_objecthandler (uint16_t index, uint8_t subindex);
-extern int ESC_pre_objecthandler (uint16_t index, uint8_t subindex);
+extern void ESC_objecthandler (uint16_t index, uint8_t subindex, bool isCA);
+extern int ESC_pre_objecthandler (uint16_t index,
+      uint8_t subindex,
+      void * data,
+      size_t size,
+      bool isCA);
 extern const _objectlist SDOobjects[];
 
 #endif

@@ -1,28 +1,17 @@
-#ifndef __SLAVE_H__
-#define __SLAVE_H__
+#ifndef __ECAT_SLV_H__
+#define __ECAT_SLV_H__
 
-#include "utypes.h"
 #include "esc.h"
 
 /**
- * This function gets input values and updates Rb.Buttons
+ * This function is called when to get input values
  */
-void cb_get_Buttons();
+void cb_get_inputs();
 
 /**
- * This function sets output values according to Wb.LEDgroup0
+* This function is called when to set outputs values
  */
-void cb_set_LEDgroup0();
-
-/**
- * This function sets output values according to Wb.LEDgroup1
- */
-void cb_set_LEDgroup1();
-
-/**
- * This function is called after a SDO write of the object Cb.variableRW.
- */
-void cb_post_write_variableRW(int subindex);
+void cb_set_outputs();
 
 #define DIG_PROCESS_INPUTS_FLAG     0x01
 #define DIG_PROCESS_OUTPUTS_FLAG    0x02
@@ -48,12 +37,6 @@ void DIG_process (uint8_t flags);
 void ecat_slv_worker (uint32_t event_mask);
 
 /**
- * ISR for SM0/1, EEPROM and AL CONTROL events in a SM/DC
- * synchronization application
- */
-CC_DEPRECATED void ecat_slv_isr (void);
-
-/**
  * Poll SM0/1, EEPROM and AL CONTROL events in a SM/DC synchronization
  * application
  */
@@ -71,4 +54,4 @@ void ecat_slv (void);
  */
 void ecat_slv_init (esc_cfg_t * config);
 
-#endif /* __SLAVE_H__ */
+#endif /* __ECAT_SLV_H__ */

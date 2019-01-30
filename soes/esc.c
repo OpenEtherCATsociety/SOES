@@ -1135,6 +1135,9 @@ void ESC_config (esc_cfg_t * cfg)
    ESCvar.mbxsizeboot = cfg->mbxsizeboot;
    ESCvar.mbxbuffers = cfg->mbxbuffers;
 
+   ESCvar.rxpdosaddress = cfg->rxpdosaddress;
+   ESCvar.txpdosaddress = cfg->txpdosaddress;
+
    ESCvar.mb[0] = cfg->mb[0];
    ESCvar.mb[1] = cfg->mb[1];
    ESCvar.mbboot[0] = cfg->mb_boot[0];
