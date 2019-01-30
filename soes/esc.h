@@ -27,6 +27,7 @@
 #define ESCREG_ALEVENT_DC_SYNC0     0x0004
 #define ESCREG_ALEVENT_DC_SYNC1     0x0008
 #define ESCREG_ALEVENT_EEP          0x0020
+#define ESCREG_ALEVENT_WD           0x0040
 #define ESCREG_ALEVENT_SM0          0x0100
 #define ESCREG_ALEVENT_SM1          0x0200
 #define ESCREG_ALEVENT_SM2          0x0400
@@ -606,6 +607,7 @@ uint32_t ESC_ALeventread (void);
 void ESC_ALeventmaskwrite (uint32_t mask);
 uint32_t ESC_ALeventmaskread (void);
 void ESC_ALstatus (uint8_t status);
+void ESC_ALstatusgotoerror (uint8_t status, uint16_t errornumber);
 void ESC_SMstatus (uint8_t n);
 uint8_t ESC_WDstatus (void);
 uint8_t ESC_claimbuffer (void);
