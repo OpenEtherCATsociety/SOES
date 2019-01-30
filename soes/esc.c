@@ -250,51 +250,16 @@ uint16_t ESC_checkDC (void)
    uint16_t ret = 0;
 
    uint8_t sync_act = ESC_SYNCactivation();
-   uint32_t sync0_cycletime = ESC_SYNC0cycletime();
-   uint16_t sync_type_supported1c32 = 0;
-   uint32_t mincycletime = 0;
-
    /* Do we need to check sync settings? */
    if((sync_act & (ESCREG_SYNC_ACT_ACTIVATED | ESCREG_SYNC_AUTO_ACTIVATED)) > 0)
    {
-      /* If the sync unit is active at least on signal should be activated */
-      if(COE_getSyncMgrPara(0x1c32, 0x4, &sync_type_supported1c32, DTYPE_UNSIGNED16) == 0)
+      /* Trigger a by the application given DC check handler, return error if
+       *  non is given
+       */
+      ret = ALERR_DCINVALIDSYNCCFG;
+      if(ESCvar.esc_check_dc_handler != NULL)
       {
-         ret = ALERR_DCINVALIDSYNCCFG;
-
-      }
-      else if(COE_getSyncMgrPara(0x1c32, 0x5, &mincycletime, DTYPE_UNSIGNED32) == 0)
-      {
-         ret = ALERR_DCINVALIDSYNCCFG;
-      }
-      else if(COE_getSyncMgrPara(0x10F1, 0x2, &ESCvar.synccounterlimit, DTYPE_UNSIGNED16) == 0)
-      {
-         ret = ALERR_DCINVALIDSYNCCFG;
-      }
-      else if((sync_act & (ESCREG_SYNC_SYNC0_EN | ESCREG_SYNC_SYNC1_EN)) == 0)
-      {
-         ret = ALERR_DCINVALIDSYNCCFG;
-      }
-      /* Do we support activated signals */
-      else if(((sync_type_supported1c32 & SYNCTYPE_SUPPORT_DCSYNC0) == 0) &&
-            ((sync_act & ESCREG_SYNC_SYNC0_EN) > 0))
-      {
-         ret = ALERR_DCINVALIDSYNCCFG;
-      }
-      /* Do we support activated signals */
-      else if(((sync_type_supported1c32 & SYNCTYPE_SUPPORT_DCSYNC1) == 0) &&
-            ((sync_act & ESCREG_SYNC_SYNC1_EN) > 0))
-      {
-         ret = ALERR_DCINVALIDSYNCCFG;
-      }
-      else if((sync0_cycletime != 0) && (sync0_cycletime < mincycletime))
-      {
-         ret = ALERR_DCSYNC0CYCLETIME;
-      }
-      else
-      {
-         ESCvar.dcsync = 1;
-         ESCvar.synccounter = 0;
+         ret = (ESCvar.esc_check_dc_handler)();
       }
    }
    else
@@ -1188,4 +1153,5 @@ void ESC_config (esc_cfg_t * cfg)
    ESCvar.esc_hw_interrupt_enable = cfg->esc_hw_interrupt_enable;
    ESCvar.esc_hw_interrupt_disable = cfg->esc_hw_interrupt_disable;
    ESCvar.esc_hw_eep_handler = cfg->esc_hw_eep_handler;
+   ESCvar.esc_check_dc_handler = cfg->esc_check_dc_handler;
 }
