@@ -466,9 +466,10 @@ void SDO_download (void)
       if (nsub >= 0)
       {
          objd = SDOobjects[nidx].objdesc;
-         if (((objd + nsub)->access == ATYPE_RW) ||
-             (((objd + nsub)->access == ATYPE_RWpre)
-              && ((ESCvar.ALstatus & 0x0f) == ESCpreop)))
+         uint8_t access = (objd + nsub)->access & 0x3f;
+         uint8_t state = ESCvar.ALstatus & 0x0f;
+         if (access == ATYPE_RW ||
+             (access == ATYPE_RWpre && state == ESCpreop))
          {
             /* expedited? */
             if (coesdo->command & COE_EXPEDITED_INDICATOR)
@@ -513,7 +514,7 @@ void SDO_download (void)
          }
          else
          {
-            if ((objd + nsub)->access == ATYPE_RWpre)
+            if (access == ATYPE_RWpre)
             {
                SDO_abort (index, subindex, ABORT_NOTINTHISSTATE);
             }
