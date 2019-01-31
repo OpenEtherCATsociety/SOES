@@ -7,7 +7,7 @@ project (SOES)
 
 set (SOES_VERSION_MAJOR 2)
 set (SOES_VERSION_MINOR 1)
-set (SOES_VERSION_PATCH 4)
+set (SOES_VERSION_PATCH 5)
 
 # Generate version numbers
 configure_file (

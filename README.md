@@ -28,6 +28,8 @@ Feature list:
  - Support DC sync0 and DC Synchronization
  - Add stack configuration via new configuration paramater to/or from 
    "stack"_init
+ - EoE
 
 TODO
  - Update documentation
+ - Add EoE sample application

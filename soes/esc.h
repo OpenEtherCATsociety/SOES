@@ -208,6 +208,13 @@
 #define FOE_WAIT_FOR_FINAL_ACK         2
 #define FOE_WAIT_FOR_DATA              3
 
+#define EOE_RESULT_SUCCESS                   0x0000
+#define EOE_RESULT_UNSPECIFIED_ERROR         0x0001
+#define EOE_RESULT_UNSUPPORTED_FRAME_TYPE    0x0002
+#define EOE_RESULT_NO_IP_SUPPORT             0x0201
+#define EOE_RESULT_NO_DHCP_SUPPORT           0x0202
+#define EOE_RESULT_NO_FILTER_SUPPORT         0x0401
+
 #define APPSTATE_IDLE                  0x00
 #define APPSTATE_INPUT                 0x01
 #define APPSTATE_OUTPUT                0x02
@@ -543,6 +550,28 @@ typedef struct CC_PACKED
    };
 } _FOE;
 CC_PACKED_END
+
+CC_PACKED_BEGIN
+typedef struct CC_PACKED
+{
+   uint16_t frameinfo1;
+   union
+   {
+      uint16_t frameinfo2;
+      uint16_t result;
+   };
+} _EOEh;
+CC_PACKED_END
+
+CC_PACKED_BEGIN
+typedef struct CC_PACKED
+{
+   _MBXh mbxheader;
+   _EOEh eoeheader;
+   uint8_t data[0];
+} _EOE;
+CC_PACKED_END
+
 /* state definition in mailbox
  * 0 : idle
  * 1 : claimed for inbox
@@ -579,6 +608,8 @@ typedef struct
 #define ESC_MBXDSIZE        (ESC_MBXSIZE - ESC_MBXHSIZE)
 #define ESC_FOEHSIZE        sizeof(_FOEh)
 #define ESC_FOE_DATA_SIZE   (ESC_MBXSIZE - (ESC_MBXHSIZE +ESC_FOEHSIZE))
+#define ESC_EOEHSIZE        sizeof(_EOEh)
+#define ESC_EOE_DATA_SIZE   (ESC_MBXSIZE - (ESC_MBXHSIZE +ESC_EOEHSIZE))
 
 void ESC_config (esc_cfg_t * cfg);
 void ESC_ALerror (uint16_t errornumber);
