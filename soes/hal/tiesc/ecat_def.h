@@ -8,17 +8,24 @@
 #define STATE_INIT                              ((uint8_t)0x01)
 
 #ifndef SOES
-#define  SOES 1
+#define SOES                                    1
 #endif
 
 #ifndef VARVOLATILE
-#define  VARVOLATILE volatile
+#define VARVOLATILE                             volatile
 #endif
 
 #ifndef AL_EVENT_ENABLED
 #define AL_EVENT_ENABLED 1
 #endif
 
+#ifndef FALSE
+#define FALSE                                     0
+#endif
+
+#ifndef TRUE
+#define TRUE                                      1
+#endif
 
 int MainInit(void);
 void MainLoop(void);
