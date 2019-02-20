@@ -195,7 +195,9 @@ void ecat_slv_worker (uint32_t event_mask)
       while ((ESC_mbxprocess() > 0) || (ESCvar.txcue > 0))
       {
          ESC_coeprocess();
+#if USE_FOE
          ESC_foeprocess();
+#endif
          ESC_xoeprocess();
       }
 
@@ -232,7 +234,9 @@ void ecat_slv_poll (void)
    if (ESC_mbxprocess())
    {
       ESC_coeprocess();
+#if USE_FOE
       ESC_foeprocess();
+#endif
       ESC_xoeprocess();
    }
 
@@ -273,8 +277,10 @@ void ecat_slv_init (esc_cfg_t * config)
       ESCvar.DLstatus = etohs (ESCvar.DLstatus);
    }
 
+#if USE_FOE
    /* Init FoE */
    FOE_init();
+#endif
 
    /* reset ESC to init state */
    ESC_ALstatus (ESCinit);

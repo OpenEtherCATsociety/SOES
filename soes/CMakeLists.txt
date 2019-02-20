@@ -13,6 +13,7 @@ add_library (soes
   esc_eep.h
   ecat_slv.c
   ecat_slv.h
+  options.h
   ${HAL_SOURCES}
   )
 
