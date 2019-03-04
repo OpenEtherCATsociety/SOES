@@ -558,7 +558,8 @@ void SDO_infoerror (uint32_t abortcode)
       coeres->infoheader.incomplete = 0;
       coeres->infoheader.reserved = 0x00;
       coeres->infoheader.fragmentsleft = 0;
-      coeres->index = htoel (abortcode);
+      coeres->index = (uint16_t)htoel (abortcode);
+      coeres->datatype = (uint16_t)(htoel (abortcode) >> 16);
       MBXcontrol[MBXout].state = MBXstate_outreq;
       MBXcontrol[0].state = MBXstate_idle;
       ESCvar.xoe = 0;
