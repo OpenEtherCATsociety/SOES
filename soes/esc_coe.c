@@ -742,6 +742,12 @@ void SDO_getod (void)
             const _objd *objd = SDOobjects[nidx].objdesc;
             coel->datatype = htoes ((objd + nsub)->datatype);
          }
+         else if (SDOobjects[nidx].objtype == OTYPE_ARRAY)
+         {
+            int32_t nsub = SDO_findsubindex (nidx, 0);
+            const _objd *objd = SDOobjects[nidx].objdesc;
+            coel->datatype = htoes ((objd + nsub)->datatype);
+         }
          else
          {
             coel->datatype = htoes (0);
