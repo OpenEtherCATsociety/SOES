@@ -743,12 +743,20 @@ void SDO_getod (void)
             int32_t nsub = SDO_findsubindex (nidx, 0);
             const _objd *objd = SDOobjects[nidx].objdesc;
             coel->datatype = htoes ((objd + nsub)->datatype);
+            coel->maxsub = SDOobjects[nidx].maxsub;
+         }
+         else if (SDOobjects[nidx].objtype == OTYPE_ARRAY)
+         {
+            int32_t nsub = SDO_findsubindex (nidx, 0);
+            const _objd *objd = SDOobjects[nidx].objdesc;
+            coel->datatype = htoes ((objd + nsub)->datatype);
+            coel->maxsub = SDOobjects[nidx].objdesc->value;
          }
          else
          {
             coel->datatype = htoes (0);
+            coel->maxsub = SDOobjects[nidx].objdesc->value;
          }
-         coel->maxsub = SDOobjects[nidx].maxsub;
          coel->objectcode = SDOobjects[nidx].objtype;
          s = (uint8_t *) SDOobjects[nidx].name;
          d = (uint8_t *) &(coel->name);
