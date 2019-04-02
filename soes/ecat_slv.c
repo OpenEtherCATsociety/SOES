@@ -23,7 +23,7 @@ static volatile int watchdog;
 static uint8_t rxpdo[MAX_RXPDO_SIZE] __attribute__((aligned (8)));
 static uint8_t txpdo[MAX_TXPDO_SIZE] __attribute__((aligned (8)));
 
-/** Mandatory: Function to pre-qualify the incoming SDO download.
+/** Function to pre-qualify the incoming SDO download.
  *
  * @param[in] index      = index of SDO download request to check
  * @param[in] sub-index  = sub-index of SDO download request to check
@@ -60,7 +60,7 @@ uint32_t ESC_pre_objecthandler (uint16_t index,
    return abort;
 }
 
-/** Mandatory: Hook called from the slave stack SDO Download handler to act on
+/** Hook called from the slave stack SDO Download handler to act on
  * user specified Index and Sub-index.
  *
  * @param[in] index      = index of SDO download request to handle
@@ -74,9 +74,8 @@ void ESC_objecthandler (uint16_t index, uint8_t subindex, uint16_t flags)
    }
 }
 
-/** Mandatory: Hook called from the slave stack ESC_stopoutputs to act on state changes
+/** Hook called from the slave stack ESC_stopoutputs to act on state changes
  * forcing us to stop outputs. Here we can set them to a safe state.
- * set
  */
 void APP_safeoutput (void)
 {
@@ -88,7 +87,7 @@ void APP_safeoutput (void)
    }
 }
 
-/** Mandatory: Write local process data to Sync Manager 3, Master Inputs.
+/** Write local process data to Sync Manager 3, Master Inputs.
  */
 void TXPDO_update (void)
 {
@@ -103,7 +102,7 @@ void TXPDO_update (void)
    }
 }
 
-/** Mandatory: Read Sync Manager 2 to local process data, Master Outputs.
+/** Read Sync Manager 2 to local process data, Master Outputs.
  */
 void RXPDO_update (void)
 {
@@ -118,7 +117,17 @@ void RXPDO_update (void)
    }
 }
 
-/** Mandatory: Function to update local I/O, call read ethercat outputs, call
+/* Set the watchdog count value, don't have any affect when using
+ * HW watchdog 0x4xx
+ *
+ * @param[in] watchdogcnt  = new watchdog count value
+ */
+void APP_setwatchdog (int watchdogcnt)
+{
+   CC_ATOMIC_SET(ESCvar.watchdogcnt, watchdogcnt);
+}
+
+/* Function to update local I/O, call read ethercat outputs, call
  * write ethercat inputs. Implement watch-dog counter to count-out if we have
  * made state change affecting the App.state.
  */
@@ -183,7 +192,7 @@ void DIG_process (uint8_t flags)
    }
 }
 
-/**
+/*
  * Handler for SM change, SM0/1, AL CONTROL and EEPROM events, the application
  * control what interrupts that should be served and re-activated with
  * event mask argument
@@ -225,7 +234,7 @@ void ecat_slv_worker (uint32_t event_mask)
    ESC_ALeventmaskwrite(ESC_ALeventmaskread() | event_mask);
 }
 
-/**
+/*
  * Polling function. It should be called periodically for an application 
  * when only SM2/DC interrupt is active.
  * Read and handle events for the EtherCAT state, status, mailbox and eeprom.
@@ -264,6 +273,9 @@ void ecat_slv_poll (void)
    }
 }
 
+/*
+ * Poll all events in a free-run application
+ */
 void ecat_slv (void)
 {
    ecat_slv_poll();
@@ -271,7 +283,7 @@ void ecat_slv (void)
          DIG_PROCESS_APP_HOOK_FLAG | DIG_PROCESS_INPUTS_FLAG);
 }
 
-/**
+/*
  * Initialize the slave stack.
  */
 void ecat_slv_init (esc_cfg_t * config)

@@ -15,6 +15,12 @@ void cb_get_inputs();
  */
 void cb_set_outputs();
 
+/** Set the watchdog count value
+ *
+ * @param[in] watchdogcnt  = new watchdog count value
+ */
+void APP_setwatchdog (int watchdogcnt);
+
 #define DIG_PROCESS_INPUTS_FLAG     0x01
 #define DIG_PROCESS_OUTPUTS_FLAG    0x02
 #define DIG_PROCESS_WD_FLAG         0x04
