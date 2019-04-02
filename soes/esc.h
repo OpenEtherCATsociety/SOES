@@ -13,6 +13,7 @@
 
 #include <cc.h>
 #include <esc_coe.h>
+#include "options.h"
 
 #define ESCREG_ADDRESS              0x0010
 #define ESCREG_DLSTATUS             0x0110
@@ -237,12 +238,6 @@ typedef struct esc_cfg
    void * user_arg;
    int use_interrupt;
    int watchdog_cnt;
-   size_t mbxsize;
-   size_t mbxsizeboot;
-   int mbxbuffers;
-   sm_cfg_t mb[2];
-   sm_cfg_t mb_boot[2];
-   sm_cfg_t pdosm[2];
    void (*pre_state_change_hook) (uint8_t * as, uint8_t * an);
    void (*post_state_change_hook) (uint8_t * as, uint8_t * an);
    void (*application_hook) (void);
@@ -355,12 +350,8 @@ typedef struct
 {
    /* Configuration input is saved so the user variable may go out-of-scope */
    int use_interrupt;
-   size_t mbxsize;
-   size_t mbxsizeboot;
-   int mbxbuffers;
    sm_cfg_t  mb[2];
    sm_cfg_t  mbboot[2];
-   sm_cfg_t  pdosm[2];
    void (*pre_state_change_hook) (uint8_t * as, uint8_t * an);
    void (*post_state_change_hook) (uint8_t * as, uint8_t * an);
    void (*application_hook) (void);
@@ -602,13 +593,13 @@ typedef struct
 #define ESC_MBX1_sml        (ESCvar.activemb1->cfg_sml)
 #define ESC_MBX1_sme        (ESCvar.activemb1->cfg_sme)
 #define ESC_MBX1_smc        (ESCvar.activemb1->cfg_smc)
-#define ESC_MBXBUFFERS      (ESCvar.mbxbuffers)
-#define ESC_SM2_sma         (ESCvar.pdosm[0].cfg_sma)
-#define ESC_SM2_smc         (ESCvar.pdosm[0].cfg_smc)
-#define ESC_SM2_act         (ESCvar.pdosm[0].cfg_smact)
-#define ESC_SM3_sma         (ESCvar.pdosm[1].cfg_sma)
-#define ESC_SM3_smc         (ESCvar.pdosm[1].cfg_smc)
-#define ESC_SM3_act         (ESCvar.pdosm[1].cfg_smact)
+#define ESC_MBXBUFFERS      (MBXBUFFERS)
+#define ESC_SM2_sma         (SM2_sma)
+#define ESC_SM2_smc         (SM2_smc)
+#define ESC_SM2_act         (SM2_act)
+#define ESC_SM3_sma         (SM3_sma)
+#define ESC_SM3_smc         (SM3_smc)
+#define ESC_SM3_act         (SM3_act)
 
 #define ESC_MBXHSIZE        sizeof(_MBXh)
 #define ESC_MBXDSIZE        (ESC_MBXSIZE - ESC_MBXHSIZE)

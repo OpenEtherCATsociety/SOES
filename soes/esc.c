@@ -7,7 +7,6 @@
 #include "esc.h"
 #include "esc_coe.h"
 #include "esc_foe.h"
-#include "options.h"
 
 /** \file
  * \brief
@@ -318,7 +317,7 @@ uint8_t ESC_checkmbx (uint8_t state)
 uint8_t ESC_startmbx (uint8_t state)
 {
    /* Assign SM settings */
-   ESCvar.activembxsize = ESCvar.mbxsize;
+   ESCvar.activembxsize = MBXSIZE;
    ESCvar.activemb0 = &ESCvar.mb[0];
    ESCvar.activemb1 = &ESCvar.mb[1];
 
@@ -352,7 +351,7 @@ uint8_t ESC_startmbx (uint8_t state)
 uint8_t ESC_startmbxboot (uint8_t state)
 {
    /* Assign SM settings */
-   ESCvar.activembxsize = ESCvar.mbxsizeboot;
+   ESCvar.activembxsize = MBXSIZEBOOT;
    ESCvar.activemb0 = &ESCvar.mbboot[0];
    ESCvar.activemb1 = &ESCvar.mbboot[1];
 
@@ -1145,19 +1144,19 @@ void ESC_state (void)
  */
 void ESC_config (esc_cfg_t * cfg)
 {
-   /* Copy configuration data */
+   static sm_cfg_t mb0 = {MBX0_sma, MBX0_sml, MBX0_sme, MBX0_smc, 0};
+   static sm_cfg_t mb1 = {MBX1_sma, MBX1_sml, MBX1_sme, MBX1_smc, 0};
+   static sm_cfg_t mbboot0 = {MBX0_sma_b, MBX0_sml_b, MBX0_sme_b, MBX0_smc_b, 0};
+   static sm_cfg_t mbboot1 = {MBX1_sma_b, MBX1_sml_b, MBX1_sme_b, MBX1_smc_b, 0};
+
+   /* Configure stack */
    ESCvar.use_interrupt = cfg->use_interrupt;
    ESCvar.watchdogcnt = cfg->watchdog_cnt;
-   ESCvar.mbxsize = cfg->mbxsize;
-   ESCvar.mbxsizeboot = cfg->mbxsizeboot;
-   ESCvar.mbxbuffers = cfg->mbxbuffers;
 
-   ESCvar.mb[0] = cfg->mb[0];
-   ESCvar.mb[1] = cfg->mb[1];
-   ESCvar.mbboot[0] = cfg->mb_boot[0];
-   ESCvar.mbboot[1] = cfg->mb_boot[1];
-   ESCvar.pdosm[0] = cfg->pdosm[0];
-   ESCvar.pdosm[1] = cfg->pdosm[1];
+   ESCvar.mb[0] = mb0;
+   ESCvar.mb[1] = mb1;
+   ESCvar.mbboot[0] = mbboot0;
+   ESCvar.mbboot[1] = mbboot1;
 
    ESCvar.pre_state_change_hook = cfg->pre_state_change_hook;
    ESCvar.post_state_change_hook = cfg->post_state_change_hook;
