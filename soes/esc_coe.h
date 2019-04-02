@@ -19,7 +19,7 @@ typedef struct CC_PACKED
    uint16_t subindex;
    uint16_t datatype;
    uint16_t bitlength;
-   uint16_t access;
+   uint16_t flags;
    const char *name;
    uint64_t value;
    void *data;
@@ -106,12 +106,12 @@ void COE_pdoPack (uint8_t * buffer, int nmappings, _SMmap * sm);
 void COE_pdoUnpack (uint8_t * buffer, int nmappings, _SMmap * sm);
 uint8_t COE_maxSub (uint16_t index);
 
-extern void ESC_objecthandler (uint16_t index, uint8_t subindex, bool isCA);
+extern void ESC_objecthandler (uint16_t index, uint8_t subindex, uint16_t flags);
 extern uint32_t ESC_pre_objecthandler (uint16_t index,
       uint8_t subindex,
       void * data,
       size_t size,
-      bool isCA);
+      uint16_t flags);
 extern const _objectlist SDOobjects[];
 
 #endif

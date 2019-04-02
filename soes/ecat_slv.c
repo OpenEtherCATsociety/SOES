@@ -33,9 +33,9 @@ uint32_t ESC_pre_objecthandler (uint16_t index,
       uint8_t subindex,
       void * data,
       size_t size,
-      bool isCA)
+      uint16_t flags)
 {
-   int abort = 0;
+   uint32_t abort = 0;
 
    if (IS_RXPDO (index) ||
        IS_TXPDO (index) ||
@@ -54,7 +54,7 @@ uint32_t ESC_pre_objecthandler (uint16_t index,
             subindex,
             data,
             size,
-            isCA);
+            flags);
    }
 
    return abort;
@@ -66,11 +66,11 @@ uint32_t ESC_pre_objecthandler (uint16_t index,
  * @param[in] index      = index of SDO download request to handle
  * @param[in] sub-index  = sub-index of SDO download request to handle
  */
-void ESC_objecthandler (uint16_t index, uint8_t subindex, bool isCA)
+void ESC_objecthandler (uint16_t index, uint8_t subindex, uint16_t flags)
 {
    if (ESCvar.post_object_download_hook != NULL)
    {
-      (ESCvar.post_object_download_hook)(index, subindex, isCA);
+      (ESCvar.post_object_download_hook)(index, subindex, flags);
    }
 }
 

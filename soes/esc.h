@@ -243,7 +243,7 @@ typedef struct esc_cfg
    void (*post_state_change_hook) (uint8_t * as, uint8_t * an);
    void (*application_hook) (void);
    void (*safeoutput_override) (void);
-   int (*pre_object_download_hook) (uint16_t index,
+   uint32_t (*pre_object_download_hook) (uint16_t index,
          uint8_t subindex,
          void * data,
          size_t size,
@@ -358,7 +358,7 @@ typedef struct
    void (*post_state_change_hook) (uint8_t * as, uint8_t * an);
    void (*application_hook) (void);
    void (*safeoutput_override) (void);
-   int (*pre_object_download_hook) (uint16_t index,
+   uint32_t (*pre_object_download_hook) (uint16_t index,
          uint8_t subindex,
          void * data,
          size_t size,

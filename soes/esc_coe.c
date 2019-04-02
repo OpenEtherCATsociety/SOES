@@ -388,7 +388,7 @@ void SDO_download (void)
       if (nsub >= 0)
       {
          objd = SDOobjects[nidx].objdesc;
-         uint8_t access = (objd + nsub)->access & 0x3f;
+         uint8_t access = (objd + nsub)->flags & 0x3f;
          uint8_t state = ESCvar.ALstatus & 0x0f;
          if (access == ATYPE_RW ||
              (access == ATYPE_RWpre && state == ESCpreop))
@@ -413,7 +413,7 @@ void SDO_download (void)
                   subindex,
                   mbxdata,
                   size,
-                  false
+                  (objd + nsub)->flags
                );
                if (abort == 0)
                {
@@ -433,7 +433,7 @@ void SDO_download (void)
                      MBXcontrol[MBXout].state = MBXstate_outreq;
                   }
                   /* external object write handler */
-                  ESC_objecthandler (index, subindex, false);
+                  ESC_objecthandler (index, subindex, (objd + nsub)->flags);
                }
                else
                {
@@ -755,7 +755,7 @@ void SDO_geted (void)
                COE_VALUEINFO_OBJECT + COE_VALUEINFO_MAPPABLE;
             coel->datatype = htoes ((objd + nsub)->datatype);
             coel->bitlength = htoes ((objd + nsub)->bitlength);
-            coel->access = htoes ((objd + nsub)->access);
+            coel->access = htoes ((objd + nsub)->flags);
             s = (uint8_t *) (objd + nsub)->name;
             d = (uint8_t *) &(coel->name);
             while (*s && (n < (ESC_MBXDSIZE - 0x10)))
