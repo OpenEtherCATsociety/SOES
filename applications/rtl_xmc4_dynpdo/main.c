@@ -42,6 +42,7 @@ int main (void)
       .user_arg = NULL,
       .use_interrupt = 1,
       .watchdog_cnt = INT32_MAX, /* Use HW SM watchdog instead */
+      .set_defaults_hook = NULL,
       .pre_state_change_hook = NULL,
       .post_state_change_hook = NULL,
       .application_hook = NULL,

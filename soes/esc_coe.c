@@ -1076,6 +1076,7 @@ void COE_initDefaultValues (void)
    int n;
    uint8_t maxsub;
 
+   /* Set default values from object descriptor */
    for (n = 0; SDOobjects[n].index != 0xffff; n++)
    {
       objd = SDOobjects[n].objdesc;
@@ -1091,6 +1092,12 @@ void COE_initDefaultValues (void)
             DPRINT ("%04x:%02x = %x\n", SDOobjects[n].index, objd[i].subindex, objd[i].value);
          }
       } while (objd[i++].subindex < maxsub);
+   }
+
+   /* Let application override default values */
+   if (ESCvar.set_defaults_hook != NULL)
+   {
+      ESCvar.set_defaults_hook();
    }
 }
 
