@@ -1,5 +1,7 @@
-
-#ifndef SOES_V1
+/*
+ * Licensed under the GNU General Public License version 2 with exceptions. See
+ * LICENSE file in the project root for full license information
+ */
 #include <stddef.h>
 #include "esc.h"
 #include "esc_coe.h"
@@ -10,12 +12,16 @@
 #define IS_TXPDO(index) ((index) >= 0x1A00 && (index) < 0x1C00)
 
 /* Global variables used by the stack */
-extern _ESCvar ESCvar;
-extern _SMmap  SMmap2[];
-extern _SMmap  SMmap3[];
+uint8_t     MBX[MBXBUFFERS * MAX(MBXSIZE,MBXSIZEBOOT)];
+_MBXcontrol MBXcontrol[MBXBUFFERS];
+_SMmap      SMmap2[MAX_MAPPINGS_SM2];
+_SMmap      SMmap3[MAX_MAPPINGS_SM3];
+_ESCvar     ESCvar;
 
 /* Private variables */
 static volatile int watchdog;
+static uint8_t rxpdo[MAX_RXPDO_SIZE] __attribute__((aligned (8)));
+static uint8_t txpdo[MAX_TXPDO_SIZE] __attribute__((aligned (8)));
 
 /** Mandatory: Function to pre-qualify the incoming SDO download.
  *
@@ -92,8 +98,8 @@ void TXPDO_update (void)
    }
    else
    {
-      COE_pdoPack (ESCvar.txpdos_address, ESCvar.sm3mappings, SMmap3);
-      ESC_write (ESC_SM3_sma, ESCvar.txpdos_address , ESCvar.ESC_SM3_sml);
+      COE_pdoPack (txpdo, ESCvar.sm3mappings, SMmap3);
+      ESC_write (ESC_SM3_sma, txpdo, ESCvar.ESC_SM3_sml);
    }
 }
 
@@ -107,8 +113,8 @@ void RXPDO_update (void)
    }
    else
    {
-      ESC_read (ESC_SM2_sma, ESCvar.rxpdos_address, ESCvar.ESC_SM2_sml);
-      COE_pdoUnpack (ESCvar.rxpdos_address, ESCvar.sm2mappings, SMmap2);
+      ESC_read (ESC_SM2_sma, rxpdo, ESCvar.ESC_SM2_sml);
+      COE_pdoUnpack (rxpdo, ESCvar.sm2mappings, SMmap2);
    }
 }
 
@@ -305,4 +311,3 @@ void ecat_slv_init (esc_cfg_t * config)
    ESC_stopinput();
    ESC_stopoutput();
 }
-#endif

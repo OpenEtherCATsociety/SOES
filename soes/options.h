@@ -119,14 +119,14 @@
 #define SM3_act          1
 #endif
 
-/* Max processdata size (inputs) */
-#ifndef MAX_INPUT_SIZE
-#define MAX_INPUT_SIZE   128
+/* Max processdata size (outputs) */
+#ifndef MAX_RXPDO_SIZE
+#define MAX_RXPDO_SIZE   128
 #endif
 
-/* Max processdata size (outputs) */
-#ifndef MAX_OUTPUT_SIZE
-#define MAX_OUTPUT_SIZE  128
+/* Max processdata size (inputs) */
+#ifndef MAX_TXPDO_SIZE
+#define MAX_TXPDO_SIZE   128
 #endif
 
 /* Max number of mapped objects in SM2 */

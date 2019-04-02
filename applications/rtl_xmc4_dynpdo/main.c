@@ -10,19 +10,8 @@
 #include "config.h"
 #include "utypes.h"
 
-/* Global variables used by the stack */
-uint8_t     MBX[MBXBUFFERS * MAX(MBXSIZE,MBXSIZEBOOT)];
-_MBXcontrol MBXcontrol[MBXBUFFERS];
-_ESCvar     ESCvar;
-_SMmap      SMmap2[MAX_MAPPINGS_SM2];
-_SMmap      SMmap3[MAX_MAPPINGS_SM3];
-
 /* Application variables */
 _Objects    Obj;
-
-/* Private variables */
-static uint8_t inputs[MAX_INPUT_SIZE] __attribute__((aligned (8)));
-static uint8_t outputs[MAX_OUTPUT_SIZE] __attribute__((aligned (8)));
 
 void cb_get_inputs (void)
 {
@@ -35,7 +24,6 @@ void cb_get_inputs (void)
 void cb_set_outputs (void)
 {
 }
-
 
 /* Setup of DC */
 uint16_t dc_checker (void)
@@ -57,10 +45,6 @@ int main (void)
       .mbxsize = MBXSIZE,
       .mbxsizeboot = MBXSIZEBOOT,
       .mbxbuffers = MBXBUFFERS,
-      .rxpdos_address = outputs,
-      .rxpdos_mappings = MAX_SM_MAPPINGS,
-      .txpdos_address = inputs,
-      .txpdos_mappings = MAX_SM_MAPPINGS,
       .mb[0] = {MBX0_sma, MBX0_sml, MBX0_sme, MBX0_smc, 0},
       .mb[1] = {MBX1_sma, MBX1_sml, MBX1_sme, MBX1_smc, 0},
       .mb_boot[0] = {MBX0_sma_b, MBX0_sml_b, MBX0_sme_b, MBX0_smc_b, 0},

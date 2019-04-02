@@ -240,10 +240,6 @@ typedef struct esc_cfg
    size_t mbxsize;
    size_t mbxsizeboot;
    int mbxbuffers;
-   void * rxpdos_address;
-   int rxpdos_mappings;
-   void * txpdos_address;
-   int txpdos_mappings;
    sm_cfg_t mb[2];
    sm_cfg_t mb_boot[2];
    sm_cfg_t pdosm[2];
@@ -362,10 +358,6 @@ typedef struct
    size_t mbxsize;
    size_t mbxsizeboot;
    int mbxbuffers;
-   void * rxpdos_address;
-   int rxpdos_mappings;
-   void * txpdos_address;
-   int txpdos_mappings;
    sm_cfg_t  mb[2];
    sm_cfg_t  mbboot[2];
    sm_cfg_t  pdosm[2];

@@ -7,6 +7,7 @@
 #include "esc.h"
 #include "esc_coe.h"
 #include "esc_foe.h"
+#include "options.h"
 
 /** \file
  * \brief
@@ -1037,7 +1038,7 @@ void ESC_state (void)
       case SAFEOP_TO_SAFEOP:
       {
          ESCvar.ESC_SM2_sml = sizeOfPDO (RX_PDO_OBJIDX, &ESCvar.sm2mappings,
-                                         SMmap2, ESCvar.rxpdos_mappings);
+                                         SMmap2, MAX_MAPPINGS_SM2);
          if (ESCvar.sm2mappings < 0)
          {
             an = ESCpreop | ESCerror;
@@ -1046,7 +1047,7 @@ void ESC_state (void)
          }
 
          ESCvar.ESC_SM3_sml = sizeOfPDO (TX_PDO_OBJIDX, &ESCvar.sm3mappings,
-                                         SMmap3, ESCvar.txpdos_mappings);
+                                         SMmap3, MAX_MAPPINGS_SM3);
          if (ESCvar.sm3mappings < 0)
          {
             an = ESCpreop | ESCerror;
@@ -1150,11 +1151,6 @@ void ESC_config (esc_cfg_t * cfg)
    ESCvar.mbxsize = cfg->mbxsize;
    ESCvar.mbxsizeboot = cfg->mbxsizeboot;
    ESCvar.mbxbuffers = cfg->mbxbuffers;
-
-   ESCvar.rxpdos_address = cfg->rxpdos_address;
-   ESCvar.rxpdos_mappings = cfg->rxpdos_mappings;
-   ESCvar.txpdos_address = cfg->txpdos_address;
-   ESCvar.txpdos_mappings = cfg->txpdos_mappings;
 
    ESCvar.mb[0] = cfg->mb[0];
    ESCvar.mb[1] = cfg->mb[1];
