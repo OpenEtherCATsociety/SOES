@@ -901,6 +901,10 @@ static void EOE_send_fragment ()
          EOEvar.txframeoffset += len_to_send;
          EOEvar.txfragmentno += 1;
       }
+      if(eoe_cfg->fragment_sent_event != NULL)
+      {
+         eoe_cfg->fragment_sent_event();
+      }
    }
 }
 

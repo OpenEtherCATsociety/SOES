@@ -22,9 +22,11 @@
 
 #define ESCADDR(x)   (((uint8_t *) ECAT0_BASE) + x)
 
+/* Global sem to make it possible to kick worker from the application */
+sem_t * ecat_isr_sem;
+
 static volatile esc_registers_t * ecat0 = (esc_registers_t *)ECAT0_BASE;
 static int use_all_interrupts = 0;
-static sem_t * ecat_isr_sem;
 static void sync0_isr (void * arg);
 static volatile uint8_t read_ack;
 

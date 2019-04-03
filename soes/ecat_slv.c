@@ -6,6 +6,7 @@
 #include "esc.h"
 #include "esc_coe.h"
 #include "esc_foe.h"
+#include "esc_eoe.h"
 #include "ecat_slv.h"
 
 #define IS_RXPDO(index) ((index) >= 0x1600 && (index) < 0x1800)
