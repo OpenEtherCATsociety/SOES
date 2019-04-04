@@ -7,15 +7,15 @@
   <Descriptions>
     <Groups>
       <Group>
-        <Type>k2gice_t</Type>
+        <Type>am335xice_t</Type>
         <Name LcId="1033">am335xice_n</Name>
       </Group>
     </Groups>
     <Devices>
       <Device Physics="YY">
-        <Type ProductCode="#x4291ce" RevisionNo="0">k2gice</Type>
-        <Name LcId="1033">k2gice_n</Name>
-        <GroupType>k2gice_t</GroupType>
+        <Type ProductCode="#x9876" RevisionNo="0">am335xice</Type>
+        <Name LcId="1033">slave</Name>
+        <GroupType>am335xice_t</GroupType>
         <Profile>
           <ProfileNo>5001</ProfileNo>
           <AddInfo>0</AddInfo>
@@ -220,10 +220,6 @@
                 </SubItem>
               </DataType>
               <DataType>
-                <Name>STRING(6)</Name>
-                <BitSize>48</BitSize>
-              </DataType>
-              <DataType>
                 <Name>STRING(3)</Name>
                 <BitSize>24</BitSize>
               </DataType>
@@ -238,6 +234,10 @@
               <DataType>
                 <Name>USINT</Name>
                 <BitSize>8</BitSize>
+              </DataType>
+              <DataType>
+                <Name>STRING(9)</Name>
+                <BitSize>72</BitSize>
               </DataType>
             </DataTypes>
             <Objects>
@@ -257,10 +257,10 @@
               <Object>
                 <Index>#x1008</Index>
                 <Name>Device Name</Name>
-                <Type>STRING(6)</Type>
-                <BitSize>48</BitSize>
+                <Type>STRING(9)</Type>
+                <BitSize>72</BitSize>
                 <Info>
-                  <DefaultString>k2gice</DefaultString>
+                  <DefaultString>am335xice</DefaultString>
                 </Info>
                 <Flags>
                   <Access>ro</Access>
@@ -312,7 +312,7 @@
                   <SubItem>
                     <Name>Product Code</Name>
                     <Info>
-                      <DefaultValue>#x4291ce</DefaultValue>
+                      <DefaultValue>#x9876</DefaultValue>
                     </Info>
                   </SubItem>
                   <SubItem>
@@ -528,7 +528,7 @@
         </Mailbox>
         <Eeprom>
           <ByteSize>2048</ByteSize>
-          <ConfigData>800EE08800000000</ConfigData>
+          <ConfigData>8006E08800000000</ConfigData>
           <BootStrap>0010000200120002</BootStrap>
         </Eeprom>
       </Device>

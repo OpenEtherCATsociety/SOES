@@ -8,14 +8,13 @@
     <Groups>
       <Group>
         <Type>xmc4</Type>
-        <Name LcId="1033">MyGroup</Name>
-        <Name LcId="1036">LeGroup</Name>
+        <Name LcId="1033">xmc4</Name>
       </Group>
     </Groups>
     <Devices>
       <Device Physics="YY">
-        <Type ProductCode="#x10cc" RevisionNo="0">xmc43_slave</Type>
-        <Name LcId="1033">xmc43relax</Name>
+        <Type ProductCode="#x4800" RevisionNo="0">xmc48relax</Type>
+        <Name LcId="1033">xmc48relax</Name>
         <GroupType>xmc4</GroupType>
         <Profile>
           <ProfileNo>5001</ProfileNo>
@@ -78,7 +77,7 @@
               </DataType>
               <DataType>
                 <Name>DT10F1</Name>
-                <BitSize>40</BitSize>
+                <BitSize>64</BitSize>
                 <SubItem>
                   <SubIdx>0</SubIdx>
                   <Name>Max SubIndex</Name>
@@ -91,12 +90,12 @@
                 </SubItem>
                 <SubItem>
                   <SubIdx>1</SubIdx>
-                  <Name>Dummy_x01</Name>
-                  <Type>USINT</Type>
-                  <BitSize>8</BitSize>
+                  <Name>Local Error Reaction</Name>
+                  <Type>UDINT</Type>
+                  <BitSize>32</BitSize>
                   <BitOffs>16</BitOffs>
                   <Flags>
-                    <Access>ro</Access>
+                    <Access>rw</Access>
                   </Flags>
                 </SubItem>
                 <SubItem>
@@ -104,7 +103,7 @@
                   <Name>SyncErrorCounterLimit</Name>
                   <Type>UINT</Type>
                   <BitSize>16</BitSize>
-                  <BitOffs>24</BitOffs>
+                  <BitOffs>48</BitOffs>
                   <Flags>
                     <Access>rw</Access>
                   </Flags>
@@ -112,7 +111,55 @@
               </DataType>
               <DataType>
                 <Name>DT1600</Name>
-                <BitSize>112</BitSize>
+                <BitSize>48</BitSize>
+                <SubItem>
+                  <SubIdx>0</SubIdx>
+                  <Name>Max SubIndex</Name>
+                  <Type>USINT</Type>
+                  <BitSize>8</BitSize>
+                  <BitOffs>0</BitOffs>
+                  <Flags>
+                    <Access>ro</Access>
+                  </Flags>
+                </SubItem>
+                <SubItem>
+                  <SubIdx>1</SubIdx>
+                  <Name>LED0</Name>
+                  <Type>UDINT</Type>
+                  <BitSize>32</BitSize>
+                  <BitOffs>16</BitOffs>
+                  <Flags>
+                    <Access>ro</Access>
+                  </Flags>
+                </SubItem>
+              </DataType>
+              <DataType>
+                <Name>DT1601</Name>
+                <BitSize>48</BitSize>
+                <SubItem>
+                  <SubIdx>0</SubIdx>
+                  <Name>Max SubIndex</Name>
+                  <Type>USINT</Type>
+                  <BitSize>8</BitSize>
+                  <BitOffs>0</BitOffs>
+                  <Flags>
+                    <Access>ro</Access>
+                  </Flags>
+                </SubItem>
+                <SubItem>
+                  <SubIdx>1</SubIdx>
+                  <Name>LED1</Name>
+                  <Type>UDINT</Type>
+                  <BitSize>32</BitSize>
+                  <BitOffs>16</BitOffs>
+                  <Flags>
+                    <Access>ro</Access>
+                  </Flags>
+                </SubItem>
+              </DataType>
+              <DataType>
+                <Name>DT1602</Name>
+                <BitSize>272</BitSize>
                 <SubItem>
                   <SubIdx>0</SubIdx>
                   <Name>Max SubIndex</Name>
@@ -125,7 +172,7 @@
                 </SubItem>
                 <SubItem>
                   <SubIdx>1</SubIdx>
-                  <Name>OUT1</Name>
+                  <Name>PDO Entry 1602:01</Name>
                   <Type>UDINT</Type>
                   <BitSize>32</BitSize>
                   <BitOffs>16</BitOffs>
@@ -135,7 +182,7 @@
                 </SubItem>
                 <SubItem>
                   <SubIdx>2</SubIdx>
-                  <Name>OUT2</Name>
+                  <Name>PDO Entry 1602:02</Name>
                   <Type>UDINT</Type>
                   <BitSize>32</BitSize>
                   <BitOffs>48</BitOffs>
@@ -145,7 +192,7 @@
                 </SubItem>
                 <SubItem>
                   <SubIdx>3</SubIdx>
-                  <Name>OUT3</Name>
+                  <Name>PDO Entry 1602:03</Name>
                   <Type>UDINT</Type>
                   <BitSize>32</BitSize>
                   <BitOffs>80</BitOffs>
@@ -153,10 +200,60 @@
                     <Access WriteRestrictions="PreOP">rw</Access>
                   </Flags>
                 </SubItem>
+                <SubItem>
+                  <SubIdx>4</SubIdx>
+                  <Name>PDO Entry 1602:04</Name>
+                  <Type>UDINT</Type>
+                  <BitSize>32</BitSize>
+                  <BitOffs>112</BitOffs>
+                  <Flags>
+                    <Access WriteRestrictions="PreOP">rw</Access>
+                  </Flags>
+                </SubItem>
+                <SubItem>
+                  <SubIdx>5</SubIdx>
+                  <Name>PDO Entry 1602:05</Name>
+                  <Type>UDINT</Type>
+                  <BitSize>32</BitSize>
+                  <BitOffs>144</BitOffs>
+                  <Flags>
+                    <Access WriteRestrictions="PreOP">rw</Access>
+                  </Flags>
+                </SubItem>
+                <SubItem>
+                  <SubIdx>6</SubIdx>
+                  <Name>PDO Entry 1602:06</Name>
+                  <Type>UDINT</Type>
+                  <BitSize>32</BitSize>
+                  <BitOffs>176</BitOffs>
+                  <Flags>
+                    <Access WriteRestrictions="PreOP">rw</Access>
+                  </Flags>
+                </SubItem>
+                <SubItem>
+                  <SubIdx>7</SubIdx>
+                  <Name>PDO Entry 1602:07</Name>
+                  <Type>UDINT</Type>
+                  <BitSize>32</BitSize>
+                  <BitOffs>208</BitOffs>
+                  <Flags>
+                    <Access WriteRestrictions="PreOP">rw</Access>
+                  </Flags>
+                </SubItem>
+                <SubItem>
+                  <SubIdx>8</SubIdx>
+                  <Name>PDO Entry 1602:08</Name>
+                  <Type>UDINT</Type>
+                  <BitSize>32</BitSize>
+                  <BitOffs>240</BitOffs>
+                  <Flags>
+                    <Access WriteRestrictions="PreOP">rw</Access>
+                  </Flags>
+                </SubItem>
               </DataType>
               <DataType>
                 <Name>DT1A00</Name>
-                <BitSize>80</BitSize>
+                <BitSize>48</BitSize>
                 <SubItem>
                   <SubIdx>0</SubIdx>
                   <Name>Max SubIndex</Name>
@@ -164,33 +261,23 @@
                   <BitSize>8</BitSize>
                   <BitOffs>0</BitOffs>
                   <Flags>
-                    <Access WriteRestrictions="PreOP">rw</Access>
+                    <Access>ro</Access>
                   </Flags>
                 </SubItem>
                 <SubItem>
                   <SubIdx>1</SubIdx>
-                  <Name>IN1</Name>
+                  <Name>Button1</Name>
                   <Type>UDINT</Type>
                   <BitSize>32</BitSize>
                   <BitOffs>16</BitOffs>
                   <Flags>
-                    <Access WriteRestrictions="PreOP">rw</Access>
-                  </Flags>
-                </SubItem>
-                <SubItem>
-                  <SubIdx>2</SubIdx>
-                  <Name>Padding</Name>
-                  <Type>UDINT</Type>
-                  <BitSize>32</BitSize>
-                  <BitOffs>48</BitOffs>
-                  <Flags>
-                    <Access WriteRestrictions="PreOP">rw</Access>
+                    <Access>ro</Access>
                   </Flags>
                 </SubItem>
               </DataType>
               <DataType>
                 <Name>DT1A01</Name>
-                <BitSize>80</BitSize>
+                <BitSize>272</BitSize>
                 <SubItem>
                   <SubIdx>0</SubIdx>
                   <Name>Max SubIndex</Name>
@@ -198,95 +285,87 @@
                   <BitSize>8</BitSize>
                   <BitOffs>0</BitOffs>
                   <Flags>
-                    <Access>ro</Access>
+                    <Access WriteRestrictions="PreOP">rw</Access>
                   </Flags>
                 </SubItem>
                 <SubItem>
                   <SubIdx>1</SubIdx>
-                  <Name>IN2</Name>
+                  <Name>PDO Entry 1A01:01</Name>
                   <Type>UDINT</Type>
                   <BitSize>32</BitSize>
                   <BitOffs>16</BitOffs>
                   <Flags>
-                    <Access>ro</Access>
+                    <Access WriteRestrictions="PreOP">rw</Access>
                   </Flags>
                 </SubItem>
                 <SubItem>
                   <SubIdx>2</SubIdx>
-                  <Name>Padding</Name>
+                  <Name>PDO Entry 1A01:02</Name>
                   <Type>UDINT</Type>
                   <BitSize>32</BitSize>
                   <BitOffs>48</BitOffs>
                   <Flags>
-                    <Access>ro</Access>
-                  </Flags>
-                </SubItem>
-              </DataType>
-              <DataType>
-                <Name>DT1A02</Name>
-                <BitSize>80</BitSize>
-                <SubItem>
-                  <SubIdx>0</SubIdx>
-                  <Name>Max SubIndex</Name>
-                  <Type>USINT</Type>
-                  <BitSize>8</BitSize>
-                  <BitOffs>0</BitOffs>
-                  <Flags>
-                    <Access>ro</Access>
+                    <Access WriteRestrictions="PreOP">rw</Access>
                   </Flags>
                 </SubItem>
                 <SubItem>
-                  <SubIdx>1</SubIdx>
-                  <Name>IN3</Name>
+                  <SubIdx>3</SubIdx>
+                  <Name>PDO Entry 1A01:03</Name>
                   <Type>UDINT</Type>
                   <BitSize>32</BitSize>
-                  <BitOffs>16</BitOffs>
+                  <BitOffs>80</BitOffs>
                   <Flags>
-                    <Access>ro</Access>
+                    <Access WriteRestrictions="PreOP">rw</Access>
                   </Flags>
                 </SubItem>
                 <SubItem>
-                  <SubIdx>2</SubIdx>
-                  <Name>Padding</Name>
+                  <SubIdx>4</SubIdx>
+                  <Name>PDO Entry 1A01:04</Name>
                   <Type>UDINT</Type>
                   <BitSize>32</BitSize>
-                  <BitOffs>48</BitOffs>
+                  <BitOffs>112</BitOffs>
                   <Flags>
-                    <Access>ro</Access>
-                  </Flags>
-                </SubItem>
-              </DataType>
-              <DataType>
-                <Name>DT1A03</Name>
-                <BitSize>80</BitSize>
-                <SubItem>
-                  <SubIdx>0</SubIdx>
-                  <Name>Max SubIndex</Name>
-                  <Type>USINT</Type>
-                  <BitSize>8</BitSize>
-                  <BitOffs>0</BitOffs>
-                  <Flags>
-                    <Access>ro</Access>
+                    <Access WriteRestrictions="PreOP">rw</Access>
                   </Flags>
                 </SubItem>
                 <SubItem>
-                  <SubIdx>1</SubIdx>
-                  <Name>IN4</Name>
+                  <SubIdx>5</SubIdx>
+                  <Name>PDO Entry 1A01:05</Name>
                   <Type>UDINT</Type>
                   <BitSize>32</BitSize>
-                  <BitOffs>16</BitOffs>
+                  <BitOffs>144</BitOffs>
                   <Flags>
-                    <Access>ro</Access>
+                    <Access WriteRestrictions="PreOP">rw</Access>
                   </Flags>
                 </SubItem>
                 <SubItem>
-                  <SubIdx>2</SubIdx>
-                  <Name>Padding</Name>
+                  <SubIdx>6</SubIdx>
+                  <Name>PDO Entry 1A01:06</Name>
                   <Type>UDINT</Type>
                   <BitSize>32</BitSize>
-                  <BitOffs>48</BitOffs>
+                  <BitOffs>176</BitOffs>
                   <Flags>
-                    <Access>ro</Access>
+                    <Access WriteRestrictions="PreOP">rw</Access>
+                  </Flags>
+                </SubItem>
+                <SubItem>
+                  <SubIdx>7</SubIdx>
+                  <Name>PDO Entry 1A01:07</Name>
+                  <Type>UDINT</Type>
+                  <BitSize>32</BitSize>
+                  <BitOffs>208</BitOffs>
+                  <Flags>
+                    <Access WriteRestrictions="PreOP">rw</Access>
+                  </Flags>
+                </SubItem>
+                <SubItem>
+                  <SubIdx>8</SubIdx>
+                  <Name>PDO Entry 1A01:08</Name>
+                  <Type>UDINT</Type>
+                  <BitSize>32</BitSize>
+                  <BitOffs>240</BitOffs>
+                  <Flags>
+                    <Access WriteRestrictions="PreOP">rw</Access>
                   </Flags>
                 </SubItem>
               </DataType>
@@ -325,15 +404,15 @@
               <DataType>
                 <Name>DT1C12ARR</Name>
                 <BaseType>UINT</BaseType>
-                <BitSize>16</BitSize>
+                <BitSize>128</BitSize>
                 <ArrayInfo>
                   <LBound>1</LBound>
-                  <Elements>1</Elements>
+                  <Elements>8</Elements>
                 </ArrayInfo>
               </DataType>
               <DataType>
                 <Name>DT1C12</Name>
-                <BitSize>32</BitSize>
+                <BitSize>144</BitSize>
                 <SubItem>
                   <SubIdx>0</SubIdx>
                   <Name>Max SubIndex</Name>
@@ -347,7 +426,7 @@
                 <SubItem>
                   <Name>Elements</Name>
                   <Type>DT1C12ARR</Type>
-                  <BitSize>16</BitSize>
+                  <BitSize>128</BitSize>
                   <BitOffs>16</BitOffs>
                   <Flags>
                     <Access WriteRestrictions="PreOP">rw</Access>
@@ -357,15 +436,15 @@
               <DataType>
                 <Name>DT1C13ARR</Name>
                 <BaseType>UINT</BaseType>
-                <BitSize>64</BitSize>
+                <BitSize>128</BitSize>
                 <ArrayInfo>
                   <LBound>1</LBound>
-                  <Elements>4</Elements>
+                  <Elements>8</Elements>
                 </ArrayInfo>
               </DataType>
               <DataType>
                 <Name>DT1C13</Name>
-                <BitSize>80</BitSize>
+                <BitSize>144</BitSize>
                 <SubItem>
                   <SubIdx>0</SubIdx>
                   <Name>Max SubIndex</Name>
@@ -379,7 +458,7 @@
                 <SubItem>
                   <Name>Elements</Name>
                   <Type>DT1C13ARR</Type>
-                  <BitSize>64</BitSize>
+                  <BitSize>128</BitSize>
                   <BitOffs>16</BitOffs>
                   <Flags>
                     <Access WriteRestrictions="PreOP">rw</Access>
@@ -388,7 +467,7 @@
               </DataType>
               <DataType>
                 <Name>DT1C32</Name>
-                <BitSize>496</BitSize>
+                <BitSize>488</BitSize>
                 <SubItem>
                   <SubIdx>0</SubIdx>
                   <Name>Max SubIndex</Name>
@@ -401,12 +480,12 @@
                 </SubItem>
                 <SubItem>
                   <SubIdx>1</SubIdx>
-                  <Name>SyncType</Name>
+                  <Name>Sync mode</Name>
                   <Type>UINT</Type>
                   <BitSize>16</BitSize>
                   <BitOffs>16</BitOffs>
                   <Flags>
-                    <Access>ro</Access>
+                    <Access>rw</Access>
                   </Flags>
                 </SubItem>
                 <SubItem>
@@ -431,7 +510,7 @@
                 </SubItem>
                 <SubItem>
                   <SubIdx>4</SubIdx>
-                  <Name>SyncTypeSupport</Name>
+                  <Name>Sync modes supported</Name>
                   <Type>UINT</Type>
                   <BitSize>16</BitSize>
                   <BitOffs>96</BitOffs>
@@ -441,7 +520,7 @@
                 </SubItem>
                 <SubItem>
                   <SubIdx>5</SubIdx>
-                  <Name>MinCycleTime</Name>
+                  <Name>Minimum Cycle Time</Name>
                   <Type>UDINT</Type>
                   <BitSize>32</BitSize>
                   <BitOffs>112</BitOffs>
@@ -451,7 +530,7 @@
                 </SubItem>
                 <SubItem>
                   <SubIdx>6</SubIdx>
-                  <Name>CalcCopyTime</Name>
+                  <Name>Calc and Copy Time</Name>
                   <Type>UDINT</Type>
                   <BitSize>32</BitSize>
                   <BitOffs>144</BitOffs>
@@ -461,7 +540,7 @@
                 </SubItem>
                 <SubItem>
                   <SubIdx>7</SubIdx>
-                  <Name>MinDelayTime</Name>
+                  <Name>Minimum Delay Time</Name>
                   <Type>UDINT</Type>
                   <BitSize>32</BitSize>
                   <BitOffs>176</BitOffs>
@@ -521,7 +600,7 @@
                 </SubItem>
                 <SubItem>
                   <SubIdx>13</SubIdx>
-                  <Name>ShiftTimeTooSmallCnt</Name>
+                  <Name>Shift too short counter</Name>
                   <Type>UINT</Type>
                   <BitSize>16</BitSize>
                   <BitOffs>320</BitOffs>
@@ -541,7 +620,7 @@
                 </SubItem>
                 <SubItem>
                   <SubIdx>15</SubIdx>
-                  <Name>MinCycleDist</Name>
+                  <Name>Minimum Cycle Distance</Name>
                   <Type>UDINT</Type>
                   <BitSize>32</BitSize>
                   <BitOffs>352</BitOffs>
@@ -551,7 +630,7 @@
                 </SubItem>
                 <SubItem>
                   <SubIdx>16</SubIdx>
-                  <Name>MaxCycleDist</Name>
+                  <Name>Maximum Cycle Distance</Name>
                   <Type>UDINT</Type>
                   <BitSize>32</BitSize>
                   <BitOffs>384</BitOffs>
@@ -561,7 +640,7 @@
                 </SubItem>
                 <SubItem>
                   <SubIdx>17</SubIdx>
-                  <Name>MinSMSYNCDist</Name>
+                  <Name>Minimum SM Sync Distance</Name>
                   <Type>UDINT</Type>
                   <BitSize>32</BitSize>
                   <BitOffs>416</BitOffs>
@@ -571,7 +650,7 @@
                 </SubItem>
                 <SubItem>
                   <SubIdx>18</SubIdx>
-                  <Name>MaxSMSYNCDist</Name>
+                  <Name>Maximum SM Sync Distance</Name>
                   <Type>UDINT</Type>
                   <BitSize>32</BitSize>
                   <BitOffs>448</BitOffs>
@@ -580,29 +659,19 @@
                   </Flags>
                 </SubItem>
                 <SubItem>
-                  <SubIdx>20</SubIdx>
-                  <Name>Dummy_x14</Name>
-                  <Type>USINT</Type>
-                  <BitSize>8</BitSize>
-                  <BitOffs>480</BitOffs>
-                  <Flags>
-                    <Access>ro</Access>
-                  </Flags>
-                </SubItem>
-                <SubItem>
                   <SubIdx>32</SubIdx>
                   <Name>SyncError</Name>
-                  <Type>USINT</Type>
-                  <BitSize>8</BitSize>
-                  <BitOffs>488</BitOffs>
+                  <Type>BOOL</Type>
+                  <BitSize>1</BitSize>
+                  <BitOffs>480</BitOffs>
                   <Flags>
                     <Access>ro</Access>
                   </Flags>
                 </SubItem>
               </DataType>
               <DataType>
-                <Name>DT7000</Name>
-                <BitSize>72</BitSize>
+                <Name>DT6000</Name>
+                <BitSize>24</BitSize>
                 <SubItem>
                   <SubIdx>0</SubIdx>
                   <Name>Max SubIndex</Name>
@@ -615,8 +684,33 @@
                 </SubItem>
                 <SubItem>
                   <SubIdx>1</SubIdx>
-                  <Name>OUT1</Name>
-                  <Type>SINT</Type>
+                  <Name>Button1</Name>
+                  <Type>USINT</Type>
+                  <BitSize>8</BitSize>
+                  <BitOffs>16</BitOffs>
+                  <Flags>
+                    <Access>ro</Access>
+                    <PdoMapping>T</PdoMapping>
+                  </Flags>
+                </SubItem>
+              </DataType>
+              <DataType>
+                <Name>DT7000</Name>
+                <BitSize>24</BitSize>
+                <SubItem>
+                  <SubIdx>0</SubIdx>
+                  <Name>Max SubIndex</Name>
+                  <Type>USINT</Type>
+                  <BitSize>8</BitSize>
+                  <BitOffs>0</BitOffs>
+                  <Flags>
+                    <Access>ro</Access>
+                  </Flags>
+                </SubItem>
+                <SubItem>
+                  <SubIdx>1</SubIdx>
+                  <Name>LED0</Name>
+                  <Type>USINT</Type>
                   <BitSize>8</BitSize>
                   <BitOffs>16</BitOffs>
                   <Flags>
@@ -624,60 +718,67 @@
                     <PdoMapping>R</PdoMapping>
                   </Flags>
                 </SubItem>
+              </DataType>
+              <DataType>
+                <Name>DT7001</Name>
+                <BitSize>24</BitSize>
                 <SubItem>
-                  <SubIdx>2</SubIdx>
-                  <Name>OUT2</Name>
-                  <Type>INT</Type>
-                  <BitSize>16</BitSize>
-                  <BitOffs>24</BitOffs>
+                  <SubIdx>0</SubIdx>
+                  <Name>Max SubIndex</Name>
+                  <Type>USINT</Type>
+                  <BitSize>8</BitSize>
+                  <BitOffs>0</BitOffs>
+                  <Flags>
+                    <Access>ro</Access>
+                  </Flags>
+                </SubItem>
+                <SubItem>
+                  <SubIdx>1</SubIdx>
+                  <Name>LED1</Name>
+                  <Type>USINT</Type>
+                  <BitSize>8</BitSize>
+                  <BitOffs>16</BitOffs>
                   <Flags>
                     <Access>ro</Access>
                     <PdoMapping>R</PdoMapping>
                   </Flags>
                 </SubItem>
+              </DataType>
+              <DataType>
+                <Name>DT8000</Name>
+                <BitSize>48</BitSize>
                 <SubItem>
-                  <SubIdx>3</SubIdx>
-                  <Name>OUT3</Name>
-                  <Type>DINT</Type>
+                  <SubIdx>0</SubIdx>
+                  <Name>Max SubIndex</Name>
+                  <Type>USINT</Type>
+                  <BitSize>8</BitSize>
+                  <BitOffs>0</BitOffs>
+                  <Flags>
+                    <Access>ro</Access>
+                  </Flags>
+                </SubItem>
+                <SubItem>
+                  <SubIdx>1</SubIdx>
+                  <Name>Multiplier</Name>
+                  <Type>UDINT</Type>
                   <BitSize>32</BitSize>
-                  <BitOffs>40</BitOffs>
+                  <BitOffs>16</BitOffs>
                   <Flags>
                     <Access>ro</Access>
-                    <PdoMapping>R</PdoMapping>
                   </Flags>
                 </SubItem>
               </DataType>
               <DataType>
-                <Name>INT</Name>
-                <BitSize>16</BitSize>
+                <Name>STRING(10)</Name>
+                <BitSize>80</BitSize>
               </DataType>
               <DataType>
-                <Name>SINT</Name>
-                <BitSize>8</BitSize>
+                <Name>BOOL</Name>
+                <BitSize>1</BitSize>
               </DataType>
               <DataType>
                 <Name>STRING(3)</Name>
                 <BitSize>24</BitSize>
-              </DataType>
-              <DataType>
-                <Name>STRING(11)</Name>
-                <BitSize>88</BitSize>
-              </DataType>
-              <DataType>
-                <Name>BIT1</Name>
-                <BitSize>1</BitSize>
-              </DataType>
-              <DataType>
-                <Name>BIT2</Name>
-                <BitSize>2</BitSize>
-              </DataType>
-              <DataType>
-                <Name>BIT3</Name>
-                <BitSize>3</BitSize>
-              </DataType>
-              <DataType>
-                <Name>BIT4</Name>
-                <BitSize>4</BitSize>
               </DataType>
               <DataType>
                 <Name>UDINT</Name>
@@ -686,10 +787,6 @@
               <DataType>
                 <Name>UINT</Name>
                 <BitSize>16</BitSize>
-              </DataType>
-              <DataType>
-                <Name>DINT</Name>
-                <BitSize>32</BitSize>
               </DataType>
               <DataType>
                 <Name>USINT</Name>
@@ -713,10 +810,10 @@
               <Object>
                 <Index>#x1008</Index>
                 <Name>Device Name</Name>
-                <Type>STRING(11)</Type>
-                <BitSize>88</BitSize>
+                <Type>STRING(10)</Type>
+                <BitSize>80</BitSize>
                 <Info>
-                  <DefaultString>xmc43_slave</DefaultString>
+                  <DefaultString>xmc48relax</DefaultString>
                 </Info>
                 <Flags>
                   <Access>ro</Access>
@@ -768,7 +865,7 @@
                   <SubItem>
                     <Name>Product Code</Name>
                     <Info>
-                      <DefaultValue>#x10cc</DefaultValue>
+                      <DefaultValue>#x4800</DefaultValue>
                     </Info>
                   </SubItem>
                   <SubItem>
@@ -789,45 +886,10 @@
                 </Flags>
               </Object>
               <Object>
-                <Index>#x1600</Index>
-                <Name>Outputs</Name>
-                <Type>DT1600</Type>
-                <BitSize>112</BitSize>
-                <Info>
-                  <SubItem>
-                    <Name>Max SubIndex</Name>
-                    <Info>
-                      <DefaultValue>3</DefaultValue>
-                    </Info>
-                  </SubItem>
-                  <SubItem>
-                    <Name>OUT1</Name>
-                    <Info>
-                      <DefaultValue>#x70000108</DefaultValue>
-                    </Info>
-                  </SubItem>
-                  <SubItem>
-                    <Name>OUT2</Name>
-                    <Info>
-                      <DefaultValue>#x70000210</DefaultValue>
-                    </Info>
-                  </SubItem>
-                  <SubItem>
-                    <Name>OUT3</Name>
-                    <Info>
-                      <DefaultValue>#x70000320</DefaultValue>
-                    </Info>
-                  </SubItem>
-                </Info>
-                <Flags>
-                    <Access WriteRestrictions="PreOP">rw</Access>
-                </Flags>
-              </Object>
-              <Object>
                 <Index>#x10F1</Index>
                 <Name>ErrorSettings</Name>
                 <Type>DT10F1</Type>
-                <BitSize>40</BitSize>
+                <BitSize>64</BitSize>
                 <Info>
                   <SubItem>
                     <Name>Max SubIndex</Name>
@@ -836,7 +898,7 @@
                     </Info>
                   </SubItem>
                   <SubItem>
-                    <Name>Dummy_x01</Name>
+                    <Name>Local Error Reaction</Name>
                     <Info>
                       <DefaultValue>0</DefaultValue>
                     </Info>
@@ -853,119 +915,202 @@
                 </Flags>
               </Object>
               <Object>
-                <Index>#x1A00</Index>
-                <Name>IN1</Name>
-                <Type>DT1A00</Type>
-                <BitSize>80</BitSize>
+                <Index>#x1600</Index>
+                <Name>RXPDO 1</Name>
+                <Type>DT1600</Type>
+                <BitSize>48</BitSize>
                 <Info>
                   <SubItem>
                     <Name>Max SubIndex</Name>
                     <Info>
-                      <DefaultValue>2</DefaultValue>
+                      <DefaultValue>1</DefaultValue>
                     </Info>
                   </SubItem>
                   <SubItem>
-                    <Name>IN1</Name>
+                    <Name>LED0</Name>
                     <Info>
-                      <DefaultValue>#x60000001</DefaultValue>
-                    </Info>
-                  </SubItem>
-                  <SubItem>
-                    <Name>Padding</Name>
-                    <Info>
-                      <DefaultValue>#x00000007</DefaultValue>
+                      <DefaultValue>#x70000108</DefaultValue>
                     </Info>
                   </SubItem>
                 </Info>
                 <Flags>
-                  <Access WriteRestrictions="PreOP">rw</Access>
+                  <Access>ro</Access>
+                </Flags>
+              </Object>
+              <Object>
+                <Index>#x1601</Index>
+                <Name>RXPDO 2</Name>
+                <Type>DT1601</Type>
+                <BitSize>48</BitSize>
+                <Info>
+                  <SubItem>
+                    <Name>Max SubIndex</Name>
+                    <Info>
+                      <DefaultValue>1</DefaultValue>
+                    </Info>
+                  </SubItem>
+                  <SubItem>
+                    <Name>LED1</Name>
+                    <Info>
+                      <DefaultValue>#x70010108</DefaultValue>
+                    </Info>
+                  </SubItem>
+                </Info>
+                <Flags>
+                  <Access>ro</Access>
+                </Flags>
+              </Object>
+              <Object>
+                <Index>#x1602</Index>
+                <Name>RXPDO 3</Name>
+                <Type>DT1602</Type>
+                <BitSize>272</BitSize>
+                <Info>
+                  <SubItem>
+                    <Name>Max SubIndex</Name>
+                    <Info>
+                      <DefaultValue>8</DefaultValue>
+                    </Info>
+                  </SubItem>
+                  <SubItem>
+                    <Name>PDO Entry 1602:01</Name>
+                    <Info>
+                      <DefaultValue>#x00000000</DefaultValue>
+                    </Info>
+                  </SubItem>
+                  <SubItem>
+                    <Name>PDO Entry 1602:02</Name>
+                    <Info>
+                      <DefaultValue>#x00000000</DefaultValue>
+                    </Info>
+                  </SubItem>
+                  <SubItem>
+                    <Name>PDO Entry 1602:03</Name>
+                    <Info>
+                      <DefaultValue>#x00000000</DefaultValue>
+                    </Info>
+                  </SubItem>
+                  <SubItem>
+                    <Name>PDO Entry 1602:04</Name>
+                    <Info>
+                      <DefaultValue>#x00000000</DefaultValue>
+                    </Info>
+                  </SubItem>
+                  <SubItem>
+                    <Name>PDO Entry 1602:05</Name>
+                    <Info>
+                      <DefaultValue>#x00000000</DefaultValue>
+                    </Info>
+                  </SubItem>
+                  <SubItem>
+                    <Name>PDO Entry 1602:06</Name>
+                    <Info>
+                      <DefaultValue>#x00000000</DefaultValue>
+                    </Info>
+                  </SubItem>
+                  <SubItem>
+                    <Name>PDO Entry 1602:07</Name>
+                    <Info>
+                      <DefaultValue>#x00000000</DefaultValue>
+                    </Info>
+                  </SubItem>
+                  <SubItem>
+                    <Name>PDO Entry 1602:08</Name>
+                    <Info>
+                      <DefaultValue>#x00000000</DefaultValue>
+                    </Info>
+                  </SubItem>
+                </Info>
+                <Flags>
+                  <Access>rw</Access>
+                </Flags>
+              </Object>
+              <Object>
+                <Index>#x1A00</Index>
+                <Name>TXPDO 1</Name>
+                <Type>DT1A00</Type>
+                <BitSize>48</BitSize>
+                <Info>
+                  <SubItem>
+                    <Name>Max SubIndex</Name>
+                    <Info>
+                      <DefaultValue>1</DefaultValue>
+                    </Info>
+                  </SubItem>
+                  <SubItem>
+                    <Name>Button1</Name>
+                    <Info>
+                      <DefaultValue>#x60000108</DefaultValue>
+                    </Info>
+                  </SubItem>
+                </Info>
+                <Flags>
+                  <Access>ro</Access>
                 </Flags>
               </Object>
               <Object>
                 <Index>#x1A01</Index>
-                <Name>IN2</Name>
+                <Name>TXPDO 2</Name>
                 <Type>DT1A01</Type>
-                <BitSize>80</BitSize>
+                <BitSize>272</BitSize>
                 <Info>
                   <SubItem>
                     <Name>Max SubIndex</Name>
                     <Info>
-                      <DefaultValue>2</DefaultValue>
+                      <DefaultValue>8</DefaultValue>
                     </Info>
                   </SubItem>
                   <SubItem>
-                    <Name>IN2</Name>
+                    <Name>PDO Entry 1A01:01</Name>
                     <Info>
-                      <DefaultValue>#x60010002</DefaultValue>
+                      <DefaultValue>#x00000000</DefaultValue>
                     </Info>
                   </SubItem>
                   <SubItem>
-                    <Name>Padding</Name>
+                    <Name>PDO Entry 1A01:02</Name>
                     <Info>
-                      <DefaultValue>#x00000006</DefaultValue>
+                      <DefaultValue>#x00000000</DefaultValue>
+                    </Info>
+                  </SubItem>
+                  <SubItem>
+                    <Name>PDO Entry 1A01:03</Name>
+                    <Info>
+                      <DefaultValue>#x00000000</DefaultValue>
+                    </Info>
+                  </SubItem>
+                  <SubItem>
+                    <Name>PDO Entry 1A01:04</Name>
+                    <Info>
+                      <DefaultValue>#x00000000</DefaultValue>
+                    </Info>
+                  </SubItem>
+                  <SubItem>
+                    <Name>PDO Entry 1A01:05</Name>
+                    <Info>
+                      <DefaultValue>#x00000000</DefaultValue>
+                    </Info>
+                  </SubItem>
+                  <SubItem>
+                    <Name>PDO Entry 1A01:06</Name>
+                    <Info>
+                      <DefaultValue>#x00000000</DefaultValue>
+                    </Info>
+                  </SubItem>
+                  <SubItem>
+                    <Name>PDO Entry 1A01:07</Name>
+                    <Info>
+                      <DefaultValue>#x00000000</DefaultValue>
+                    </Info>
+                  </SubItem>
+                  <SubItem>
+                    <Name>PDO Entry 1A01:08</Name>
+                    <Info>
+                      <DefaultValue>#x00000000</DefaultValue>
                     </Info>
                   </SubItem>
                 </Info>
                 <Flags>
-                  <Access>ro</Access>
-                </Flags>
-              </Object>
-              <Object>
-                <Index>#x1A02</Index>
-                <Name>IN3</Name>
-                <Type>DT1A02</Type>
-                <BitSize>80</BitSize>
-                <Info>
-                  <SubItem>
-                    <Name>Max SubIndex</Name>
-                    <Info>
-                      <DefaultValue>2</DefaultValue>
-                    </Info>
-                  </SubItem>
-                  <SubItem>
-                    <Name>IN3</Name>
-                    <Info>
-                      <DefaultValue>#x60020003</DefaultValue>
-                    </Info>
-                  </SubItem>
-                  <SubItem>
-                    <Name>Padding</Name>
-                    <Info>
-                      <DefaultValue>#x00000005</DefaultValue>
-                    </Info>
-                  </SubItem>
-                </Info>
-                <Flags>
-                  <Access>ro</Access>
-                </Flags>
-              </Object>
-              <Object>
-                <Index>#x1A03</Index>
-                <Name>IN4</Name>
-                <Type>DT1A03</Type>
-                <BitSize>80</BitSize>
-                <Info>
-                  <SubItem>
-                    <Name>Max SubIndex</Name>
-                    <Info>
-                      <DefaultValue>2</DefaultValue>
-                    </Info>
-                  </SubItem>
-                  <SubItem>
-                    <Name>IN4</Name>
-                    <Info>
-                      <DefaultValue>#x60030004</DefaultValue>
-                    </Info>
-                  </SubItem>
-                  <SubItem>
-                    <Name>Padding</Name>
-                    <Info>
-                      <DefaultValue>#x00000004</DefaultValue>
-                    </Info>
-                  </SubItem>
-                </Info>
-                <Flags>
-                  <Access>ro</Access>
+                  <Access>rw</Access>
                 </Flags>
               </Object>
               <Object>
@@ -1013,12 +1158,12 @@
                 <Index>#x1C12</Index>
                 <Name>Sync Manager 2 PDO Assignment</Name>
                 <Type>DT1C12</Type>
-                <BitSize>32</BitSize>
+                <BitSize>144</BitSize>
                 <Info>
                   <SubItem>
                     <Name>Max SubIndex</Name>
                     <Info>
-                      <DefaultValue>1</DefaultValue>
+                      <DefaultValue>8</DefaultValue>
                     </Info>
                   </SubItem>
                   <SubItem>
@@ -1027,21 +1172,63 @@
                       <DefaultValue>#x1600</DefaultValue>
                     </Info>
                   </SubItem>
+                  <SubItem>
+                    <Name>PDO Mapping</Name>
+                    <Info>
+                      <DefaultValue>#x1601</DefaultValue>
+                    </Info>
+                  </SubItem>
+                  <SubItem>
+                    <Name>SM Entry 1C12:03</Name>
+                    <Info>
+                      <DefaultValue>#x0000</DefaultValue>
+                    </Info>
+                  </SubItem>
+                  <SubItem>
+                    <Name>SM Entry 1C12:04</Name>
+                    <Info>
+                      <DefaultValue>#x0000</DefaultValue>
+                    </Info>
+                  </SubItem>
+                  <SubItem>
+                    <Name>SM Entry 1C12:05</Name>
+                    <Info>
+                      <DefaultValue>#x0000</DefaultValue>
+                    </Info>
+                  </SubItem>
+                  <SubItem>
+                    <Name>SM Entry 1C12:06</Name>
+                    <Info>
+                      <DefaultValue>#x0000</DefaultValue>
+                    </Info>
+                  </SubItem>
+                  <SubItem>
+                    <Name>SM Entry 1C12:07</Name>
+                    <Info>
+                      <DefaultValue>#x0000</DefaultValue>
+                    </Info>
+                  </SubItem>
+                  <SubItem>
+                    <Name>SM Entry 1C12:08</Name>
+                    <Info>
+                      <DefaultValue>#x0000</DefaultValue>
+                    </Info>
+                  </SubItem>
                 </Info>
                 <Flags>
-                  <Access WriteRestrictions="PreOP">rw</Access>
+                  <Access>rw</Access>
                 </Flags>
               </Object>
               <Object>
                 <Index>#x1C13</Index>
                 <Name>Sync Manager 3 PDO Assignment</Name>
                 <Type>DT1C13</Type>
-                <BitSize>80</BitSize>
+                <BitSize>144</BitSize>
                 <Info>
                   <SubItem>
                     <Name>Max SubIndex</Name>
                     <Info>
-                      <DefaultValue>4</DefaultValue>
+                      <DefaultValue>8</DefaultValue>
                     </Info>
                   </SubItem>
                   <SubItem>
@@ -1051,33 +1238,57 @@
                     </Info>
                   </SubItem>
                   <SubItem>
-                    <Name>PDO Mapping</Name>
+                    <Name>SM Entry 1C13:02</Name>
                     <Info>
-                      <DefaultValue>#x1A01</DefaultValue>
+                      <DefaultValue>#x0000</DefaultValue>
                     </Info>
                   </SubItem>
                   <SubItem>
-                    <Name>PDO Mapping</Name>
+                    <Name>SM Entry 1C13:03</Name>
                     <Info>
-                      <DefaultValue>#x1A02</DefaultValue>
+                      <DefaultValue>#x0000</DefaultValue>
                     </Info>
                   </SubItem>
                   <SubItem>
-                    <Name>PDO Mapping</Name>
+                    <Name>SM Entry 1C13:04</Name>
                     <Info>
-                      <DefaultValue>#x1A03</DefaultValue>
+                      <DefaultValue>#x0000</DefaultValue>
+                    </Info>
+                  </SubItem>
+                  <SubItem>
+                    <Name>SM Entry 1C13:05</Name>
+                    <Info>
+                      <DefaultValue>#x0000</DefaultValue>
+                    </Info>
+                  </SubItem>
+                  <SubItem>
+                    <Name>SM Entry 1C13:06</Name>
+                    <Info>
+                      <DefaultValue>#x0000</DefaultValue>
+                    </Info>
+                  </SubItem>
+                  <SubItem>
+                    <Name>SM Entry 1C13:07</Name>
+                    <Info>
+                      <DefaultValue>#x0000</DefaultValue>
+                    </Info>
+                  </SubItem>
+                  <SubItem>
+                    <Name>SM Entry 1C13:08</Name>
+                    <Info>
+                      <DefaultValue>#x0000</DefaultValue>
                     </Info>
                   </SubItem>
                 </Info>
                 <Flags>
-                  <Access WriteRestrictions="PreOP">rw</Access>
+                  <Access>rw</Access>
                 </Flags>
               </Object>
               <Object>
                 <Index>#x1C32</Index>
                 <Name>SyncMgrParam</Name>
                 <Type>DT1C32</Type>
-                <BitSize>496</BitSize>
+                <BitSize>488</BitSize>
                 <Info>
                   <SubItem>
                     <Name>Max SubIndex</Name>
@@ -1086,9 +1297,9 @@
                     </Info>
                   </SubItem>
                   <SubItem>
-                    <Name>SyncType</Name>
+                    <Name>Sync mode</Name>
                     <Info>
-                      <DefaultValue>1</DefaultValue>
+                      <DefaultValue>0</DefaultValue>
                     </Info>
                   </SubItem>
                   <SubItem>
@@ -1104,25 +1315,25 @@
                     </Info>
                   </SubItem>
                   <SubItem>
-                    <Name>SyncTypeSupport</Name>
-                    <Info>
-                      <DefaultValue>#x6</DefaultValue>
-                    </Info>
-                  </SubItem>
-                  <SubItem>
-                    <Name>MinCycleTime</Name>
-                    <Info>
-                      <DefaultValue>125000</DefaultValue>
-                    </Info>
-                  </SubItem>
-                  <SubItem>
-                    <Name>CalcCopyTime</Name>
+                    <Name>Sync modes supported</Name>
                     <Info>
                       <DefaultValue>0</DefaultValue>
                     </Info>
                   </SubItem>
                   <SubItem>
-                    <Name>MinDelayTime</Name>
+                    <Name>Minimum Cycle Time</Name>
+                    <Info>
+                      <DefaultValue>125000</DefaultValue>
+                    </Info>
+                  </SubItem>
+                  <SubItem>
+                    <Name>Calc and Copy Time</Name>
+                    <Info>
+                      <DefaultValue>0</DefaultValue>
+                    </Info>
+                  </SubItem>
+                  <SubItem>
+                    <Name>Minimum Delay Time</Name>
                     <Info>
                       <DefaultValue>0</DefaultValue>
                     </Info>
@@ -1158,7 +1369,7 @@
                     </Info>
                   </SubItem>
                   <SubItem>
-                    <Name>ShiftTimeTooSmallCnt</Name>
+                    <Name>Shift too short counter</Name>
                     <Info>
                       <DefaultValue>0</DefaultValue>
                     </Info>
@@ -1170,31 +1381,25 @@
                     </Info>
                   </SubItem>
                   <SubItem>
-                    <Name>MinCycleDist</Name>
+                    <Name>Minimum Cycle Distance</Name>
                     <Info>
                       <DefaultValue>0</DefaultValue>
                     </Info>
                   </SubItem>
                   <SubItem>
-                    <Name>MaxCycleDist</Name>
+                    <Name>Maximum Cycle Distance</Name>
                     <Info>
                       <DefaultValue>0</DefaultValue>
                     </Info>
                   </SubItem>
                   <SubItem>
-                    <Name>MinSMSYNCDist</Name>
+                    <Name>Minimum SM Sync Distance</Name>
                     <Info>
                       <DefaultValue>0</DefaultValue>
                     </Info>
                   </SubItem>
                   <SubItem>
-                    <Name>MaxSMSYNCDist</Name>
-                    <Info>
-                      <DefaultValue>0</DefaultValue>
-                    </Info>
-                  </SubItem>
-                  <SubItem>
-                    <Name>Dummy_x14</Name>
+                    <Name>Maximum SM Sync Distance</Name>
                     <Info>
                       <DefaultValue>0</DefaultValue>
                     </Info>
@@ -1212,82 +1417,64 @@
               </Object>
               <Object>
                 <Index>#x6000</Index>
-                <Name>IN1</Name>
-                <Type>BIT1</Type>
-                <BitSize>1</BitSize>
-                <Info>
-                  <DefaultValue>0</DefaultValue>
-                </Info>
-                <Flags>
-                  <Access>ro</Access>
-                  <PdoMapping>T</PdoMapping>
-                </Flags>
-              </Object>
-              <Object>
-                <Index>#x6001</Index>
-                <Name>IN2</Name>
-                <Type>BIT2</Type>
-                <BitSize>2</BitSize>
-                <Info>
-                  <DefaultValue>0</DefaultValue>
-                </Info>
-                <Flags>
-                  <Access>ro</Access>
-                  <PdoMapping>T</PdoMapping>
-                </Flags>
-              </Object>
-              <Object>
-                <Index>#x6002</Index>
-                <Name>IN3</Name>
-                <Type>BIT3</Type>
-                <BitSize>3</BitSize>
-                <Info>
-                  <DefaultValue>0</DefaultValue>
-                </Info>
-                <Flags>
-                  <Access>ro</Access>
-                  <PdoMapping>T</PdoMapping>
-                </Flags>
-              </Object>
-              <Object>
-                <Index>#x6003</Index>
-                <Name>IN4</Name>
-                <Type>BIT4</Type>
-                <BitSize>4</BitSize>
-                <Info>
-                  <DefaultValue>0</DefaultValue>
-                </Info>
-                <Flags>
-                  <Access>ro</Access>
-                  <PdoMapping>T</PdoMapping>
-                </Flags>
-              </Object>
-              <Object>
-                <Index>#x7000</Index>
-                <Name>Outputs</Name>
-                <Type>DT7000</Type>
-                <BitSize>72</BitSize>
+                <Name>Buttons</Name>
+                <Type>DT6000</Type>
+                <BitSize>24</BitSize>
                 <Info>
                   <SubItem>
                     <Name>Max SubIndex</Name>
                     <Info>
-                      <DefaultValue>3</DefaultValue>
+                      <DefaultValue>1</DefaultValue>
                     </Info>
                   </SubItem>
                   <SubItem>
-                    <Name>OUT1</Name>
+                    <Name>Button1</Name>
                     <Info>
                       <DefaultValue>0</DefaultValue>
                     </Info>
                   </SubItem>
+                </Info>
+                <Flags>
+                  <Access>ro</Access>
+                </Flags>
+              </Object>
+              <Object>
+                <Index>#x7000</Index>
+                <Name>LEDgroup0</Name>
+                <Type>DT7000</Type>
+                <BitSize>24</BitSize>
+                <Info>
                   <SubItem>
-                    <Name>OUT2</Name>
+                    <Name>Max SubIndex</Name>
+                    <Info>
+                      <DefaultValue>1</DefaultValue>
+                    </Info>
+                  </SubItem>
+                  <SubItem>
+                    <Name>LED0</Name>
                     <Info>
                       <DefaultValue>0</DefaultValue>
                     </Info>
                   </SubItem>
+                </Info>
+                <Flags>
+                  <Access>ro</Access>
+                </Flags>
+              </Object>
+              <Object>
+                <Index>#x7001</Index>
+                <Name>LEDgroup1</Name>
+                <Type>DT7001</Type>
+                <BitSize>24</BitSize>
+                <Info>
                   <SubItem>
-                    <Name>OUT3</Name>
+                    <Name>Max SubIndex</Name>
+                    <Info>
+                      <DefaultValue>1</DefaultValue>
+                    </Info>
+                  </SubItem>
+                  <SubItem>
+                    <Name>LED1</Name>
                     <Info>
                       <DefaultValue>0</DefaultValue>
                     </Info>
@@ -1299,20 +1486,31 @@
               </Object>
               <Object>
                 <Index>#x8000</Index>
-                <Name>PARAM1</Name>
-                <Type>DINT</Type>
-                <BitSize>32</BitSize>
+                <Name>Parameters</Name>
+                <Type>DT8000</Type>
+                <BitSize>48</BitSize>
                 <Info>
-                  <DefaultValue>0</DefaultValue>
+                  <SubItem>
+                    <Name>Max SubIndex</Name>
+                    <Info>
+                      <DefaultValue>1</DefaultValue>
+                    </Info>
+                  </SubItem>
+                  <SubItem>
+                    <Name>Multiplier</Name>
+                    <Info>
+                      <DefaultValue>0</DefaultValue>
+                    </Info>
+                  </SubItem>
                 </Info>
                 <Flags>
-                  <Access>rw</Access>
+                  <Access>ro</Access>
                 </Flags>
               </Object>
               <Object>
                 <Index>#x8001</Index>
-                <Name>PARAM2</Name>
-                <Type>DINT</Type>
+                <Name>variableRW</Name>
+                <Type>UDINT</Type>
                 <BitSize>32</BitSize>
                 <Info>
                   <DefaultValue>0</DefaultValue>
@@ -1327,107 +1525,58 @@
         <Fmmu>Outputs</Fmmu>
         <Fmmu>Inputs</Fmmu>
         <Fmmu>MBoxState</Fmmu>
-        <Sm ControlByte="#x26" DefaultSize="128" Enable="1" StartAddress="#x1000">MBoxOut</Sm>
-        <Sm ControlByte="#x22" DefaultSize="128" Enable="1" StartAddress="#x1080">MBoxIn</Sm>
-        <Sm ControlByte="#x24" Enable="1" StartAddress="#x1100">Outputs</Sm>
-        <Sm ControlByte="#x20" Enable="1" StartAddress="#x1180">Inputs</Sm>
-        <RxPdo Fixed="false" Mandatory="true" Sm="2">
+        <Sm ControlByte="#x26" DefaultSize="512" Enable="1" StartAddress="#x1000">MBoxOut</Sm>
+        <Sm ControlByte="#x22" DefaultSize="512" Enable="1" StartAddress="#x1200">MBoxIn</Sm>
+        <Sm ControlByte="#x64" Enable="1" StartAddress="#x1400">Outputs</Sm>
+        <Sm ControlByte="#x20" Enable="1" StartAddress="#x1A00">Inputs</Sm>
+        <RxPdo Fixed="true" Mandatory="true" Sm="2">
           <Index>#x1600</Index>
-          <Name>Outputs</Name>
+          <Name>RXPDO 1</Name>
           <Entry>
             <Index>#x7000</Index>
-            <SubIndex>1</SubIndex>
+            <SubIndex>#x1</SubIndex>
             <BitLen>8</BitLen>
-            <Name>OUT1</Name>
-            <DataType>SINT</DataType>
-          </Entry>
-          <Entry>
-            <Index>#x7000</Index>
-            <SubIndex>2</SubIndex>
-            <BitLen>16</BitLen>
-            <Name>OUT2</Name>
-            <DataType>INT</DataType>
-          </Entry>
-          <Entry>
-            <Index>#x7000</Index>
-            <SubIndex>3</SubIndex>
-            <BitLen>32</BitLen>
-            <Name>OUT3</Name>
-            <DataType>DINT</DataType>
+            <Name>LED0</Name>
+            <DataType>USINT</DataType>
           </Entry>
         </RxPdo>
-        <TxPdo Fixed="false" Mandatory="true" Sm="3">
+        <RxPdo Fixed="true" Mandatory="true" Sm="2">
+          <Index>#x1601</Index>
+          <Name>RXPDO 2</Name>
+          <Entry>
+            <Index>#x7001</Index>
+            <SubIndex>#x1</SubIndex>
+            <BitLen>8</BitLen>
+            <Name>LED1</Name>
+            <DataType>USINT</DataType>
+          </Entry>
+        </RxPdo>
+        <RxPdo Sm="2">
+          <Index>#x1602</Index>
+          <Name>RXPDO 3</Name>
+        </RxPdo>
+        <TxPdo Fixed="true" Mandatory="true" Sm="3">
           <Index>#x1A00</Index>
-          <Name>IN1</Name>
+          <Name>TXPDO 1</Name>
           <Entry>
             <Index>#x6000</Index>
-            <SubIndex>0</SubIndex>
-            <BitLen>1</BitLen>
-            <Name>IN1</Name>
-            <DataType>BIT1</DataType>
-          </Entry>
-          <Entry>
-            <Index>0</Index>
-            <SubIndex>0</SubIndex>
-            <BitLen>7</BitLen>
+            <SubIndex>#x1</SubIndex>
+            <BitLen>8</BitLen>
+            <Name>Button1</Name>
+            <DataType>USINT</DataType>
           </Entry>
         </TxPdo>
-        <TxPdo Fixed="true" Mandatory="true" Sm="3">
+        <TxPdo Sm="3">
           <Index>#x1A01</Index>
-          <Name>IN2</Name>
-          <Entry>
-            <Index>#x6001</Index>
-            <SubIndex>0</SubIndex>
-            <BitLen>2</BitLen>
-            <Name>IN2</Name>
-            <DataType>BIT2</DataType>
-          </Entry>
-          <Entry>
-            <Index>0</Index>
-            <SubIndex>0</SubIndex>
-            <BitLen>6</BitLen>
-          </Entry>
-        </TxPdo>
-        <TxPdo Fixed="true" Mandatory="true" Sm="3">
-          <Index>#x1A02</Index>
-          <Name>IN3</Name>
-          <Entry>
-            <Index>#x6002</Index>
-            <SubIndex>0</SubIndex>
-            <BitLen>3</BitLen>
-            <Name>IN3</Name>
-            <DataType>BIT3</DataType>
-          </Entry>
-          <Entry>
-            <Index>0</Index>
-            <SubIndex>0</SubIndex>
-            <BitLen>5</BitLen>
-          </Entry>
-        </TxPdo>
-        <TxPdo Fixed="true" Mandatory="true" Sm="3">
-          <Index>#x1A03</Index>
-          <Name>IN4</Name>
-          <Entry>
-            <Index>#x6003</Index>
-            <SubIndex>0</SubIndex>
-            <BitLen>4</BitLen>
-            <Name>IN4</Name>
-            <DataType>BIT4</DataType>
-          </Entry>
-          <Entry>
-            <Index>0</Index>
-            <SubIndex>0</SubIndex>
-            <BitLen>4</BitLen>
-          </Entry>
+          <Name>TXPDO 2</Name>
         </TxPdo>
         <Mailbox DataLinkLayer="true">
-          <CoE CompleteAccess="false" PdoUpload="true" SdoInfo="true"/>
-          <FoE/>
+          <CoE CompleteAccess="false" PdoAssign="true" PdoConfig="true" PdoUpload="false" SdoInfo="true"/>
         </Mailbox>
         <Eeprom>
           <ByteSize>256</ByteSize>
-          <ConfigData>80068106000000000000</ConfigData>
-          <BootStrap>0010800080108000</BootStrap>
+          <ConfigData>8006810600000000</ConfigData>
+          <BootStrap>0010000200120002</BootStrap>
         </Eeprom>
       </Device>
     </Devices>

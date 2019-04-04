@@ -7,11 +7,13 @@
 #include <examples/board/include/board_i2cLed.h>
 #include <examples/board/include/board_rotary_switch.h>
 
+#if 1
 /* Application variables */
 _Objects    Obj;
 
 /**
  * This function reads physical input values and assigns the corresponding members
+ * of Rb.Buttons
  */
 void cb_get_inputs()
 {
@@ -21,7 +23,8 @@ void cb_get_inputs()
 }
 
 /**
- * This function writes physical output values from the corresponding members
+ * This function writes physical output values from the corresponding members of
+ * Wb.LEDs
  */
 void cb_set_outputs()
 {
@@ -29,6 +32,8 @@ void cb_set_outputs()
     io_output = Obj.LED;
     Board_setDigOutput(io_output);
 }
+#endif
+
 
 /* Called from stack when stopping outputs */
 void user_safeoutput (void)

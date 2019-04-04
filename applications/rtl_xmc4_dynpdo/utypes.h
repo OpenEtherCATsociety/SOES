@@ -1,75 +1,96 @@
 #ifndef __UTYPES_H__
 #define __UTYPES_H__
 
-#include <cc.h>
-#include "config.h"
+#include "cc.h"
 
-/* NOTE: Not packed, does not use bitfields */
+/* Object dictionary storage */
 
 typedef struct
 {
    /* Inputs */
-   uint8_t IN1; /* (BIT1) */
-   uint8_t IN2; /* (BIT2) */
-   uint8_t IN3; /* (BIT3) */
-   uint8_t IN4; /* (BIT4) */
+
+   struct
+   {
+      uint8_t Button1;
+   } Buttons;
 
    /* Outputs */
+
    struct
    {
-      int8_t OUT1;
-      int16_t OUT2;
-      int32_t OUT3;
-   } Outputs;
+      uint8_t LED0;
+   } LEDgroup0;
+   struct
+   {
+      uint8_t LED1;
+   } LEDgroup1;
 
    /* Parameters */
-   int32_t PARAM1;
-   int32_t PARAM2;
 
-   /* Manufacturer specific data */
    struct
    {
-      uint16_t SyncType;
+      uint32_t Multiplier;
+   } Parameters;
+   uint32_t variableRW;
+
+   /* Manufacturer specific data */
+
+   struct
+   {
+      uint32_t Local_Error_Reaction;
+      uint16_t SyncErrorCounterLimit;
+   } ErrorSettings;
+   struct
+   {
+      uint16_t Sync_mode;
       uint32_t CycleTime;
       uint32_t ShiftTime;
-      uint16_t SyncTypeSupport;
-      uint32_t MinCycleTime;
-      uint32_t CalcCopyTime;
-      uint32_t MinDelayTime;
+      uint16_t Sync_modes_supported;
+      uint32_t Minimum_Cycle_Time;
+      uint32_t Calc_and_Copy_Time;
+      uint32_t Minimum_Delay_Time;
       uint16_t GetCycleTime;
       uint32_t DelayTime;
       uint32_t Sync0CycleTime;
       uint16_t SMEventMissedCnt;
       uint16_t CycleTimeTooSmallCnt;
-      uint16_t ShiftTimeTooSmallCnt;
+      uint16_t Shift_too_short_counter;
       uint16_t RxPDOToggleFailed;
-      uint32_t MinCycleDist;
-      uint32_t MaxCycleDist;
-      uint32_t MinSMSYNCDist;
-      uint32_t MaxSMSYNCDist;
-      uint8_t Dummy_x14;
+      uint32_t Minimum_Cycle_Distance;
+      uint32_t Maximum_Cycle_Distance;
+      uint32_t Minimum_SM_Sync_Distance;
+      uint32_t Maximum_SM_Sync_Distance;
       uint8_t SyncError;
    } SyncMgrParam;
-   
-   struct
-   {
-      uint8_t Dummy_x01;
-      uint16_t SyncErrorCounterLimit;
-   } ErrorSettings;
-   
-   /* Storage for configurable PDO:s */
-   struct
-   {
-      uint8_t maxsub;
-      uint32_t value[4];
-   } PDO[2];
 
-   /* Storage for configurable Sync Managers */
+   /* Dynamic TX PDO:s */
+
    struct
    {
       uint8_t maxsub;
-      uint16_t value[4];
-   } SM[2];
+      uint32_t value[8];
+   } PDO1A01;
+
+   /* Dynamic RX PDO:s */
+
+   struct
+   {
+      uint8_t maxsub;
+      uint32_t value[8];
+   } PDO1602;
+
+   /* Dynamic Sync Managers */
+
+   struct
+   {
+      uint8_t maxsub;
+      uint32_t value[8];
+   } SM1C12;
+   struct
+   {
+      uint8_t maxsub;
+      uint32_t value[8];
+   } SM1C13;
 
 } _Objects;
 

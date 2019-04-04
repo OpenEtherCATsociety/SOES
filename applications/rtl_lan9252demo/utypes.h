@@ -1,47 +1,45 @@
 #ifndef __UTYPES_H__
 #define __UTYPES_H__
 
-#include <cc.h>
+#include "cc.h"
 
-CC_PACKED_BEGIN
+
+/* Object dictionary storage */
+
 typedef struct
 {
-   CC_PACKED_BEGIN   
+   /* Inputs */
    struct
    {
       uint8_t Button1;
-   } CC_PACKED Buttons;
-   CC_PACKED_END
-} CC_PACKED _Rbuffer;
-CC_PACKED_END
+   } Buttons;
 
-CC_PACKED_BEGIN
-typedef struct
-{
-   CC_PACKED_BEGIN
+
+   /* Outputs */
    struct
    {
       uint8_t LED0;
       uint8_t LED1;
-   } CC_PACKED LEDs;
-   CC_PACKED_END
-} CC_PACKED _Wbuffer;
-CC_PACKED_END
+   } LEDs;
 
-CC_PACKED_BEGIN
-typedef struct
-{
-   CC_PACKED_BEGIN
+
+   /* Parameters */
    struct
    {
       uint32_t Multiplier;
-   } CC_PACKED Parameters;
-   CC_PACKED_END
-} CC_PACKED _Cbuffer;
-CC_PACKED_END
+   } Parameters;
 
-extern _Rbuffer Rb;
-extern _Wbuffer Wb;
-extern _Cbuffer Cb;
+
+   /* Manufacturer specific data */
+
+   /* Dynamic TX PDO:s */
+
+   /* Dynamic RX PDO:s */
+
+   /* Sync Managers */
+
+} _Objects;
+
+extern _Objects Obj;
 
 #endif /* __UTYPES_H__ */

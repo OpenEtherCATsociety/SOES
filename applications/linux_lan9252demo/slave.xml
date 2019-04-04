@@ -26,7 +26,7 @@
                 <BitSize>144</BitSize>
                 <SubItem>
                   <SubIdx>0</SubIdx>
-                  <Name>Number of Elements</Name>
+                  <Name>Max SubIndex</Name>
                   <Type>USINT</Type>
                   <BitSize>8</BitSize>
                   <BitOffs>0</BitOffs>
@@ -80,7 +80,7 @@
                 <BitSize>80</BitSize>
                 <SubItem>
                   <SubIdx>0</SubIdx>
-                  <Name>Number of Elements</Name>
+                  <Name>Max SubIndex</Name>
                   <Type>USINT</Type>
                   <BitSize>8</BitSize>
                   <BitOffs>0</BitOffs>
@@ -114,7 +114,7 @@
                 <BitSize>48</BitSize>
                 <SubItem>
                   <SubIdx>0</SubIdx>
-                  <Name>Number of Elements</Name>
+                  <Name>Max SubIndex</Name>
                   <Type>USINT</Type>
                   <BitSize>8</BitSize>
                   <BitOffs>0</BitOffs>
@@ -147,7 +147,7 @@
                 <BitSize>48</BitSize>
                 <SubItem>
                   <SubIdx>0</SubIdx>
-                  <Name>Number of Elements</Name>
+                  <Name>Max SubIndex</Name>
                   <Type>USINT</Type>
                   <BitSize>8</BitSize>
                   <BitOffs>0</BitOffs>
@@ -179,7 +179,7 @@
                 <BitSize>32</BitSize>
                 <SubItem>
                   <SubIdx>0</SubIdx>
-                  <Name>Number of Elements</Name>
+                  <Name>Max SubIndex</Name>
                   <Type>USINT</Type>
                   <BitSize>8</BitSize>
                   <BitOffs>0</BitOffs>
@@ -211,7 +211,7 @@
                 <BitSize>32</BitSize>
                 <SubItem>
                   <SubIdx>0</SubIdx>
-                  <Name>Number of Elements</Name>
+                  <Name>Max SubIndex</Name>
                   <Type>USINT</Type>
                   <BitSize>8</BitSize>
                   <BitOffs>0</BitOffs>
@@ -234,7 +234,7 @@
                 <BitSize>24</BitSize>
                 <SubItem>
                   <SubIdx>0</SubIdx>
-                  <Name>Number of Elements</Name>
+                  <Name>Max SubIndex</Name>
                   <Type>USINT</Type>
                   <BitSize>8</BitSize>
                   <BitOffs>0</BitOffs>
@@ -258,7 +258,7 @@
                 <BitSize>32</BitSize>
                 <SubItem>
                   <SubIdx>0</SubIdx>
-                  <Name>Number of Elements</Name>
+                  <Name>Max SubIndex</Name>
                   <Type>USINT</Type>
                   <BitSize>8</BitSize>
                   <BitOffs>0</BitOffs>
@@ -292,7 +292,7 @@
                 <BitSize>48</BitSize>
                 <SubItem>
                   <SubIdx>0</SubIdx>
-                  <Name>Number of Elements</Name>
+                  <Name>Max SubIndex</Name>
                   <Type>USINT</Type>
                   <BitSize>8</BitSize>
                   <BitOffs>0</BitOffs>
@@ -312,10 +312,6 @@
                 </SubItem>
               </DataType>
               <DataType>
-                <Name>STRING(3)</Name>
-                <BitSize>24</BitSize>
-              </DataType>
-              <DataType>
                 <Name>STRING(11)</Name>
                 <BitSize>88</BitSize>
               </DataType>
@@ -326,6 +322,10 @@
               <DataType>
                 <Name>UINT</Name>
                 <BitSize>16</BitSize>
+              </DataType>
+              <DataType>
+                <Name>STRING(0)</Name>
+                <BitSize>0</BitSize>
               </DataType>
               <DataType>
                 <Name>USINT</Name>
@@ -361,8 +361,8 @@
               <Object>
                 <Index>#x1009</Index>
                 <Name>Hardware Version</Name>
-                <Type>STRING(3)</Type>
-                <BitSize>24</BitSize>
+                <Type>STRING(0)</Type>
+                <BitSize>0</BitSize>
                 <Info>
                   <DefaultString>1.0</DefaultString>
                 </Info>
@@ -374,8 +374,8 @@
               <Object>
                 <Index>#x100A</Index>
                 <Name>Software Version</Name>
-                <Type>STRING(3)</Type>
-                <BitSize>24</BitSize>
+                <Type>STRING(0)</Type>
+                <BitSize>0</BitSize>
                 <Info>
                   <DefaultString>1.0</DefaultString>
                 </Info>
@@ -390,7 +390,7 @@
                 <BitSize>144</BitSize>
                 <Info>
                   <SubItem>
-                    <Name>Number of Elements</Name>
+                    <Name>Max SubIndex</Name>
                     <Info>
                       <DefaultValue>4</DefaultValue>
                     </Info>
@@ -431,7 +431,7 @@
                 <BitSize>80</BitSize>
                 <Info>
                   <SubItem>
-                    <Name>Number of Elements</Name>
+                    <Name>Max SubIndex</Name>
                     <Info>
                       <DefaultValue>2</DefaultValue>
                     </Info>
@@ -460,7 +460,7 @@
                 <BitSize>48</BitSize>
                 <Info>
                   <SubItem>
-                    <Name>Number of Elements</Name>
+                    <Name>Max SubIndex</Name>
                     <Info>
                       <DefaultValue>1</DefaultValue>
                     </Info>
@@ -483,7 +483,7 @@
                 <BitSize>48</BitSize>
                 <Info>
                   <SubItem>
-                    <Name>Number of Elements</Name>
+                    <Name>Max SubIndex</Name>
                     <Info>
                       <DefaultValue>4</DefaultValue>
                     </Info>
@@ -524,7 +524,7 @@
                 <BitSize>32</BitSize>
                 <Info>
                   <SubItem>
-                    <Name>Number of Elements</Name>
+                    <Name>Max SubIndex</Name>
                     <Info>
                       <DefaultValue>1</DefaultValue>
                     </Info>
@@ -547,7 +547,7 @@
                 <BitSize>32</BitSize>
                 <Info>
                   <SubItem>
-                    <Name>Number of Elements</Name>
+                    <Name>Max SubIndex</Name>
                     <Info>
                       <DefaultValue>1</DefaultValue>
                     </Info>
@@ -570,7 +570,7 @@
                 <BitSize>24</BitSize>
                 <Info>
                   <SubItem>
-                    <Name>Number of Elements</Name>
+                    <Name>Max SubIndex</Name>
                     <Info>
                       <DefaultValue>1</DefaultValue>
                     </Info>
@@ -593,7 +593,7 @@
                 <BitSize>32</BitSize>
                 <Info>
                   <SubItem>
-                    <Name>Number of Elements</Name>
+                    <Name>Max SubIndex</Name>
                     <Info>
                       <DefaultValue>2</DefaultValue>
                     </Info>
@@ -622,7 +622,7 @@
                 <BitSize>48</BitSize>
                 <Info>
                   <SubItem>
-                    <Name>Number of Elements</Name>
+                    <Name>Max SubIndex</Name>
                     <Info>
                       <DefaultValue>1</DefaultValue>
                     </Info>
@@ -652,14 +652,14 @@
           <Name>LEDs</Name>
           <Entry>
             <Index>#x7000</Index>
-            <SubIndex>1</SubIndex>
+            <SubIndex>#x1</SubIndex>
             <BitLen>8</BitLen>
             <Name>LED0</Name>
             <DataType>USINT</DataType>
           </Entry>
           <Entry>
             <Index>#x7000</Index>
-            <SubIndex>2</SubIndex>
+            <SubIndex>#x2</SubIndex>
             <BitLen>8</BitLen>
             <Name>LED1</Name>
             <DataType>USINT</DataType>
@@ -670,14 +670,14 @@
           <Name>Buttons</Name>
           <Entry>
             <Index>#x6000</Index>
-            <SubIndex>1</SubIndex>
+            <SubIndex>#x1</SubIndex>
             <BitLen>8</BitLen>
             <Name>Button1</Name>
             <DataType>USINT</DataType>
           </Entry>
         </TxPdo>
         <Mailbox DataLinkLayer="true">
-          <CoE CompleteAccess="false" PdoUpload="true" SdoInfo="true"/>
+          <CoE CompleteAccess="false" PdoUpload="false" SdoInfo="true"/>
           <FoE/>
         </Mailbox>
         <Eeprom>

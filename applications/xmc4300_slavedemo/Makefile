@@ -13,7 +13,7 @@ SOES_DIR = ../../soes
 SRC = \
 	main.c \
 	objectlist.c \
-	soes.c \
+	$(SOES_DIR)/ecat_slv.c \
 	$(SOES_DIR)/esc.c \
 	$(SOES_DIR)/esc_coe.c \
 	$(SOES_DIR)/esc_eep.c \

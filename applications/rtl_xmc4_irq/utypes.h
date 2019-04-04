@@ -1,96 +1,79 @@
 #ifndef __UTYPES_H__
 #define __UTYPES_H__
 
-#include <cc.h>
+#include "cc.h"
 
-/* Inputs */
-CC_PACKED_BEGIN
+
+/* Object dictionary storage */
+
 typedef struct
 {
-   CC_PACKED_BEGIN   
+   /* Inputs */
    struct
    {
       uint8_t Button1;
-   } CC_PACKED Buttons;
-   CC_PACKED_END
-} CC_PACKED _Rbuffer;
-CC_PACKED_END
+   } Buttons;
 
-/* Outputs */
-CC_PACKED_BEGIN
-typedef struct
-{
-   CC_PACKED_BEGIN
+
+   /* Outputs */
    struct
    {
       uint8_t LED0;
-   } CC_PACKED LEDgroup0;
-   CC_PACKED_END
-   CC_PACKED_BEGIN
+   } LEDgroup0;
+
    struct
    {
       uint8_t LED1;
-   } CC_PACKED LEDgroup1;
-   CC_PACKED_END
-} CC_PACKED _Wbuffer;
-CC_PACKED_END
+   } LEDgroup1;
 
-/* Parameters */
-CC_PACKED_BEGIN
-typedef struct
-{
-   CC_PACKED_BEGIN
+
+   /* Parameters */
    struct
    {
       uint32_t Multiplier;
-   } CC_PACKED Parameters;
-   CC_PACKED_END
-   uint32_t variableRW;
-} CC_PACKED _Cbuffer;
-CC_PACKED_END
+   } Parameters;
 
-/* Manufacturer specific data */
-CC_PACKED_BEGIN
-typedef struct
-{
-   CC_PACKED_BEGIN
+   uint32_t variableRW;
+
+   /* Manufacturer specific data */
    struct
    {
-      uint16_t SyncType;
+      uint32_t Local_Error_Reaction;
+      uint16_t SyncErrorCounterLimit;
+   } ErrorSettings;
+
+   struct
+   {
+      uint16_t Sync_mode;
       uint32_t CycleTime;
       uint32_t ShiftTime;
-      uint16_t SyncTypeSupport;
-      uint32_t MinCycleTime;
-      uint32_t CalcCopyTime;
-      uint32_t MinDelayTime;
+      uint16_t Sync_modes_supported;
+      uint32_t Minimum_Cycle_Time;
+      uint32_t Calc_and_Copy_Time;
+      uint32_t Minimum_Delay_Time;
       uint16_t GetCycleTime;
       uint32_t DelayTime;
       uint32_t Sync0CycleTime;
       uint16_t SMEventMissedCnt;
       uint16_t CycleTimeTooSmallCnt;
-      uint16_t ShiftTimeTooSmallCnt;
+      uint16_t Shift_too_short_counter;
       uint16_t RxPDOToggleFailed;
-      uint32_t MinCycleDist;
-      uint32_t MaxCycleDist;
-      uint32_t MinSMSYNCDist;
-      uint32_t MaxSMSYNCDist;
-      uint8_t Dummy_x14;
+      uint32_t Minimum_Cycle_Distance;
+      uint32_t Maximum_Cycle_Distance;
+      uint32_t Minimum_SM_Sync_Distance;
+      uint32_t Maximum_SM_Sync_Distance;
       uint8_t SyncError;
-   } CC_PACKED SyncMgrParam;
-   CC_PACKED_END
-   CC_PACKED_BEGIN
-   struct
-   {
-      uint8_t Dummy_x01;
-      uint16_t SyncErrorCounterLimit;
-   } CC_PACKED ErrorSettings;
-   CC_PACKED_END
-} CC_PACKED _Mbuffer;
-CC_PACKED_END
+   } SyncMgrParam;
 
-extern _Rbuffer Rb;
-extern _Wbuffer Wb;
-extern _Cbuffer Cb;
-extern _Mbuffer Mb;
+
+   /* Dynamic TX PDO:s */
+
+   /* Dynamic RX PDO:s */
+
+   /* Sync Managers */
+
+} _Objects;
+
+extern _Objects Obj;
 
 #endif /* __UTYPES_H__ */

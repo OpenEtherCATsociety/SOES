@@ -1,66 +1,70 @@
-#include "soes/esc_coe.h"
+#include "esc_coe.h"
 #include "utypes.h"
 #include <stddef.h>
 
+#ifndef HW_REV
+#define HW_REV "1.0"
+#endif
+
+#ifndef SW_REV
+#define SW_REV "1.0"
+#endif
+
 static const char acName1000[] = "Device Type";
-static const char acName1000_0[] = "Device Type";
 static const char acName1008[] = "Device Name";
-static const char acName1008_0[] = "Device Name";
 static const char acName1009[] = "Hardware Version";
-static const char acName1009_0[] = "Hardware Version";
 static const char acName100A[] = "Software Version";
-static const char acName100A_0[] = "Software Version";
 static const char acName1018[] = "Identity Object";
-static const char acName1018_00[] = "Number of Elements";
+static const char acName1018_00[] = "Max SubIndex";
 static const char acName1018_01[] = "Vendor ID";
 static const char acName1018_02[] = "Product Code";
 static const char acName1018_03[] = "Revision Number";
 static const char acName1018_04[] = "Serial Number";
 static const char acName1600[] = "LEDs";
-static const char acName1600_00[] = "Number of Elements";
+static const char acName1600_00[] = "Max SubIndex";
 static const char acName1600_01[] = "LED0";
 static const char acName1600_02[] = "LED1";
 static const char acName1A00[] = "Buttons";
-static const char acName1A00_00[] = "Number of Elements";
+static const char acName1A00_00[] = "Max SubIndex";
 static const char acName1A00_01[] = "Button1";
 static const char acName1C00[] = "Sync Manager Communication Type";
-static const char acName1C00_00[] = "Number of Elements";
+static const char acName1C00_00[] = "Max SubIndex";
 static const char acName1C00_01[] = "Communications Type SM0";
 static const char acName1C00_02[] = "Communications Type SM1";
 static const char acName1C00_03[] = "Communications Type SM2";
 static const char acName1C00_04[] = "Communications Type SM3";
 static const char acName1C12[] = "Sync Manager 2 PDO Assignment";
-static const char acName1C12_00[] = "Number of Elements";
+static const char acName1C12_00[] = "Max SubIndex";
 static const char acName1C12_01[] = "PDO Mapping";
 static const char acName1C13[] = "Sync Manager 3 PDO Assignment";
-static const char acName1C13_00[] = "Number of Elements";
+static const char acName1C13_00[] = "Max SubIndex";
 static const char acName1C13_01[] = "PDO Mapping";
 static const char acName6000[] = "Buttons";
-static const char acName6000_00[] = "Number of Elements";
+static const char acName6000_00[] = "Max SubIndex";
 static const char acName6000_01[] = "Button1";
 static const char acName7000[] = "LEDs";
-static const char acName7000_00[] = "Number of Elements";
+static const char acName7000_00[] = "Max SubIndex";
 static const char acName7000_01[] = "LED0";
 static const char acName7000_02[] = "LED1";
 static const char acName8000[] = "Parameters";
-static const char acName8000_00[] = "Number of Elements";
+static const char acName8000_00[] = "Max SubIndex";
 static const char acName8000_01[] = "Multiplier";
 
 const _objd SDO1000[] =
 {
-  {0x0, DTYPE_UNSIGNED32, 32, ATYPE_RO, acName1000_0, 0x01901389, NULL},
+  {0x0, DTYPE_UNSIGNED32, 32, ATYPE_RO, acName1000, 0x01901389, NULL},
 };
 const _objd SDO1008[] =
 {
-  {0x0, DTYPE_VISIBLE_STRING, 88, ATYPE_RO, acName1008_0, 0, "evb9252_dig"},
+  {0x0, DTYPE_VISIBLE_STRING, 88, ATYPE_RO, acName1008, 0, "evb9252_dig"},
 };
 const _objd SDO1009[] =
 {
-  {0x0, DTYPE_VISIBLE_STRING, 24, ATYPE_RO, acName1009_0, 0, "1.0"},
+  {0x0, DTYPE_VISIBLE_STRING, 0, ATYPE_RO, acName1009, 0, HW_REV},
 };
 const _objd SDO100A[] =
 {
-  {0x0, DTYPE_VISIBLE_STRING, 24, ATYPE_RO, acName100A_0, 0, "1.0"},
+  {0x0, DTYPE_VISIBLE_STRING, 0, ATYPE_RO, acName100A, 0, SW_REV},
 };
 const _objd SDO1018[] =
 {
@@ -102,18 +106,18 @@ const _objd SDO1C13[] =
 const _objd SDO6000[] =
 {
   {0x00, DTYPE_UNSIGNED8, 8, ATYPE_RO, acName6000_00, 1, NULL},
-  {0x01, DTYPE_UNSIGNED8, 8, ATYPE_RO, acName6000_01, 0, &Rb.Buttons.Button1},
+  {0x01, DTYPE_UNSIGNED8, 8, ATYPE_RO, acName6000_01, 0, &Obj.Buttons.Button1},
 };
 const _objd SDO7000[] =
 {
   {0x00, DTYPE_UNSIGNED8, 8, ATYPE_RO, acName7000_00, 2, NULL},
-  {0x01, DTYPE_UNSIGNED8, 8, ATYPE_RO, acName7000_01, 0, &Wb.LEDs.LED0},
-  {0x02, DTYPE_UNSIGNED8, 8, ATYPE_RO, acName7000_02, 0, &Wb.LEDs.LED1},
+  {0x01, DTYPE_UNSIGNED8, 8, ATYPE_RO, acName7000_01, 0, &Obj.LEDs.LED0},
+  {0x02, DTYPE_UNSIGNED8, 8, ATYPE_RO, acName7000_02, 0, &Obj.LEDs.LED1},
 };
 const _objd SDO8000[] =
 {
   {0x00, DTYPE_UNSIGNED8, 8, ATYPE_RO, acName8000_00, 1, NULL},
-  {0x01, DTYPE_UNSIGNED32, 32, ATYPE_RW, acName8000_01, 0, &Cb.Parameters.Multiplier},
+  {0x01, DTYPE_UNSIGNED32, 32, ATYPE_RW, acName8000_01, 0, &Obj.Parameters.Multiplier},
 };
 
 const _objectlist SDOobjects[] =

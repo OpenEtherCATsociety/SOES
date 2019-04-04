@@ -7,22 +7,37 @@
 #include "esc.h"
 #include "esc_hw.h"
 #include "ecat_slv.h"
-#include "config.h"
+#include "options.h"
 #include "utypes.h"
+#include "bsp.h"
 
 /* Application variables */
 _Objects    Obj;
 
-void cb_get_inputs (void)
+/*
+ * This function is called to get input values
+ */
+void cb_get_inputs()
 {
-   Obj.IN1 = 1;
-   Obj.IN2 = 2;
-   Obj.IN3 = 3;
-   Obj.IN4 = 4;
+   Obj.Buttons.Button1 = gpio_get (GPIO_BUTTON1);
 }
 
-void cb_set_outputs (void)
+/*
+ * This function is called to set output values
+ */
+void cb_set_outputs()
 {
+   gpio_set (GPIO_LED1, Obj.LEDgroup0.LED0);
+   gpio_set (GPIO_LED2, Obj.LEDgroup1.LED1);
+}
+
+void cb_state_change (uint8_t * as, uint8_t * an)
+{
+   if (*as == SAFEOP_TO_OP)
+   {
+      /* Enable watchdog interrupt */
+      ESC_ALeventmaskwrite (ESC_ALeventmaskread() | ESCREG_ALEVENT_WD);
+   }
 }
 
 /* Setup of DC */
@@ -30,7 +45,7 @@ uint16_t dc_checker (void)
 {
    /* Indicate we run DC */
    ESCvar.dcsync = 1;
-   /* Fetch the sync counter limit  SDO10F1*/
+   /* Fetch the sync counter limit (SDO10F1) */
    ESCvar.synccounterlimit = Obj.ErrorSettings.SyncErrorCounterLimit;
    return 0;
 }
@@ -44,7 +59,7 @@ int main (void)
       .watchdog_cnt = INT32_MAX, /* Use HW SM watchdog instead */
       .set_defaults_hook = NULL,
       .pre_state_change_hook = NULL,
-      .post_state_change_hook = NULL,
+      .post_state_change_hook = cb_state_change,
       .application_hook = NULL,
       .safeoutput_override = NULL,
       .pre_object_download_hook = NULL,
