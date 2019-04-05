@@ -466,9 +466,10 @@ void SDO_download (void)
       if (nsub >= 0)
       {
          objd = SDOobjects[nidx].objdesc;
-         if (((objd + nsub)->access == ATYPE_RW) ||
-             (((objd + nsub)->access == ATYPE_RWpre)
-              && ((ESCvar.ALstatus & 0x0f) == ESCpreop)))
+         uint8_t access = (objd + nsub)->access & 0x3f;
+         uint8_t state = ESCvar.ALstatus & 0x0f;
+         if (access == ATYPE_RW ||
+             (access == ATYPE_RWpre && state == ESCpreop))
          {
             /* expedited? */
             if (coesdo->command & COE_EXPEDITED_INDICATOR)
@@ -513,7 +514,7 @@ void SDO_download (void)
          }
          else
          {
-            if ((objd + nsub)->access == ATYPE_RWpre)
+            if (access == ATYPE_RWpre)
             {
                SDO_abort (index, subindex, ABORT_NOTINTHISSTATE);
             }
@@ -557,7 +558,8 @@ void SDO_infoerror (uint32_t abortcode)
       coeres->infoheader.incomplete = 0;
       coeres->infoheader.reserved = 0x00;
       coeres->infoheader.fragmentsleft = 0;
-      coeres->index = htoel (abortcode);
+      coeres->index = (uint16_t)htoel (abortcode);
+      coeres->datatype = (uint16_t)(htoel (abortcode) >> 16);
       MBXcontrol[MBXout].state = MBXstate_outreq;
       MBXcontrol[0].state = MBXstate_idle;
       ESCvar.xoe = 0;
@@ -741,12 +743,20 @@ void SDO_getod (void)
             int32_t nsub = SDO_findsubindex (nidx, 0);
             const _objd *objd = SDOobjects[nidx].objdesc;
             coel->datatype = htoes ((objd + nsub)->datatype);
+            coel->maxsub = SDOobjects[nidx].maxsub;
+         }
+         else if (SDOobjects[nidx].objtype == OTYPE_ARRAY)
+         {
+            int32_t nsub = SDO_findsubindex (nidx, 0);
+            const _objd *objd = SDOobjects[nidx].objdesc;
+            coel->datatype = htoes ((objd + nsub)->datatype);
+            coel->maxsub = SDOobjects[nidx].objdesc->value;
          }
          else
          {
             coel->datatype = htoes (0);
+            coel->maxsub = SDOobjects[nidx].objdesc->value;
          }
-         coel->maxsub = SDOobjects[nidx].maxsub;
          coel->objectcode = SDOobjects[nidx].objtype;
          s = (uint8_t *) SDOobjects[nidx].name;
          d = (uint8_t *) &(coel->name);

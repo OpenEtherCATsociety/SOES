@@ -685,6 +685,12 @@ uint8_t ESC_checkSM23 (uint8_t state)
       /* fail state change */
       return (ESCpreop | ESCerror);
    }
+   if ((ESC_SM2_sma + (etohs (SM->Length) * 3)) > ESC_SM3_sma)
+   {
+      ESCvar.SMtestresult = SMRESULT_ERRSM2;
+      /* SM2 overlaps SM3, fail state change */
+      return (ESCpreop | ESCerror);
+   }
    ESC_read (ESCREG_SM3, (void *) &ESCvar.SM[3], sizeof (ESCvar.SM[3]));
    SM = (_ESCsm2 *) & ESCvar.SM[3];
    if ((etohs (SM->PSA) != ESC_SM3_sma) || (etohs (SM->Length) != ESCvar.ESC_SM3_sml)

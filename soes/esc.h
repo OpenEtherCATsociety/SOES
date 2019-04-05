@@ -340,8 +340,7 @@ typedef struct CC_PACKED
 } _ESCsmCompact;
 CC_PACKED_END
 
-CC_PACKED_BEGIN
-typedef struct CC_PACKED
+typedef struct
 {
    /* Configuration input is saved so the user variable may go out-of-scope */
    int use_interrupt;
@@ -390,20 +389,10 @@ typedef struct CC_PACKED
    uint16_t frags;
    uint16_t fragsleft;
 
-#if defined(EC_LITTLE_ENDIAN)
-   uint8_t r1:1;
-   uint8_t toggle:1;
-   uint8_t r2:6;
-#endif
+   uint8_t toggle;
 
-#if defined(EC_BIG_ENDIAN)
-   uint8_t r2:6;
-   uint8_t toggle:1;
-   uint8_t r1:1;
-#endif
 
    uint8_t SMtestresult;
-   int16_t temp;
    uint32_t PrevTime;
    _ESCsm SM[4];
    /* Volatile since it may be read from ISR */
@@ -413,7 +402,6 @@ typedef struct CC_PACKED
    volatile int8_t synccounter;
    volatile _App App;
 } _ESCvar;
-CC_PACKED_END
 
 CC_PACKED_BEGIN
 typedef struct CC_PACKED
