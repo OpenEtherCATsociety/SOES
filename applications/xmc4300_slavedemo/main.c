@@ -24,6 +24,9 @@ _Rbuffer    Rb;
 _Wbuffer    Wb;
 _Cbuffer    Cb;
 
+uint8_t * rxpdo = (uint8_t *)&Wb.LED;
+uint8_t * txpdo = (uint8_t *)&Rb.button;
+
 uint32_t encoder_scale;
 uint32_t encoder_scale_mirror;
 

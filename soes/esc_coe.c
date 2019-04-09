@@ -69,6 +69,16 @@ int32_t SDO_findobject (uint16_t index)
  * Calculate the size in Bytes of RxPDO or TxPDOs by adding the
  * objects in SyncManager SDO 1C1x.
  *
+ * A list of mapped objects is created for fast lookup of
+ * dynamically mapped process data. The max size of the list (@a
+ * max_mappings) can be set to 0 if dynamic processdata is not
+ * supported.
+ *
+ * The output variable @a nmappings is set to 0 if dynamic processdata
+ * is not supported. It is set to the number of mapped objects if
+ * dynamic processdata is supported, or -1 if the mapping was
+ * incorrect.
+
  * @param[in] index = SM index
  * @param[out] nmappings = number of mapped objects in SM, or -1 if
  *   mapping is invalid
@@ -76,7 +86,7 @@ int32_t SDO_findobject (uint16_t index)
  * @param[out] max_mappings = max number of mapped objects in SM
  * @return size of RxPDO or TxPDOs in Bytes.
  */
-uint16_t sizeOfPDO (uint16_t index, int * nmappings,_SMmap * mappings,
+uint16_t sizeOfPDO (uint16_t index, int * nmappings, _SMmap * mappings,
                     int max_mappings)
 {
    uint16_t offset = 0, hobj;
@@ -116,46 +126,72 @@ uint16_t sizeOfPDO (uint16_t index, int * nmappings,_SMmap * mappings,
             for (c = 1; c <= maxsub; c++)
             {
                uint32_t value = OBJ_VALUE_FETCH (value, objd[c]);
-               uint16_t index = value >> 16;
-               uint8_t subindex = (value >> 8) & 0xFF;
                uint8_t bitlength = value & 0xFF;
-               const _objd * mapping;
 
-               if (mapIx == max_mappings)
+               if (max_mappings > 0)
                {
-                  /* Too many mapped objects */
-                  *nmappings = -1;
-                  return 0;
-               }
+                  uint16_t index = value >> 16;
+                  uint8_t subindex = (value >> 8) & 0xFF;
+                  const _objd * mapping;
 
-               DPRINT ("%04x:%02x @ %d\n", index, subindex, offset);
-               nidx = SDO_findobject (index);
-               if (nidx >= 0)
-               {
-                  int16_t nsub;
-
-                  nsub = SDO_findsubindex (nidx, subindex);
-                  if (nsub < 0)
+                  if (mapIx == max_mappings)
                   {
-                     mapping = NULL;
+                     /* Too many mapped objects */
+                     *nmappings = -1;
+                     return 0;
                   }
 
-                  mapping = &SDOobjects[nidx].objdesc[nsub];
-               }
-               else
-               {
-                  mapping = NULL;
-               }
+                  DPRINT ("%04x:%02x @ %d\n", index, subindex, offset);
 
-               mappings[mapIx].obj = mapping;
-               mappings[mapIx++].offset = offset;
+                  if (index == 0 && subindex == 0)
+                  {
+                     /* Padding element */
+                     mapping = NULL;
+                  }
+                  else
+                  {
+                     nidx = SDO_findobject (index);
+                     if (nidx >= 0)
+                     {
+                        int16_t nsub;
+
+                        nsub = SDO_findsubindex (nidx, subindex);
+                        if (nsub < 0)
+                        {
+                           /* Mapped subindex does not exist */
+                           *nmappings = -1;
+                           return 0;
+                        }
+
+                        mapping = &SDOobjects[nidx].objdesc[nsub];
+                     }
+                     else
+                     {
+                        /* Mapped index does not exist */
+                        *nmappings = -1;
+                        return 0;
+                     }
+                  }
+
+                  mappings[mapIx].obj = mapping;
+                  mappings[mapIx++].offset = offset;
+               }
 
                offset += bitlength;
             }
          }
       }
    }
-   *nmappings = mapIx;
+
+   if (max_mappings > 0)
+   {
+      *nmappings = mapIx;
+   }
+   else
+   {
+      *nmappings = 0;
+   }
+
    return BITS2BYTES (offset);
 }
 

@@ -119,26 +119,29 @@
 #define SM3_act          1
 #endif
 
-/* Max processdata size (outputs) */
-#ifndef MAX_RXPDO_SIZE
-#define MAX_RXPDO_SIZE   128
-#endif
-
-/* Max processdata size (inputs) */
-#ifndef MAX_TXPDO_SIZE
-#define MAX_TXPDO_SIZE   128
-#endif
-
-/* Max number of mapped objects in SM2 */
+/* Max number of dynamically mapped objects in SM2. May be 0 to
+   disable dynamic processdata. */
 #ifndef MAX_MAPPINGS_SM2
 #define MAX_MAPPINGS_SM2 16
 #endif
 
-/* Max number of mapped objects in SM3 */
+/* Max number of dynamically mapped objects in SM3. May be 0 to
+   disable dynamic processdata. */
 #ifndef MAX_MAPPINGS_SM3
 #define MAX_MAPPINGS_SM3 16
 #endif
 
-/* _Static_assert (SM2_sma + 3 * MAX_INPUT_SIZE < SM3_sma); */
+/* Max processdata size (outputs). Only used if MAX_MAPPINGS_SM2 is
+   non-zero. */
+#ifndef MAX_RXPDO_SIZE
+#define MAX_RXPDO_SIZE   128
+#endif
+
+/* Max processdata size (inputs). Only used if MAX_MAPPINGS_SM3 is
+   non-zero. */
+#ifndef MAX_TXPDO_SIZE
+#define MAX_TXPDO_SIZE   128
+#endif
+
 
 #endif /* __options__ */
