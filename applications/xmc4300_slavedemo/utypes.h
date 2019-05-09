@@ -16,21 +16,27 @@
 
 #include <cc.h>
 
+CC_PACKED_BEGIN
 typedef struct
 {
    uint8_t state;
    uint8_t button;
    uint32_t encoder;
-} _Rbuffer;
+}CC_PACKED _Rbuffer;
+CC_PACKED_END
 
+CC_PACKED_BEGIN
 typedef struct
 {
    uint8_t LED;
-} _Wbuffer;
+}CC_PACKED _Wbuffer;
+CC_PACKED_END
 
+CC_PACKED_BEGIN
 typedef struct
 {
    uint32_t reset_counter;
-} _Cbuffer;
+}CC_PACKED _Cbuffer;
+CC_PACKED_END
 
 #endif

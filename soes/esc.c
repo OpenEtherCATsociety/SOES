@@ -41,6 +41,48 @@ void ESC_ALstatus (uint8_t status)
    ESC_write (ESCREG_ALSTATUS, &dummy, sizeof (dummy));
 }
 
+/** Write AL Status and AL Status code to the ESC.
+ *  Call pre- and poststate change hook
+ *
+ * @param[in] status   = Write current slave status to register 0x130 AL Status
+ * reflecting actual state and error indication if present
+ * @param[in] errornumber   = Write an by EtherCAT specified Error number
+ * register 0x134 AL Status Code
+ */
+void ESC_ALstatusgotoerror (uint8_t status, uint16_t errornumber)
+{
+   uint8_t an, as;
+
+   if(status & ESCop)
+   {
+      /* Erroneous input, ignore */
+      return;
+   }
+   /* Mask error ack of current state */
+   as = ESCvar.ALstatus & ESCREG_AL_ERRACKMASK;
+   an = as;
+   /* Set the state transition, new state in high bits and old in bits  */
+   as = ((status & ESCREG_AL_ERRACKMASK) << 4) | (as & 0x0f);
+   /* Call post state change hook case it have been configured  */
+   if (ESCvar.pre_state_change_hook != NULL)
+   {
+      ESCvar.pre_state_change_hook (&as, &an);
+   }
+   /* Stop outputs if active */
+   if ((CC_ATOMIC_GET(ESCvar.App.state) & APPSTATE_OUTPUT) > 0)
+   {
+      ESC_stopoutput();
+   }
+   ESC_ALerror(errornumber);
+   ESC_ALstatus(status);
+   an = status;
+   /* Call post state change hook case it have been configured  */
+   if (ESCvar.post_state_change_hook != NULL)
+   {
+      ESCvar.post_state_change_hook (&as, &an);
+   }
+}
+
 /** Write ALeventMask register 0x204.
  *
  * @param[in] n   = AL Event Mask
@@ -208,51 +250,16 @@ uint16_t ESC_checkDC (void)
    uint16_t ret = 0;
 
    uint8_t sync_act = ESC_SYNCactivation();
-   uint32_t sync0_cycletime = ESC_SYNC0cycletime();
-   uint16_t sync_type_supported1c32 = 0;
-   uint32_t mincycletime = 0;
-
    /* Do we need to check sync settings? */
    if((sync_act & (ESCREG_SYNC_ACT_ACTIVATED | ESCREG_SYNC_AUTO_ACTIVATED)) > 0)
    {
-      /* If the sync unit is active at least on signal should be activated */
-      if(COE_getSyncMgrPara(0x1c32, 0x4, &sync_type_supported1c32, DTYPE_UNSIGNED16) == 0)
+      /* Trigger a by the application given DC check handler, return error if
+       *  non is given
+       */
+      ret = ALERR_DCINVALIDSYNCCFG;
+      if(ESCvar.esc_check_dc_handler != NULL)
       {
-         ret = ALERR_DCINVALIDSYNCCFG;
-
-      }
-      else if(COE_getSyncMgrPara(0x1c32, 0x5, &mincycletime, DTYPE_UNSIGNED32) == 0)
-      {
-         ret = ALERR_DCINVALIDSYNCCFG;
-      }
-      else if(COE_getSyncMgrPara(0x10F1, 0x2, &ESCvar.synccounterlimit, DTYPE_UNSIGNED16) == 0)
-      {
-         ret = ALERR_DCINVALIDSYNCCFG;
-      }
-      else if((sync_act & (ESCREG_SYNC_SYNC0_EN | ESCREG_SYNC_SYNC1_EN)) == 0)
-      {
-         ret = ALERR_DCINVALIDSYNCCFG;
-      }
-      /* Do we support activated signals */
-      else if(((sync_type_supported1c32 & SYNCTYPE_SUPPORT_DCSYNC0) == 0) &&
-            ((sync_act & ESCREG_SYNC_SYNC0_EN) > 0))
-      {
-         ret = ALERR_DCINVALIDSYNCCFG;
-      }
-      /* Do we support activated signals */
-      else if(((sync_type_supported1c32 & SYNCTYPE_SUPPORT_DCSYNC1) == 0) &&
-            ((sync_act & ESCREG_SYNC_SYNC1_EN) > 0))
-      {
-         ret = ALERR_DCINVALIDSYNCCFG;
-      }
-      else if((sync0_cycletime != 0) && (sync0_cycletime < mincycletime))
-      {
-         ret = ALERR_DCSYNC0CYCLETIME;
-      }
-      else
-      {
-         ESCvar.dcsync = 1;
-         ESCvar.synccounter = 0;
+         ret = (ESCvar.esc_check_dc_handler)();
       }
    }
    else
@@ -310,7 +317,7 @@ uint8_t ESC_checkmbx (uint8_t state)
 uint8_t ESC_startmbx (uint8_t state)
 {
    /* Assign SM settings */
-   ESCvar.activembxsize = ESCvar.mbxsize;
+   ESCvar.activembxsize = MBXSIZE;
    ESCvar.activemb0 = &ESCvar.mb[0];
    ESCvar.activemb1 = &ESCvar.mb[1];
 
@@ -344,7 +351,7 @@ uint8_t ESC_startmbx (uint8_t state)
 uint8_t ESC_startmbxboot (uint8_t state)
 {
    /* Assign SM settings */
-   ESCvar.activembxsize = ESCvar.mbxsizeboot;
+   ESCvar.activembxsize = MBXSIZEBOOT;
    ESCvar.activemb0 = &ESCvar.mbboot[0];
    ESCvar.activemb1 = &ESCvar.mbboot[1];
 
@@ -971,7 +978,7 @@ void ESC_state (void)
       {
          /* get station address */
          ESC_address ();
-         COE_initDefaultSyncMgrPara ();
+         COE_initDefaultValues ();
          an = ESC_startmbx (ac);
          break;
       }
@@ -1029,8 +1036,24 @@ void ESC_state (void)
       case PREOP_TO_SAFEOP:
       case SAFEOP_TO_SAFEOP:
       {
-         ESCvar.ESC_SM2_sml = sizeOfPDO (RX_PDO_OBJIDX);
-         ESCvar.ESC_SM3_sml = sizeOfPDO (TX_PDO_OBJIDX);
+         ESCvar.ESC_SM2_sml = sizeOfPDO (RX_PDO_OBJIDX, &ESCvar.sm2mappings,
+                                         SMmap2, MAX_MAPPINGS_SM2);
+         if (ESCvar.sm2mappings < 0)
+         {
+            an = ESCpreop | ESCerror;
+            ESC_ALerror (ALERR_INVALIDOUTPUTSM);
+            break;
+         }
+
+         ESCvar.ESC_SM3_sml = sizeOfPDO (TX_PDO_OBJIDX, &ESCvar.sm3mappings,
+                                         SMmap3, MAX_MAPPINGS_SM3);
+         if (ESCvar.sm3mappings < 0)
+         {
+            an = ESCpreop | ESCerror;
+            ESC_ALerror (ALERR_INVALIDINPUTSM);
+            break;
+         }
+
          an = ESC_startinput (ac);
          if (an == ac)
          {
@@ -1111,7 +1134,7 @@ void ESC_state (void)
    }
 
    ESC_ALstatus (an);
-
+   DPRINT ("state %x\n", an);
 }
 /** Function copying the application configuration variable
  * data to the stack local variable.
@@ -1121,20 +1144,21 @@ void ESC_state (void)
  */
 void ESC_config (esc_cfg_t * cfg)
 {
-   /* Copy configuration data */
+   static sm_cfg_t mb0 = {MBX0_sma, MBX0_sml, MBX0_sme, MBX0_smc, 0};
+   static sm_cfg_t mb1 = {MBX1_sma, MBX1_sml, MBX1_sme, MBX1_smc, 0};
+   static sm_cfg_t mbboot0 = {MBX0_sma_b, MBX0_sml_b, MBX0_sme_b, MBX0_smc_b, 0};
+   static sm_cfg_t mbboot1 = {MBX1_sma_b, MBX1_sml_b, MBX1_sme_b, MBX1_smc_b, 0};
+
+   /* Configure stack */
    ESCvar.use_interrupt = cfg->use_interrupt;
    ESCvar.watchdogcnt = cfg->watchdog_cnt;
-   ESCvar.mbxsize = cfg->mbxsize;
-   ESCvar.mbxsizeboot = cfg->mbxsizeboot;
-   ESCvar.mbxbuffers = cfg->mbxbuffers;
 
-   ESCvar.mb[0] = cfg->mb[0];
-   ESCvar.mb[1] = cfg->mb[1];
-   ESCvar.mbboot[0] = cfg->mb_boot[0];
-   ESCvar.mbboot[1] = cfg->mb_boot[1];
-   ESCvar.pdosm[0] = cfg->pdosm[0];
-   ESCvar.pdosm[1] = cfg->pdosm[1];
+   ESCvar.mb[0] = mb0;
+   ESCvar.mb[1] = mb1;
+   ESCvar.mbboot[0] = mbboot0;
+   ESCvar.mbboot[1] = mbboot1;
 
+   ESCvar.set_defaults_hook = cfg->set_defaults_hook;
    ESCvar.pre_state_change_hook = cfg->pre_state_change_hook;
    ESCvar.post_state_change_hook = cfg->post_state_change_hook;
    ESCvar.application_hook = cfg->application_hook;
@@ -1146,4 +1170,5 @@ void ESC_config (esc_cfg_t * cfg)
    ESCvar.esc_hw_interrupt_enable = cfg->esc_hw_interrupt_enable;
    ESCvar.esc_hw_interrupt_disable = cfg->esc_hw_interrupt_disable;
    ESCvar.esc_hw_eep_handler = cfg->esc_hw_eep_handler;
+   ESCvar.esc_check_dc_handler = cfg->esc_check_dc_handler;
 }

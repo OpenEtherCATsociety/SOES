@@ -18,7 +18,6 @@
 /* idle timeout in ns before actual flash write will be issued */
 #define EEP_IDLE_TIMEOUT	100000000
 
-
 /* Pages per emulated EEPROM block */
 #define EEP_BYTES_PER_SECTOR  XMC4_EEPROM_SECTOR_SIZE_BYTES
 #define EEP_BYTES_PER_PAGE    XMC4_PAGE_SIZE_BYTES
@@ -38,6 +37,8 @@ typedef struct CC_PACKED
 
 /* eeprom size increments in steps of 0x80 bytes */
 #define EEP_EMU_BYTES         (EEP_DATA_BYTES & ~0x7f)
+
+extern uint8_t eep_write_pending;
 
 /* block structure */
 typedef struct CC_PACKED

@@ -1,6 +1,5 @@
 
 add_executable (rtl_slavedemo
-  soes.c
   objectlist.c
   led_handler.c
   bootstrap.c

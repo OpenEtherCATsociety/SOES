@@ -18,7 +18,6 @@
 
 typedef struct
 {
-   uint8_t state;
    uint8_t button;
    uint32_t encoder;
 } _Rbuffer;

@@ -1,0 +1,1106 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Slave xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="com.rtlabs.emf.esx" fileVersion="2" id="xmc48relax" productCode="0x4800" manualPdoMapping="true">
+  <Name>xmc48relax</Name>
+  <Vendor>
+    <Id>0x1337</Id>
+    <Name>rt-labs</Name>
+  </Vendor>
+  <Group>
+    <Type>xmc4</Type>
+    <Name>xmc4</Name>
+  </Group>
+  <Fmmu>Outputs</Fmmu>
+  <Fmmu>Inputs</Fmmu>
+  <Fmmu>MBoxState</Fmmu>
+  <Sm ControlByte="0x26" DefaultSize="512" StartAddress="0x1000">MBoxOut</Sm>
+  <Sm ControlByte="0x22" DefaultSize="512" StartAddress="0x1200">MBoxIn</Sm>
+  <Sm ControlByte="0x64" DefaultSize="0" StartAddress="0x1400">Outputs</Sm>
+  <Sm ControlByte="0x20" DefaultSize="0" StartAddress="0x1A00">Inputs</Sm>
+  <Mailbox CoE="true">
+    <Bootstrap Length="512" Start="0x1000"/>
+    <Standard Length="512" Start="0x1000"/>
+  </Mailbox>
+  <Eeprom>
+    <ConfigData>8006810600000000</ConfigData>
+    <BootStrap>0010000200120002</BootStrap>
+  </Eeprom>
+  <Dictionary>
+    <Item Managed="true">
+      <Index>0x1000</Index>
+      <Name>Device Type</Name>
+      <DataType>UNSIGNED32</DataType>
+      <DefaultValue>0x00001389</DefaultValue>
+    </Item>
+    <Item Managed="true">
+      <Index>0x1008</Index>
+      <Name>Device Name</Name>
+      <DataType>VISIBLE_STRING</DataType>
+      <DefaultValue>xmc48relax</DefaultValue>
+      <Length>10</Length>
+    </Item>
+    <Item>
+      <Index>0x1009</Index>
+      <Name>Hardware Version</Name>
+      <DataType>VISIBLE_STRING</DataType>
+      <DefaultValue>1.0</DefaultValue>
+      <Length>3</Length>
+    </Item>
+    <Item>
+      <Index>0x100A</Index>
+      <Name>Software Version</Name>
+      <DataType>VISIBLE_STRING</DataType>
+      <DefaultValue>1.0</DefaultValue>
+      <Length>3</Length>
+    </Item>
+    <Item Managed="true">
+      <Index>0x1018</Index>
+      <Name>Identity Object</Name>
+      <DataType>RECORD</DataType>
+      <SubItem>
+        <Index>0x00</Index>
+        <Name>Max SubIndex</Name>
+        <DataType>UNSIGNED8</DataType>
+        <DefaultValue>4</DefaultValue>
+      </SubItem>
+      <SubItem>
+        <Index>0x01</Index>
+        <Name>Vendor ID</Name>
+        <DataType>UNSIGNED32</DataType>
+        <DefaultValue>0x1337</DefaultValue>
+      </SubItem>
+      <SubItem>
+        <Index>0x02</Index>
+        <Name>Product Code</Name>
+        <DataType>UNSIGNED32</DataType>
+        <DefaultValue>0x4800</DefaultValue>
+      </SubItem>
+      <SubItem>
+        <Index>0x03</Index>
+        <Name>Revision Number</Name>
+        <DataType>UNSIGNED32</DataType>
+        <DefaultValue>0</DefaultValue>
+      </SubItem>
+      <SubItem>
+        <Index>0x04</Index>
+        <Name>Serial Number</Name>
+        <DataType>UNSIGNED32</DataType>
+        <DefaultValue>0x00000000</DefaultValue>
+      </SubItem>
+    </Item>
+    <Item Managed="true">
+      <Index>0x10F1</Index>
+      <Name>ErrorSettings</Name>
+      <DataType>RECORD</DataType>
+      <Variable>ErrorSettings</Variable>
+      <VariableType>Manufacturer</VariableType>
+      <SubItem>
+        <Index>0x00</Index>
+        <Name>Max SubIndex</Name>
+        <DataType>UNSIGNED8</DataType>
+        <DefaultValue>2</DefaultValue>
+      </SubItem>
+      <SubItem>
+        <Index>0x01</Index>
+        <Access>RW</Access>
+        <Name>Local Error Reaction</Name>
+        <DataType>UNSIGNED32</DataType>
+        <DefaultValue>0</DefaultValue>
+        <Variable>Local_Error_Reaction</Variable>
+        <VariableType>Manufacturer</VariableType>
+      </SubItem>
+      <SubItem>
+        <Index>0x02</Index>
+        <Access>RW</Access>
+        <Name>SyncErrorCounterLimit</Name>
+        <DataType>UNSIGNED16</DataType>
+        <DefaultValue>2</DefaultValue>
+        <Variable>SyncErrorCounterLimit</Variable>
+        <VariableType>Manufacturer</VariableType>
+      </SubItem>
+    </Item>
+    <Item Managed="true">
+      <Index>0x1600</Index>
+      <Name>RXPDO 1</Name>
+      <DataType>RECORD</DataType>
+      <SubItem>
+        <Index>0x00</Index>
+        <Name>Max SubIndex</Name>
+        <DataType>UNSIGNED8</DataType>
+        <DefaultValue>1</DefaultValue>
+      </SubItem>
+      <SubItem>
+        <Index>0x01</Index>
+        <Name>LED0</Name>
+        <DataType>UNSIGNED32</DataType>
+        <DefaultValue>0x70000108</DefaultValue>
+      </SubItem>
+    </Item>
+    <Item Managed="true">
+      <Index>0x1601</Index>
+      <Name>RXPDO 2</Name>
+      <DataType>RECORD</DataType>
+      <SubItem>
+        <Index>0x00</Index>
+        <Name>Max SubIndex</Name>
+        <DataType>UNSIGNED8</DataType>
+        <DefaultValue>1</DefaultValue>
+      </SubItem>
+      <SubItem>
+        <Index>0x01</Index>
+        <Name>LED1</Name>
+        <DataType>UNSIGNED32</DataType>
+        <DefaultValue>0x70010108</DefaultValue>
+      </SubItem>
+    </Item>
+    <Item Managed="true">
+      <Index>0x1602</Index>
+      <Access>RW</Access>
+      <WriteRestriction>PreOP</WriteRestriction>
+      <Name>RXPDO 3</Name>
+      <DataType>RECORD</DataType>
+      <Variable>PDO1602</Variable>
+      <SubItem>
+        <Index>0x00</Index>
+        <Access>RW</Access>
+        <WriteRestriction>PreOP</WriteRestriction>
+        <Name>Max SubIndex</Name>
+        <DataType>UNSIGNED8</DataType>
+        <DefaultValue>8</DefaultValue>
+        <Variable>maxsub</Variable>
+      </SubItem>
+      <SubItem>
+        <Index>0x01</Index>
+        <Access>RW</Access>
+        <WriteRestriction>PreOP</WriteRestriction>
+        <Name>PDO Entry 1602:01</Name>
+        <DataType>UNSIGNED32</DataType>
+        <DefaultValue>0x00000000</DefaultValue>
+        <Variable>value</Variable>
+      </SubItem>
+      <SubItem>
+        <Index>0x02</Index>
+        <Access>RW</Access>
+        <WriteRestriction>PreOP</WriteRestriction>
+        <Name>PDO Entry 1602:02</Name>
+        <DataType>UNSIGNED32</DataType>
+        <DefaultValue>0x00000000</DefaultValue>
+        <Variable>value</Variable>
+      </SubItem>
+      <SubItem>
+        <Index>0x03</Index>
+        <Access>RW</Access>
+        <WriteRestriction>PreOP</WriteRestriction>
+        <Name>PDO Entry 1602:03</Name>
+        <DataType>UNSIGNED32</DataType>
+        <DefaultValue>0x00000000</DefaultValue>
+        <Variable>value</Variable>
+      </SubItem>
+      <SubItem>
+        <Index>0x04</Index>
+        <Access>RW</Access>
+        <WriteRestriction>PreOP</WriteRestriction>
+        <Name>PDO Entry 1602:04</Name>
+        <DataType>UNSIGNED32</DataType>
+        <DefaultValue>0x00000000</DefaultValue>
+        <Variable>value</Variable>
+      </SubItem>
+      <SubItem>
+        <Index>0x05</Index>
+        <Access>RW</Access>
+        <WriteRestriction>PreOP</WriteRestriction>
+        <Name>PDO Entry 1602:05</Name>
+        <DataType>UNSIGNED32</DataType>
+        <DefaultValue>0x00000000</DefaultValue>
+        <Variable>value</Variable>
+      </SubItem>
+      <SubItem>
+        <Index>0x06</Index>
+        <Access>RW</Access>
+        <WriteRestriction>PreOP</WriteRestriction>
+        <Name>PDO Entry 1602:06</Name>
+        <DataType>UNSIGNED32</DataType>
+        <DefaultValue>0x00000000</DefaultValue>
+        <Variable>value</Variable>
+      </SubItem>
+      <SubItem>
+        <Index>0x07</Index>
+        <Access>RW</Access>
+        <WriteRestriction>PreOP</WriteRestriction>
+        <Name>PDO Entry 1602:07</Name>
+        <DataType>UNSIGNED32</DataType>
+        <DefaultValue>0x00000000</DefaultValue>
+        <Variable>value</Variable>
+      </SubItem>
+      <SubItem>
+        <Index>0x08</Index>
+        <Access>RW</Access>
+        <WriteRestriction>PreOP</WriteRestriction>
+        <Name>PDO Entry 1602:08</Name>
+        <DataType>UNSIGNED32</DataType>
+        <DefaultValue>0x00000000</DefaultValue>
+        <Variable>value</Variable>
+      </SubItem>
+    </Item>
+    <Item Managed="true">
+      <Index>0x1A00</Index>
+      <Name>TXPDO 1</Name>
+      <DataType>RECORD</DataType>
+      <SubItem>
+        <Index>0x00</Index>
+        <Name>Max SubIndex</Name>
+        <DataType>UNSIGNED8</DataType>
+        <DefaultValue>1</DefaultValue>
+      </SubItem>
+      <SubItem>
+        <Index>0x01</Index>
+        <Name>Button1</Name>
+        <DataType>UNSIGNED32</DataType>
+        <DefaultValue>0x60000108</DefaultValue>
+      </SubItem>
+    </Item>
+    <Item Managed="true">
+      <Index>0x1A01</Index>
+      <Access>RW</Access>
+      <WriteRestriction>PreOP</WriteRestriction>
+      <Name>TXPDO 2</Name>
+      <DataType>RECORD</DataType>
+      <Variable>PDO1A01</Variable>
+      <SubItem>
+        <Index>0x00</Index>
+        <Access>RW</Access>
+        <WriteRestriction>PreOP</WriteRestriction>
+        <Name>Max SubIndex</Name>
+        <DataType>UNSIGNED8</DataType>
+        <DefaultValue>8</DefaultValue>
+        <Variable>maxsub</Variable>
+      </SubItem>
+      <SubItem>
+        <Index>0x01</Index>
+        <Access>RW</Access>
+        <WriteRestriction>PreOP</WriteRestriction>
+        <Name>PDO Entry 1A01:01</Name>
+        <DataType>UNSIGNED32</DataType>
+        <DefaultValue>0x00000000</DefaultValue>
+        <Variable>value</Variable>
+      </SubItem>
+      <SubItem>
+        <Index>0x02</Index>
+        <Access>RW</Access>
+        <WriteRestriction>PreOP</WriteRestriction>
+        <Name>PDO Entry 1A01:02</Name>
+        <DataType>UNSIGNED32</DataType>
+        <DefaultValue>0x00000000</DefaultValue>
+        <Variable>value</Variable>
+      </SubItem>
+      <SubItem>
+        <Index>0x03</Index>
+        <Access>RW</Access>
+        <WriteRestriction>PreOP</WriteRestriction>
+        <Name>PDO Entry 1A01:03</Name>
+        <DataType>UNSIGNED32</DataType>
+        <DefaultValue>0x00000000</DefaultValue>
+        <Variable>value</Variable>
+      </SubItem>
+      <SubItem>
+        <Index>0x04</Index>
+        <Access>RW</Access>
+        <WriteRestriction>PreOP</WriteRestriction>
+        <Name>PDO Entry 1A01:04</Name>
+        <DataType>UNSIGNED32</DataType>
+        <DefaultValue>0x00000000</DefaultValue>
+        <Variable>value</Variable>
+      </SubItem>
+      <SubItem>
+        <Index>0x05</Index>
+        <Access>RW</Access>
+        <WriteRestriction>PreOP</WriteRestriction>
+        <Name>PDO Entry 1A01:05</Name>
+        <DataType>UNSIGNED32</DataType>
+        <DefaultValue>0x00000000</DefaultValue>
+        <Variable>value</Variable>
+      </SubItem>
+      <SubItem>
+        <Index>0x06</Index>
+        <Access>RW</Access>
+        <WriteRestriction>PreOP</WriteRestriction>
+        <Name>PDO Entry 1A01:06</Name>
+        <DataType>UNSIGNED32</DataType>
+        <DefaultValue>0x00000000</DefaultValue>
+        <Variable>value</Variable>
+      </SubItem>
+      <SubItem>
+        <Index>0x07</Index>
+        <Access>RW</Access>
+        <WriteRestriction>PreOP</WriteRestriction>
+        <Name>PDO Entry 1A01:07</Name>
+        <DataType>UNSIGNED32</DataType>
+        <DefaultValue>0x00000000</DefaultValue>
+        <Variable>value</Variable>
+      </SubItem>
+      <SubItem>
+        <Index>0x08</Index>
+        <Access>RW</Access>
+        <WriteRestriction>PreOP</WriteRestriction>
+        <Name>PDO Entry 1A01:08</Name>
+        <DataType>UNSIGNED32</DataType>
+        <DefaultValue>0x00000000</DefaultValue>
+        <Variable>value</Variable>
+      </SubItem>
+    </Item>
+    <Item Managed="true">
+      <Index>0x1C00</Index>
+      <Name>Sync Manager Communication Type</Name>
+      <DataType>ARRAY</DataType>
+      <SubItem>
+        <Index>0x00</Index>
+        <Name>Max SubIndex</Name>
+        <DataType>UNSIGNED8</DataType>
+        <DefaultValue>4</DefaultValue>
+      </SubItem>
+      <SubItem>
+        <Index>0x01</Index>
+        <Name>Communications Type SM0</Name>
+        <DataType>UNSIGNED8</DataType>
+        <DefaultValue>1</DefaultValue>
+      </SubItem>
+      <SubItem>
+        <Index>0x02</Index>
+        <Name>Communications Type SM1</Name>
+        <DataType>UNSIGNED8</DataType>
+        <DefaultValue>2</DefaultValue>
+      </SubItem>
+      <SubItem>
+        <Index>0x03</Index>
+        <Name>Communications Type SM2</Name>
+        <DataType>UNSIGNED8</DataType>
+        <DefaultValue>3</DefaultValue>
+      </SubItem>
+      <SubItem>
+        <Index>0x04</Index>
+        <Name>Communications Type SM3</Name>
+        <DataType>UNSIGNED8</DataType>
+        <DefaultValue>4</DefaultValue>
+      </SubItem>
+    </Item>
+    <Item Managed="true">
+      <Index>0x1C12</Index>
+      <Access>RW</Access>
+      <WriteRestriction>PreOP</WriteRestriction>
+      <Name>Sync Manager 2 PDO Assignment</Name>
+      <DataType>ARRAY</DataType>
+      <Variable>SM1C12</Variable>
+      <SubItem>
+        <Index>0x00</Index>
+        <Access>RW</Access>
+        <WriteRestriction>PreOP</WriteRestriction>
+        <Name>Max SubIndex</Name>
+        <DataType>UNSIGNED8</DataType>
+        <DefaultValue>8</DefaultValue>
+        <Variable>maxsub</Variable>
+      </SubItem>
+      <SubItem>
+        <Index>0x01</Index>
+        <Access>RW</Access>
+        <WriteRestriction>PreOP</WriteRestriction>
+        <Name>PDO Mapping</Name>
+        <DataType>UNSIGNED16</DataType>
+        <DefaultValue>0x1600</DefaultValue>
+        <Variable>value</Variable>
+      </SubItem>
+      <SubItem>
+        <Index>0x02</Index>
+        <Access>RW</Access>
+        <WriteRestriction>PreOP</WriteRestriction>
+        <Name>PDO Mapping</Name>
+        <DataType>UNSIGNED16</DataType>
+        <DefaultValue>0x1601</DefaultValue>
+        <Variable>value</Variable>
+      </SubItem>
+      <SubItem>
+        <Index>0x03</Index>
+        <Access>RW</Access>
+        <WriteRestriction>PreOP</WriteRestriction>
+        <Name>SM Entry 1C12:03</Name>
+        <DataType>UNSIGNED16</DataType>
+        <DefaultValue>0x0000</DefaultValue>
+        <Variable>value</Variable>
+      </SubItem>
+      <SubItem>
+        <Index>0x04</Index>
+        <Access>RW</Access>
+        <WriteRestriction>PreOP</WriteRestriction>
+        <Name>SM Entry 1C12:04</Name>
+        <DataType>UNSIGNED16</DataType>
+        <DefaultValue>0x0000</DefaultValue>
+        <Variable>value</Variable>
+      </SubItem>
+      <SubItem>
+        <Index>0x05</Index>
+        <Access>RW</Access>
+        <WriteRestriction>PreOP</WriteRestriction>
+        <Name>SM Entry 1C12:05</Name>
+        <DataType>UNSIGNED16</DataType>
+        <DefaultValue>0x0000</DefaultValue>
+        <Variable>value</Variable>
+      </SubItem>
+      <SubItem>
+        <Index>0x06</Index>
+        <Access>RW</Access>
+        <WriteRestriction>PreOP</WriteRestriction>
+        <Name>SM Entry 1C12:06</Name>
+        <DataType>UNSIGNED16</DataType>
+        <DefaultValue>0x0000</DefaultValue>
+        <Variable>value</Variable>
+      </SubItem>
+      <SubItem>
+        <Index>0x07</Index>
+        <Access>RW</Access>
+        <WriteRestriction>PreOP</WriteRestriction>
+        <Name>SM Entry 1C12:07</Name>
+        <DataType>UNSIGNED16</DataType>
+        <DefaultValue>0x0000</DefaultValue>
+        <Variable>value</Variable>
+      </SubItem>
+      <SubItem>
+        <Index>0x08</Index>
+        <Access>RW</Access>
+        <WriteRestriction>PreOP</WriteRestriction>
+        <Name>SM Entry 1C12:08</Name>
+        <DataType>UNSIGNED16</DataType>
+        <DefaultValue>0x0000</DefaultValue>
+        <Variable>value</Variable>
+      </SubItem>
+    </Item>
+    <Item Managed="true">
+      <Index>0x1C13</Index>
+      <Access>RW</Access>
+      <WriteRestriction>PreOP</WriteRestriction>
+      <Name>Sync Manager 3 PDO Assignment</Name>
+      <DataType>ARRAY</DataType>
+      <Variable>SM1C13</Variable>
+      <SubItem>
+        <Index>0x00</Index>
+        <Access>RW</Access>
+        <WriteRestriction>PreOP</WriteRestriction>
+        <Name>Max SubIndex</Name>
+        <DataType>UNSIGNED8</DataType>
+        <DefaultValue>8</DefaultValue>
+        <Variable>maxsub</Variable>
+      </SubItem>
+      <SubItem>
+        <Index>0x01</Index>
+        <Access>RW</Access>
+        <WriteRestriction>PreOP</WriteRestriction>
+        <Name>PDO Mapping</Name>
+        <DataType>UNSIGNED16</DataType>
+        <DefaultValue>0x1A00</DefaultValue>
+        <Variable>value</Variable>
+      </SubItem>
+      <SubItem>
+        <Index>0x02</Index>
+        <Access>RW</Access>
+        <WriteRestriction>PreOP</WriteRestriction>
+        <Name>SM Entry 1C13:02</Name>
+        <DataType>UNSIGNED16</DataType>
+        <DefaultValue>0x0000</DefaultValue>
+        <Variable>value</Variable>
+      </SubItem>
+      <SubItem>
+        <Index>0x03</Index>
+        <Access>RW</Access>
+        <WriteRestriction>PreOP</WriteRestriction>
+        <Name>SM Entry 1C13:03</Name>
+        <DataType>UNSIGNED16</DataType>
+        <DefaultValue>0x0000</DefaultValue>
+        <Variable>value</Variable>
+      </SubItem>
+      <SubItem>
+        <Index>0x04</Index>
+        <Access>RW</Access>
+        <WriteRestriction>PreOP</WriteRestriction>
+        <Name>SM Entry 1C13:04</Name>
+        <DataType>UNSIGNED16</DataType>
+        <DefaultValue>0x0000</DefaultValue>
+        <Variable>value</Variable>
+      </SubItem>
+      <SubItem>
+        <Index>0x05</Index>
+        <Access>RW</Access>
+        <WriteRestriction>PreOP</WriteRestriction>
+        <Name>SM Entry 1C13:05</Name>
+        <DataType>UNSIGNED16</DataType>
+        <DefaultValue>0x0000</DefaultValue>
+        <Variable>value</Variable>
+      </SubItem>
+      <SubItem>
+        <Index>0x06</Index>
+        <Access>RW</Access>
+        <WriteRestriction>PreOP</WriteRestriction>
+        <Name>SM Entry 1C13:06</Name>
+        <DataType>UNSIGNED16</DataType>
+        <DefaultValue>0x0000</DefaultValue>
+        <Variable>value</Variable>
+      </SubItem>
+      <SubItem>
+        <Index>0x07</Index>
+        <Access>RW</Access>
+        <WriteRestriction>PreOP</WriteRestriction>
+        <Name>SM Entry 1C13:07</Name>
+        <DataType>UNSIGNED16</DataType>
+        <DefaultValue>0x0000</DefaultValue>
+        <Variable>value</Variable>
+      </SubItem>
+      <SubItem>
+        <Index>0x08</Index>
+        <Access>RW</Access>
+        <WriteRestriction>PreOP</WriteRestriction>
+        <Name>SM Entry 1C13:08</Name>
+        <DataType>UNSIGNED16</DataType>
+        <DefaultValue>0x0000</DefaultValue>
+        <Variable>value</Variable>
+      </SubItem>
+    </Item>
+    <Item Managed="true">
+      <Index>0x1C32</Index>
+      <Name>SyncMgrParam</Name>
+      <DataType>RECORD</DataType>
+      <Variable>SyncMgrParam</Variable>
+      <VariableType>Manufacturer</VariableType>
+      <SubItem>
+        <Index>0x00</Index>
+        <Name>Max SubIndex</Name>
+        <DataType>UNSIGNED8</DataType>
+        <DefaultValue>32</DefaultValue>
+      </SubItem>
+      <SubItem>
+        <Index>0x01</Index>
+        <Access>RW</Access>
+        <Name>Sync mode</Name>
+        <DataType>UNSIGNED16</DataType>
+        <DefaultValue>0</DefaultValue>
+        <Variable>Sync_mode</Variable>
+        <VariableType>Manufacturer</VariableType>
+      </SubItem>
+      <SubItem>
+        <Index>0x02</Index>
+        <Access>RO</Access>
+        <Name>CycleTime</Name>
+        <DataType>UNSIGNED32</DataType>
+        <DefaultValue>0</DefaultValue>
+        <Variable>CycleTime</Variable>
+        <VariableType>Manufacturer</VariableType>
+      </SubItem>
+      <SubItem>
+        <Index>0x03</Index>
+        <Access>RO</Access>
+        <Name>ShiftTime</Name>
+        <DataType>UNSIGNED32</DataType>
+        <DefaultValue>0</DefaultValue>
+        <Variable>ShiftTime</Variable>
+        <VariableType>Manufacturer</VariableType>
+      </SubItem>
+      <SubItem>
+        <Index>0x04</Index>
+        <Access>RO</Access>
+        <Name>Sync modes supported</Name>
+        <DataType>UNSIGNED16</DataType>
+        <DefaultValue>0</DefaultValue>
+        <Variable>Sync_modes_supported</Variable>
+        <VariableType>Manufacturer</VariableType>
+      </SubItem>
+      <SubItem>
+        <Index>0x05</Index>
+        <Access>RO</Access>
+        <Name>Minimum Cycle Time</Name>
+        <DataType>UNSIGNED32</DataType>
+        <DefaultValue>125000</DefaultValue>
+        <Variable>Minimum_Cycle_Time</Variable>
+        <VariableType>Manufacturer</VariableType>
+      </SubItem>
+      <SubItem>
+        <Index>0x06</Index>
+        <Access>RO</Access>
+        <Name>Calc and Copy Time</Name>
+        <DataType>UNSIGNED32</DataType>
+        <DefaultValue>0</DefaultValue>
+        <Variable>Calc_and_Copy_Time</Variable>
+        <VariableType>Manufacturer</VariableType>
+      </SubItem>
+      <SubItem>
+        <Index>0x07</Index>
+        <Access>RO</Access>
+        <Name>Minimum Delay Time</Name>
+        <DataType>UNSIGNED32</DataType>
+        <DefaultValue>0</DefaultValue>
+        <Variable>Minimum_Delay_Time</Variable>
+        <VariableType>Manufacturer</VariableType>
+      </SubItem>
+      <SubItem>
+        <Index>0x08</Index>
+        <Access>RO</Access>
+        <Name>GetCycleTime</Name>
+        <DataType>UNSIGNED16</DataType>
+        <DefaultValue>0</DefaultValue>
+        <Variable>GetCycleTime</Variable>
+        <VariableType>Manufacturer</VariableType>
+      </SubItem>
+      <SubItem>
+        <Index>0x09</Index>
+        <Access>RO</Access>
+        <Name>DelayTime</Name>
+        <DataType>UNSIGNED32</DataType>
+        <DefaultValue>0</DefaultValue>
+        <Variable>DelayTime</Variable>
+        <VariableType>Manufacturer</VariableType>
+      </SubItem>
+      <SubItem>
+        <Index>0x0A</Index>
+        <Access>RO</Access>
+        <Name>Sync0CycleTime</Name>
+        <DataType>UNSIGNED32</DataType>
+        <DefaultValue>0</DefaultValue>
+        <Variable>Sync0CycleTime</Variable>
+        <VariableType>Manufacturer</VariableType>
+      </SubItem>
+      <SubItem>
+        <Index>0x0B</Index>
+        <Access>RO</Access>
+        <Name>SMEventMissedCnt</Name>
+        <DataType>UNSIGNED16</DataType>
+        <DefaultValue>0</DefaultValue>
+        <Variable>SMEventMissedCnt</Variable>
+        <VariableType>Manufacturer</VariableType>
+      </SubItem>
+      <SubItem>
+        <Index>0x0C</Index>
+        <Access>RO</Access>
+        <Name>CycleTimeTooSmallCnt</Name>
+        <DataType>UNSIGNED16</DataType>
+        <DefaultValue>0</DefaultValue>
+        <Variable>CycleTimeTooSmallCnt</Variable>
+        <VariableType>Manufacturer</VariableType>
+      </SubItem>
+      <SubItem>
+        <Index>0x0D</Index>
+        <Access>RO</Access>
+        <Name>Shift too short counter</Name>
+        <DataType>UNSIGNED16</DataType>
+        <DefaultValue>0</DefaultValue>
+        <Variable>Shift_too_short_counter</Variable>
+        <VariableType>Manufacturer</VariableType>
+      </SubItem>
+      <SubItem>
+        <Index>0x0E</Index>
+        <Access>RO</Access>
+        <Name>RxPDOToggleFailed</Name>
+        <DataType>UNSIGNED16</DataType>
+        <DefaultValue>0</DefaultValue>
+        <Variable>RxPDOToggleFailed</Variable>
+        <VariableType>Manufacturer</VariableType>
+      </SubItem>
+      <SubItem>
+        <Index>0x0F</Index>
+        <Access>RO</Access>
+        <Name>Minimum Cycle Distance</Name>
+        <DataType>UNSIGNED32</DataType>
+        <DefaultValue>0</DefaultValue>
+        <Variable>Minimum_Cycle_Distance</Variable>
+        <VariableType>Manufacturer</VariableType>
+      </SubItem>
+      <SubItem>
+        <Index>0x10</Index>
+        <Access>RO</Access>
+        <Name>Maximum Cycle Distance</Name>
+        <DataType>UNSIGNED32</DataType>
+        <DefaultValue>0</DefaultValue>
+        <Variable>Maximum_Cycle_Distance</Variable>
+        <VariableType>Manufacturer</VariableType>
+      </SubItem>
+      <SubItem>
+        <Index>0x11</Index>
+        <Access>RO</Access>
+        <Name>Minimum SM Sync Distance</Name>
+        <DataType>UNSIGNED32</DataType>
+        <DefaultValue>0</DefaultValue>
+        <Variable>Minimum_SM_Sync_Distance</Variable>
+        <VariableType>Manufacturer</VariableType>
+      </SubItem>
+      <SubItem>
+        <Index>0x12</Index>
+        <Access>RO</Access>
+        <Name>Maximum SM Sync Distance</Name>
+        <DataType>UNSIGNED32</DataType>
+        <DefaultValue>0</DefaultValue>
+        <Variable>Maximum_SM_Sync_Distance</Variable>
+        <VariableType>Manufacturer</VariableType>
+      </SubItem>
+      <SubItem>
+        <Index>0x20</Index>
+        <Access>RO</Access>
+        <Name>SyncError</Name>
+        <DataType>BOOLEAN</DataType>
+        <DefaultValue>0</DefaultValue>
+        <Variable>SyncError</Variable>
+        <VariableType>Manufacturer</VariableType>
+      </SubItem>
+    </Item>
+    <Item Managed="true">
+      <Index>0x6000</Index>
+      <Name>Buttons</Name>
+      <DataType>RECORD</DataType>
+      <Variable>Buttons</Variable>
+      <VariableType>Input</VariableType>
+      <SubItem>
+        <Index>0x00</Index>
+        <Name>Max SubIndex</Name>
+        <DataType>UNSIGNED8</DataType>
+        <DefaultValue>1</DefaultValue>
+      </SubItem>
+      <SubItem>
+        <Index>0x01</Index>
+        <Access>RO</Access>
+        <Name>Button1</Name>
+        <DataType>UNSIGNED8</DataType>
+        <DefaultValue>0</DefaultValue>
+        <PdoMapping>TX</PdoMapping>
+        <Variable>Button1</Variable>
+        <VariableType>Input</VariableType>
+      </SubItem>
+    </Item>
+    <Item Managed="true">
+      <Index>0x7000</Index>
+      <Name>LEDgroup0</Name>
+      <DataType>RECORD</DataType>
+      <Variable>LEDgroup0</Variable>
+      <VariableType>Output</VariableType>
+      <SubItem>
+        <Index>0x00</Index>
+        <Name>Max SubIndex</Name>
+        <DataType>UNSIGNED8</DataType>
+        <DefaultValue>1</DefaultValue>
+      </SubItem>
+      <SubItem>
+        <Index>0x01</Index>
+        <Access>RO</Access>
+        <Name>LED0</Name>
+        <DataType>UNSIGNED8</DataType>
+        <DefaultValue>0</DefaultValue>
+        <PdoMapping>RX</PdoMapping>
+        <Variable>LED0</Variable>
+        <VariableType>Output</VariableType>
+      </SubItem>
+    </Item>
+    <Item Managed="true">
+      <Index>0x7001</Index>
+      <Name>LEDgroup1</Name>
+      <DataType>RECORD</DataType>
+      <Variable>LEDgroup1</Variable>
+      <VariableType>Output</VariableType>
+      <SubItem>
+        <Index>0x00</Index>
+        <Name>Max SubIndex</Name>
+        <DataType>UNSIGNED8</DataType>
+        <DefaultValue>1</DefaultValue>
+      </SubItem>
+      <SubItem>
+        <Index>0x01</Index>
+        <Access>RO</Access>
+        <Name>LED1</Name>
+        <DataType>UNSIGNED8</DataType>
+        <DefaultValue>0</DefaultValue>
+        <PdoMapping>RX</PdoMapping>
+        <Variable>LED1</Variable>
+        <VariableType>Output</VariableType>
+      </SubItem>
+    </Item>
+    <Item Managed="true">
+      <Index>0x8000</Index>
+      <Name>Parameters</Name>
+      <DataType>RECORD</DataType>
+      <Variable>Parameters</Variable>
+      <VariableType>Parameter</VariableType>
+      <SubItem>
+        <Index>0x00</Index>
+        <Name>Max SubIndex</Name>
+        <DataType>UNSIGNED8</DataType>
+        <DefaultValue>1</DefaultValue>
+      </SubItem>
+      <SubItem>
+        <Index>0x01</Index>
+        <Access>RO</Access>
+        <Name>Multiplier</Name>
+        <DataType>UNSIGNED32</DataType>
+        <DefaultValue>0</DefaultValue>
+        <Variable>Multiplier</Variable>
+        <VariableType>Parameter</VariableType>
+      </SubItem>
+    </Item>
+    <Item Managed="true">
+      <Index>0x8001</Index>
+      <Access>RW</Access>
+      <Name>variableRW</Name>
+      <DataType>UNSIGNED32</DataType>
+      <DefaultValue>0</DefaultValue>
+      <Variable>variableRW</Variable>
+      <VariableType>Parameter</VariableType>
+    </Item>
+  </Dictionary>
+  <SmAssignment dynamic="true" manual="true">
+    <Index>0x1C12</Index>
+    <MaxSize>8</MaxSize>
+    <Entry>
+      <Index>0x01</Index>
+      <AssignedPdo>0x1600</AssignedPdo>
+    </Entry>
+    <Entry>
+      <Index>0x02</Index>
+      <AssignedPdo>0x1601</AssignedPdo>
+    </Entry>
+  </SmAssignment>
+  <SmAssignment dynamic="true" manual="true">
+    <Index>0x1C13</Index>
+    <MaxSize>8</MaxSize>
+    <Entry>
+      <Index>0x01</Index>
+      <AssignedPdo>0x1A00</AssignedPdo>
+    </Entry>
+  </SmAssignment>
+  <RxPdo>
+    <Index>0x1600</Index>
+    <Name>RXPDO 1</Name>
+    <Entry>
+      <Index>0x1</Index>
+      <MappedIndex>0x7000</MappedIndex>
+      <MappedSubIndex>0x01</MappedSubIndex>
+      <Variable>LED0</Variable>
+    </Entry>
+  </RxPdo>
+  <RxPdo>
+    <Index>0x1601</Index>
+    <Name>RXPDO 2</Name>
+    <Entry>
+      <Index>0x1</Index>
+      <MappedIndex>0x7001</MappedIndex>
+      <MappedSubIndex>0x01</MappedSubIndex>
+      <Variable>LED1</Variable>
+    </Entry>
+  </RxPdo>
+  <RxPdo dynamic="true">
+    <Index>0x1602</Index>
+    <MaxSize>8</MaxSize>
+    <Name>RXPDO 3</Name>
+  </RxPdo>
+  <TxPdo>
+    <Index>0x1A00</Index>
+    <Name>TXPDO 1</Name>
+    <Entry>
+      <Index>0x1</Index>
+      <MappedIndex>0x6000</MappedIndex>
+      <MappedSubIndex>0x01</MappedSubIndex>
+      <Variable>Button1</Variable>
+    </Entry>
+  </TxPdo>
+  <TxPdo dynamic="true">
+    <Index>0x1A01</Index>
+    <MaxSize>8</MaxSize>
+    <Name>TXPDO 2</Name>
+  </TxPdo>
+  <Input>
+    <Index>0x6000</Index>
+    <Name>Buttons</Name>
+    <PdoMapping>TX</PdoMapping>
+    <ObjectType>RECORD</ObjectType>
+    <Member>
+      <Index>0x01</Index>
+      <Name>Button1</Name>
+      <Type>UNSIGNED8</Type>
+      <PdoMapping>TX</PdoMapping>
+    </Member>
+  </Input>
+  <Output>
+    <Index>0x7000</Index>
+    <Name>LEDgroup0</Name>
+    <PdoMapping>RX</PdoMapping>
+    <ObjectType>RECORD</ObjectType>
+    <Member>
+      <Index>0x01</Index>
+      <Name>LED0</Name>
+      <Type>UNSIGNED8</Type>
+      <PdoMapping>RX</PdoMapping>
+    </Member>
+  </Output>
+  <Output>
+    <Index>0x7001</Index>
+    <Name>LEDgroup1</Name>
+    <PdoMapping>RX</PdoMapping>
+    <ObjectType>RECORD</ObjectType>
+    <Member>
+      <Index>0x01</Index>
+      <Name>LED1</Name>
+      <Type>UNSIGNED8</Type>
+      <PdoMapping>RX</PdoMapping>
+    </Member>
+  </Output>
+  <Parameter>
+    <Index>0x8000</Index>
+    <Name>Parameters</Name>
+    <PdoMapping>NONE</PdoMapping>
+    <ObjectType>RECORD</ObjectType>
+    <Member>
+      <Index>0x01</Index>
+      <Name>Multiplier</Name>
+      <Type>UNSIGNED32</Type>
+      <PdoMapping>NONE</PdoMapping>
+    </Member>
+  </Parameter>
+  <Parameter>
+    <Index>0x8001</Index>
+    <Access>RW</Access>
+    <Name>variableRW</Name>
+    <Type>UNSIGNED32</Type>
+    <PdoMapping>NONE</PdoMapping>
+    <ObjectType>VAR</ObjectType>
+  </Parameter>
+  <Manufacturer>
+    <Index>0x10F1</Index>
+    <Name>ErrorSettings</Name>
+    <PdoMapping>NONE</PdoMapping>
+    <ObjectType>RECORD</ObjectType>
+    <Member>
+      <Index>0x01</Index>
+      <Access>RW</Access>
+      <Name>Local Error Reaction</Name>
+      <Type>UNSIGNED32</Type>
+      <PdoMapping>NONE</PdoMapping>
+    </Member>
+    <Member>
+      <Index>0x02</Index>
+      <Access>RW</Access>
+      <Name>SyncErrorCounterLimit</Name>
+      <Type>UNSIGNED16</Type>
+      <DefaultValue>2</DefaultValue>
+      <PdoMapping>NONE</PdoMapping>
+    </Member>
+  </Manufacturer>
+  <Manufacturer>
+    <Index>0x1C32</Index>
+    <Name>SyncMgrParam</Name>
+    <PdoMapping>NONE</PdoMapping>
+    <ObjectType>RECORD</ObjectType>
+    <Member>
+      <Index>0x01</Index>
+      <Access>RW</Access>
+      <Name>Sync mode</Name>
+      <Type>UNSIGNED16</Type>
+      <PdoMapping>NONE</PdoMapping>
+    </Member>
+    <Member>
+      <Index>0x02</Index>
+      <Name>CycleTime</Name>
+      <Type>UNSIGNED32</Type>
+      <PdoMapping>NONE</PdoMapping>
+    </Member>
+    <Member>
+      <Index>0x03</Index>
+      <Name>ShiftTime</Name>
+      <Type>UNSIGNED32</Type>
+      <PdoMapping>NONE</PdoMapping>
+    </Member>
+    <Member>
+      <Index>0x04</Index>
+      <Name>Sync modes supported</Name>
+      <Type>UNSIGNED16</Type>
+      <PdoMapping>NONE</PdoMapping>
+    </Member>
+    <Member>
+      <Index>0x05</Index>
+      <Name>Minimum Cycle Time</Name>
+      <Type>UNSIGNED32</Type>
+      <DefaultValue>125000</DefaultValue>
+      <PdoMapping>NONE</PdoMapping>
+    </Member>
+    <Member>
+      <Index>0x06</Index>
+      <Name>Calc and Copy Time</Name>
+      <Type>UNSIGNED32</Type>
+      <PdoMapping>NONE</PdoMapping>
+    </Member>
+    <Member>
+      <Index>0x07</Index>
+      <Name>Minimum Delay Time</Name>
+      <Type>UNSIGNED32</Type>
+      <PdoMapping>NONE</PdoMapping>
+    </Member>
+    <Member>
+      <Index>0x08</Index>
+      <Name>GetCycleTime</Name>
+      <Type>UNSIGNED16</Type>
+      <PdoMapping>NONE</PdoMapping>
+    </Member>
+    <Member>
+      <Index>0x09</Index>
+      <Name>DelayTime</Name>
+      <Type>UNSIGNED32</Type>
+      <PdoMapping>NONE</PdoMapping>
+    </Member>
+    <Member>
+      <Index>0x0A</Index>
+      <Name>Sync0CycleTime</Name>
+      <Type>UNSIGNED32</Type>
+      <PdoMapping>NONE</PdoMapping>
+    </Member>
+    <Member>
+      <Index>0x0B</Index>
+      <Name>SMEventMissedCnt</Name>
+      <Type>UNSIGNED16</Type>
+      <PdoMapping>NONE</PdoMapping>
+    </Member>
+    <Member>
+      <Index>0x0C</Index>
+      <Name>CycleTimeTooSmallCnt</Name>
+      <Type>UNSIGNED16</Type>
+      <PdoMapping>NONE</PdoMapping>
+    </Member>
+    <Member>
+      <Index>0x0D</Index>
+      <Name>Shift too short counter</Name>
+      <Type>UNSIGNED16</Type>
+      <PdoMapping>NONE</PdoMapping>
+    </Member>
+    <Member>
+      <Index>0x0E</Index>
+      <Name>RxPDOToggleFailed</Name>
+      <Type>UNSIGNED16</Type>
+      <PdoMapping>NONE</PdoMapping>
+    </Member>
+    <Member>
+      <Index>0x0F</Index>
+      <Name>Minimum Cycle Distance</Name>
+      <Type>UNSIGNED32</Type>
+      <PdoMapping>NONE</PdoMapping>
+    </Member>
+    <Member>
+      <Index>0x10</Index>
+      <Name>Maximum Cycle Distance</Name>
+      <Type>UNSIGNED32</Type>
+      <PdoMapping>NONE</PdoMapping>
+    </Member>
+    <Member>
+      <Index>0x11</Index>
+      <Name>Minimum SM Sync Distance</Name>
+      <Type>UNSIGNED32</Type>
+      <PdoMapping>NONE</PdoMapping>
+    </Member>
+    <Member>
+      <Index>0x12</Index>
+      <Name>Maximum SM Sync Distance</Name>
+      <Type>UNSIGNED32</Type>
+      <PdoMapping>NONE</PdoMapping>
+    </Member>
+    <Member>
+      <Index>0x20</Index>
+      <Name>SyncError</Name>
+      <PdoMapping>NONE</PdoMapping>
+    </Member>
+  </Manufacturer>
+</Slave>

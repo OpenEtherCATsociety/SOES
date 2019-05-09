@@ -46,7 +46,7 @@ void boot_inithook (void)
    }
 }
 
-uint32_t flash_foe_buffer (foe_writefile_cfg_t * self, uint8_t * data)
+uint32_t flash_foe_buffer (foe_writefile_cfg_t * self, uint8_t * data, size_t length)
 {
    uint32_t flash_cmd_failed = 0;
    uint32_t calculated_address = self->dest_start_address + self->address_offset;
@@ -118,7 +118,6 @@ void bootstrap_foe_init  (void)
    {
       .buffer_size = FLASH_WRITE_BLOCK_SIZE,  /* Buffer size before we flush to destination */
       .fbuffer     = (uint8_t *)&fbuf,
-      .empty_write = 0xFF,
       .n_files     = NELEMENTS (files),
       .files       = files
    };

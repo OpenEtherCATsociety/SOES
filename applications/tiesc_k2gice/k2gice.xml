@@ -8,13 +8,13 @@
     <Groups>
       <Group>
         <Type>k2gice_t</Type>
-        <Name LcId="1033">k2gice_n</Name>
+        <Name LcId="1033">am335xice_n</Name>
       </Group>
     </Groups>
     <Devices>
       <Device Physics="YY">
-        <Type ProductCode="#x1234" RevisionNo="0">k2gice</Type>
-        <Name LcId="1033">k2gice</Name>
+        <Type ProductCode="#x4291ce" RevisionNo="0">k2gice</Type>
+        <Name LcId="1033">k2gice_n</Name>
         <GroupType>k2gice_t</GroupType>
         <Profile>
           <ProfileNo>5001</ProfileNo>
@@ -312,7 +312,7 @@
                   <SubItem>
                     <Name>Product Code</Name>
                     <Info>
-                      <DefaultValue>#x1234</DefaultValue>
+                      <DefaultValue>#x4291ce</DefaultValue>
                     </Info>
                   </SubItem>
                   <SubItem>
@@ -475,6 +475,7 @@
                 </Info>
                 <Flags>
                   <Access>ro</Access>
+                  <PdoMapping>T</PdoMapping>
                 </Flags>
               </Object>
               <Object>
@@ -487,6 +488,7 @@
                 </Info>
                 <Flags>
                   <Access>ro</Access>
+                  <PdoMapping>R</PdoMapping>
                 </Flags>
               </Object>
             </Objects>
@@ -495,16 +497,16 @@
         <Fmmu>Outputs</Fmmu>
         <Fmmu>Inputs</Fmmu>
         <Fmmu>MBoxState</Fmmu>
-        <Sm ControlByte="#x26" DefaultSize="128" Enable="1" StartAddress="#x1000">MBoxOut</Sm>
-        <Sm ControlByte="#x22" DefaultSize="128" Enable="1" StartAddress="#x1080">MBoxIn</Sm>
-        <Sm ControlByte="#x24" Enable="1" StartAddress="#x1100">Outputs</Sm>
-        <Sm ControlByte="#x20" Enable="1" StartAddress="#x1180">Inputs</Sm>
+        <Sm ControlByte="#x26" DefaultSize="512" Enable="1" StartAddress="#x1000">MBoxOut</Sm>
+        <Sm ControlByte="#x22" DefaultSize="512" Enable="1" StartAddress="#x1200">MBoxIn</Sm>
+        <Sm ControlByte="#x24" Enable="1" StartAddress="#x1400">Outputs</Sm>
+        <Sm ControlByte="#x20" Enable="1" StartAddress="#x1A00">Inputs</Sm>
         <RxPdo Fixed="true" Mandatory="true" Sm="2">
           <Index>#x1600</Index>
           <Name>LED</Name>
           <Entry>
             <Index>#x7000</Index>
-            <SubIndex>0</SubIndex>
+            <SubIndex>#x0</SubIndex>
             <BitLen>32</BitLen>
             <Name>LED</Name>
             <DataType>UDINT</DataType>
@@ -515,19 +517,19 @@
           <Name>BUTTON</Name>
           <Entry>
             <Index>#x6000</Index>
-            <SubIndex>0</SubIndex>
+            <SubIndex>#x0</SubIndex>
             <BitLen>32</BitLen>
             <Name>BUTTON</Name>
             <DataType>UDINT</DataType>
           </Entry>
         </TxPdo>
         <Mailbox DataLinkLayer="true">
-          <CoE CompleteAccess="false" PdoUpload="true" SdoInfo="true"/>
+          <CoE CompleteAccess="false" PdoUpload="false" SdoInfo="true"/>
         </Mailbox>
         <Eeprom>
           <ByteSize>2048</ByteSize>
-          <ConfigData>800CE08800000000</ConfigData>
-          <BootStrap>0010800080108000</BootStrap>
+          <ConfigData>800EE08800000000</ConfigData>
+          <BootStrap>0010000200120002</BootStrap>
         </Eeprom>
       </Device>
     </Devices>

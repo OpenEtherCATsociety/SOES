@@ -63,6 +63,7 @@ static eep_block_t *cleanup_unused_sect(eep_block_t *block);
 
 static int32_t is_sector_empty(uint32_t *addr);
 
+uint8_t eep_write_pending;
 
 /** Initialize EEPROM emulation (load default data, validate checksums, ...).
  *
@@ -135,6 +136,7 @@ void EEP_hw_process (void)
          /* update block pointer and reset write state */
          eep_curr_block = eep_next_block;
          eep_next_block = NULL;
+         eep_write_pending = 0;
       }
 
       return;
@@ -204,6 +206,7 @@ int8_t EEP_write (uint32_t addr, uint8_t *data, uint16_t count)
    eep_buf_dirty = 1;
    eep_write_req = 0;
    eep_last_write = ESCvar.Time;
+   eep_write_pending = 1;
 
    return 0;
 }

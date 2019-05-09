@@ -12,6 +12,8 @@
 #define __esc__
 
 #include <cc.h>
+#include <esc_coe.h>
+#include "options.h"
 
 #define ESCREG_ADDRESS              0x0010
 #define ESCREG_DLSTATUS             0x0110
@@ -27,6 +29,7 @@
 #define ESCREG_ALEVENT_DC_SYNC0     0x0004
 #define ESCREG_ALEVENT_DC_SYNC1     0x0008
 #define ESCREG_ALEVENT_EEP          0x0020
+#define ESCREG_ALEVENT_WD           0x0040
 #define ESCREG_ALEVENT_SM0          0x0100
 #define ESCREG_ALEVENT_SM1          0x0200
 #define ESCREG_ALEVENT_SM2          0x0400
@@ -123,6 +126,8 @@
 #define ABORT_UNSUPPORTED               0x06010000
 #define ABORT_WRITEONLY                 0x06010001
 #define ABORT_READONLY                  0x06010002
+#define ABORT_SUBINDEX0_NOT_ZERO        0x06010003
+#define ABORT_EXCEEDS_MBOX_SIZE         0x06010005
 #define ABORT_NOOBJECT                  0x06020000
 #define ABORT_TYPEMISMATCH              0x06070010
 #define ABORT_NOSUBINDEX                0x06090011
@@ -233,23 +238,25 @@ typedef struct esc_cfg
    void * user_arg;
    int use_interrupt;
    int watchdog_cnt;
-   size_t mbxsize;
-   size_t mbxsizeboot;
-   int mbxbuffers;
-   sm_cfg_t mb[2];
-   sm_cfg_t mb_boot[2];
-   sm_cfg_t pdosm[2];
+   void (*set_defaults_hook) (void);
    void (*pre_state_change_hook) (uint8_t * as, uint8_t * an);
    void (*post_state_change_hook) (uint8_t * as, uint8_t * an);
    void (*application_hook) (void);
    void (*safeoutput_override) (void);
-   int (*pre_object_download_hook) (uint16_t index, uint8_t subindex);
-   void (*post_object_download_hook) (uint16_t index, uint8_t subindex);
+   uint32_t (*pre_object_download_hook) (uint16_t index,
+         uint8_t subindex,
+         void * data,
+         size_t size,
+         uint16_t flags);
+   void (*post_object_download_hook) (uint16_t index,
+         uint8_t subindex,
+         uint16_t flags);
    void (*rxpdo_override) (void);
    void (*txpdo_override) (void);
    void (*esc_hw_interrupt_enable) (uint32_t mask);
    void (*esc_hw_interrupt_disable) (uint32_t mask);
    void (*esc_hw_eep_handler) (void);
+   uint16_t (*esc_check_dc_handler) (void);
 } esc_cfg_t;
 
 typedef struct
@@ -344,31 +351,33 @@ typedef struct
 {
    /* Configuration input is saved so the user variable may go out-of-scope */
    int use_interrupt;
-   size_t mbxsize;
-   size_t mbxsizeboot;
-   int mbxbuffers;
    sm_cfg_t  mb[2];
    sm_cfg_t  mbboot[2];
-   sm_cfg_t  pdosm[2];
+   void (*set_defaults_hook) (void);
    void (*pre_state_change_hook) (uint8_t * as, uint8_t * an);
    void (*post_state_change_hook) (uint8_t * as, uint8_t * an);
    void (*application_hook) (void);
    void (*safeoutput_override) (void);
-   int (*pre_object_download_hook) (uint16_t index, uint8_t subindex);
-   void (*post_object_download_hook) (uint16_t index, uint8_t subindex);
+   uint32_t (*pre_object_download_hook) (uint16_t index,
+         uint8_t subindex,
+         void * data,
+         size_t size,
+         uint16_t flags);
+   void (*post_object_download_hook) (uint16_t index,
+         uint8_t subindex,
+         uint16_t flags);
    void (*rxpdo_override) (void);
    void (*txpdo_override) (void);
    void (*esc_hw_interrupt_enable) (uint32_t mask);
    void (*esc_hw_interrupt_disable) (uint32_t mask);
    void (*esc_hw_eep_handler) (void);
+   uint16_t (*esc_check_dc_handler) (void);
    uint8_t MBXrun;
    size_t activembxsize;
    sm_cfg_t * activemb0;
    sm_cfg_t * activemb1;
    uint16_t ESC_SM2_sml;
    uint16_t ESC_SM3_sml;
-   uint16_t TXPDOsize;
-   uint16_t RXPDOsize;
    uint8_t dcsync;
    uint16_t synccounterlimit;
    uint16_t ALstatus;
@@ -391,6 +400,8 @@ typedef struct
 
    uint8_t toggle;
 
+   int sm2mappings;
+   int sm3mappings;
 
    uint8_t SMtestresult;
    uint32_t PrevTime;
@@ -584,13 +595,13 @@ typedef struct
 #define ESC_MBX1_sml        (ESCvar.activemb1->cfg_sml)
 #define ESC_MBX1_sme        (ESCvar.activemb1->cfg_sme)
 #define ESC_MBX1_smc        (ESCvar.activemb1->cfg_smc)
-#define ESC_MBXBUFFERS      (ESCvar.mbxbuffers)
-#define ESC_SM2_sma         (ESCvar.pdosm[0].cfg_sma)
-#define ESC_SM2_smc         (ESCvar.pdosm[0].cfg_smc)
-#define ESC_SM2_act         (ESCvar.pdosm[0].cfg_smact)
-#define ESC_SM3_sma         (ESCvar.pdosm[1].cfg_sma)
-#define ESC_SM3_smc         (ESCvar.pdosm[1].cfg_smc)
-#define ESC_SM3_act         (ESCvar.pdosm[1].cfg_smact)
+#define ESC_MBXBUFFERS      (MBXBUFFERS)
+#define ESC_SM2_sma         (SM2_sma)
+#define ESC_SM2_smc         (SM2_smc)
+#define ESC_SM2_act         (SM2_act)
+#define ESC_SM3_sma         (SM3_sma)
+#define ESC_SM3_smc         (SM3_smc)
+#define ESC_SM3_act         (SM3_act)
 
 #define ESC_MBXHSIZE        sizeof(_MBXh)
 #define ESC_MBXDSIZE        (ESC_MBXSIZE - ESC_MBXHSIZE)
@@ -606,6 +617,7 @@ uint32_t ESC_ALeventread (void);
 void ESC_ALeventmaskwrite (uint32_t mask);
 uint32_t ESC_ALeventmaskread (void);
 void ESC_ALstatus (uint8_t status);
+void ESC_ALstatusgotoerror (uint8_t status, uint16_t errornumber);
 void ESC_SMstatus (uint8_t n);
 uint8_t ESC_WDstatus (void);
 uint8_t ESC_claimbuffer (void);
@@ -632,6 +644,8 @@ extern void APP_safeoutput ();
 extern _ESCvar ESCvar;
 extern _MBXcontrol MBXcontrol[];
 extern uint8_t MBX[];
+extern _SMmap SMmap2[];
+extern _SMmap SMmap3[];
 
 /* ATOMIC operations are used when running interrupt driven */
 #ifndef CC_ATOMIC_SET

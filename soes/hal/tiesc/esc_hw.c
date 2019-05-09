@@ -14,10 +14,10 @@
 #include "cc.h"
 #include "esc_hw.h"
 #include "esc_eep.h"
-#include "k2gice.h"
+#include "options.h"
+#include "ecat_slv.h"
 #include "tiescbsp.h"
 #include "tieschw.h"
-#include "config.h"
 
 extern PRUICSS_Handle pruIcss1Handle;
 extern uint32_t pd_read_addr_err, pd_write_addr_err;
@@ -303,7 +303,9 @@ void PDI_Isr(void)
 
     if(ESCvar.ALevent & ESCREG_ALEVENT_SM2)
     {
-        DIG_process(DIG_PROCESS_OUTPUTS_FLAG | DIG_PROCESS_APP_HOOK_FLAG | DIG_PROCESS_INPUTS_FLAG);
+        DIG_process(DIG_PROCESS_OUTPUTS_FLAG |
+                    DIG_PROCESS_APP_HOOK_FLAG |
+                    DIG_PROCESS_INPUTS_FLAG);
     }
 }
 
@@ -317,8 +319,8 @@ void ESC_init (const esc_cfg_t * config)
     escHwPruIcssHandle = pruIcss1Handle;
     bsp_set_sm_properties(escHwPruIcssHandle, 0, MBX0_sma, MBX0_sml);
     bsp_set_sm_properties(escHwPruIcssHandle, 1, MBX1_sma, MBX1_sml);
-    bsp_set_sm_properties(escHwPruIcssHandle, 2, SM2_sma, ESCvar.RXPDOsize);
-    bsp_set_sm_properties(escHwPruIcssHandle, 3, SM3_sma, ESCvar.TXPDOsize);
+    bsp_set_sm_properties(escHwPruIcssHandle, 2, SM2_sma, MAX_RXPDO_SIZE * 3);
+    bsp_set_sm_properties(escHwPruIcssHandle, 3, SM3_sma, MAX_TXPDO_SIZE * 3);
 
     bsp_write_dword(escHwPruIcssHandle, 0 , ESCREG_ALEVENTMASK);
 }

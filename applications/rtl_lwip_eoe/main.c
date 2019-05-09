@@ -1,19 +1,22 @@
+
 #include <kern.h>
 #include <xmc4.h>
 #include <bsp.h>
+#include "esc.h"
 #include "esc_eoe.h"
-#include "slave.h"
 #include "esc_hw.h"
-#include "config.h"
-
+#include "ecat_slv.h"
+#include "options.h"
+#include "utypes.h"
 #include <lwip/sys.h>
+#include <lwip/netifapi.h>
 #include <netif/etharp.h>
 #include <string.h>
 
 #define CFG_HOSTNAME "xmc48relax"
+
 static struct netif * found_if;
 static mbox_t * pbuf_mbox;
-static tmr_t * ecat_timer;
 static uint8_t mac_address[6] = {0x1E, 0x30, 0x6C, 0xA2, 0x45, 0x5E};
 
 static void appl_get_buffer (eoe_pbuf_t * ebuf);
@@ -23,88 +26,69 @@ static int appl_store_ethernet_settings (void);
 static void appl_handle_recv_buffer (uint8_t port, eoe_pbuf_t * ebuf);
 static int appl_fetch_send_buffer (uint8_t port, eoe_pbuf_t * ebuf);
 
-flags_t * ecat_events;
+/* Application variables */
+_Objects    Obj;
 
-/**
- * This function gets input values and updates Rb.Button1
- */
-void cb_get_Button1()
+extern sem_t * ecat_isr_sem;
+
+struct netif * net_add_interface (err_t (*netif_fn) (struct netif * netif))
 {
-   Rb.Button1.B = gpio_get(GPIO_BUTTON1);
+   struct netif * netif;
+   ip_addr_t ipaddr;
+   ip_addr_t netmask;
+   ip_addr_t gateway;
+   err_enum_t error;
+
+   netif = malloc (sizeof(struct netif));
+   UASSERT (netif != NULL, EMEM);
+
+   /* Set default (zero) values */
+   ip_addr_set_zero (&ipaddr);
+   ip_addr_set_zero (&netmask);
+   ip_addr_set_zero (&gateway);
+
+   /* Let lwIP TCP/IP thread initialise and add the interface. The interface
+    * will be down until net_configure() is called.
+    */
+   error = netifapi_netif_add (
+         netif, &ipaddr, &netmask, &gateway, NULL, netif_fn, tcpip_input);
+   UASSERT (error == ERR_OK, EARG);
+
+   return netif;
 }
 
-/**
- * This function gets input values and updates Rb.Button2
- */
-void cb_get_Button2()
+void cb_get_inputs (void)
 {
-   Rb.Button2.B = gpio_get(GPIO_BUTTON2);
+   static int count;
+   Obj.Buttons.Button1 = gpio_get(GPIO_BUTTON1);
+   if(Obj.Buttons.Button1 == 0)
+   {
+      count++;
+      if(count > 1000)
+      {
+         ESC_ALstatusgotoerror((ESCsafeop | ESCerror), ALERR_WATCHDOG);
+      }
+   }
+   else
+   {
+      count = 0;
+   }
 }
 
-/**
- * This function sets output values according to Wb.LEDgroup1
- */
-void cb_set_LEDgroup1()
+void cb_set_outputs (void)
 {
-   gpio_set(GPIO_LED1_B, Wb.LEDgroup1.LED);
+   gpio_set(GPIO_LED1, Obj.LEDgroup0.LED0);
+   gpio_set(GPIO_LED2, Obj.LEDgroup1.LED1);
 }
 
-/**
- * This function sets output values according to Wb.LEDgroup2
- */
-void cb_set_LEDgroup2()
+void cb_state_change (uint8_t * as, uint8_t * an)
 {
-   gpio_set(GPIO_LED2_B, Wb.LEDgroup2.LED);
-}
+   if (*as == SAFEOP_TO_OP)
+   {
+      /* Enable watchdog interrupt */
+      ESC_ALeventmaskwrite(ESC_ALeventmaskread() | ESCREG_ALEVENT_WD);
+   }
 
-/**
- * This function sets output values according to Wb.LEDgroup3
- */
-void cb_set_LEDgroup3()
-{
-   gpio_set(GPIO_LED3_B, Wb.LEDgroup3.LED);
-}
-
-/**
- * This function sets output values according to Wb.LEDgroup4
- */
-void cb_set_LEDgroup4()
-{
-   gpio_set(GPIO_LED4_B, Wb.LEDgroup4.LED);
-}
-
-/**
- * This function sets output values according to Wb.LEDgroup5
- */
-void cb_set_LEDgroup5()
-{
-   gpio_set(GPIO_LED5_B, Wb.LEDgroup5.LED5);
-   gpio_set(GPIO_LED6_B, Wb.LEDgroup5.LED678 & 0x1);
-   gpio_set(GPIO_LED7_B, Wb.LEDgroup5.LED678 & 0x2);
-   gpio_set(GPIO_LED8_B, Wb.LEDgroup5.LED678 & 0x4);
-}
-
-/**
- * This function is called after a SDO write of the object Cb.Parameters.
- */
-void cb_post_write_Parameters(int subindex)
-{
-
-}
-
-/**
- * This function is called after a SDO write of the object Cb.variableRW.
- */
-void cb_post_write_variableRW(int subindex)
-{
-
-}
-
-/** Optional: Hook called after state change for application specific
- * actions for specific state changes.
- */
-void pre_state_change_hook (uint8_t * as, uint8_t * an)
-{
    /* Clean up data if we have been in INIT state */
    if ((*as == INIT_TO_PREOP) && (*an == ESCinit))
    {
@@ -122,50 +106,6 @@ void pre_state_change_hook (uint8_t * as, uint8_t * an)
       EOE_init();
    }
 }
-
-
-/* Configuration parameters for EoE
- * Function callbacks to interact with an TCP/IP stack
- */
-static eoe_cfg_t eoe_config =
-{
-   .get_buffer = appl_get_buffer,
-   .free_buffer = appl_free_buffer,
-   .load_eth_settings = appl_load_eth_settings,
-   .store_ethernet_settings = appl_store_ethernet_settings,
-   .handle_recv_buffer = appl_handle_recv_buffer,
-   .fetch_send_buffer = appl_fetch_send_buffer,
-};
-/* Configuration parameters for SOES
- * SM and Mailbox parameters comes from the
- * generated config.h
- */
-static esc_cfg_t config =
-{
-   .user_arg = NULL,
-   .use_interrupt = 1,
-   .watchdog_cnt = 1000,
-   .mbxsize = MBXSIZE,
-   .mbxsizeboot = MBXSIZEBOOT,
-   .mbxbuffers = MBXBUFFERS,
-   .mb[0] = {MBX0_sma, MBX0_sml, MBX0_sme, MBX0_smc, 0},
-   .mb[1] = {MBX1_sma, MBX1_sml, MBX1_sme, MBX1_smc, 0},
-   .mb_boot[0] = {MBX0_sma_b, MBX0_sml_b, MBX0_sme_b, MBX0_smc_b, 0},
-   .mb_boot[1] = {MBX1_sma_b, MBX1_sml_b, MBX1_sme_b, MBX1_smc_b, 0},
-   .pdosm[0] = {SM2_sma, 0, 0, SM2_smc, SM2_act},
-   .pdosm[1] = {SM3_sma, 0, 0, SM3_smc, SM3_act},
-   .pre_state_change_hook = pre_state_change_hook,
-   .post_state_change_hook = NULL,
-   .application_hook = NULL,
-   .safeoutput_override = NULL,
-   .pre_object_download_hook = NULL,
-   .post_object_download_hook = NULL,
-   .rxpdo_override = NULL,
-   .txpdo_override = NULL,
-   .esc_hw_interrupt_enable = ESC_interrupt_enable,
-   .esc_hw_interrupt_disable = ESC_interrupt_disable,
-   .esc_hw_eep_handler = ESC_eep_handler
-};
 
 /* Callback to allocate a buffer */
 static void appl_get_buffer (eoe_pbuf_t * ebuf)
@@ -281,7 +221,7 @@ static void appl_handle_recv_buffer (uint8_t port, eoe_pbuf_t * ebuf)
          }
          else
          {
-            flags_set(ecat_events, EVENT_TX);
+            sem_signal(ecat_isr_sem);
          }
       }
       /* Normal procedure to pass the Ethernet frame to lwIP to handle */
@@ -332,7 +272,7 @@ static err_t transmit_frame (struct netif *netif, struct pbuf *p)
    {
       /* Create a pbuf ref to keep the buf alive until it is sent over EoE */
       pbuf_ref(p);
-      flags_set(ecat_events, EVENT_TX);
+      sem_signal(ecat_isr_sem);
    }
    return ERR_OK;
 }
@@ -355,27 +295,54 @@ err_t eoe_netif_init (struct netif * netif)
    return ERR_OK;
 }
 
-/* Periodic EtherCAT timer */
-static void soes_timer (tmr_t * timer, void * arg)
+/* Callback on fragment sent event, we trigger a stack cycle to handle mailbox traffic
+ * if we might have more fragements in queue.
+ */
+void eoe_frame_sent (void)
 {
-   flags_t * ev = arg;
-   flags_set(ev, EVENT_PERIODIC);
+   sem_signal(ecat_isr_sem);
 }
 
-/* Main EtherCAT loop */
-void main_run(void * arg)
+int main (void)
 {
-   uint32_t mask = EVENT_ISR | EVENT_TX | EVENT_PERIODIC;
-   uint32_t flags;
+   static esc_cfg_t config =
+   {
+      .user_arg = NULL,
+      .use_interrupt = 1,
+      .watchdog_cnt = INT32_MAX, /* Use HW SM watchdog instead */
+      .set_defaults_hook = NULL,
+      .pre_state_change_hook = NULL,
+      .post_state_change_hook = cb_state_change,
+      .application_hook = NULL,
+      .safeoutput_override = NULL,
+      .pre_object_download_hook = NULL,
+      .post_object_download_hook = NULL,
+      .rxpdo_override = NULL,
+      .txpdo_override = NULL,
+      .esc_hw_interrupt_enable = ESC_interrupt_enable,
+      .esc_hw_interrupt_disable = ESC_interrupt_disable,
+      .esc_hw_eep_handler = ESC_eep_handler,
+      .esc_check_dc_handler = NULL
+   };
+
+   /* Configuration parameters for EoE
+    * Function callbacks to interact with an TCP/IP stack
+    */
+   static eoe_cfg_t eoe_config =
+   {
+      .get_buffer = appl_get_buffer,
+      .free_buffer = appl_free_buffer,
+      .load_eth_settings = appl_load_eth_settings,
+      .store_ethernet_settings = appl_store_ethernet_settings,
+      .handle_recv_buffer = appl_handle_recv_buffer,
+      .fetch_send_buffer = appl_fetch_send_buffer,
+      .fragment_sent_event = eoe_frame_sent,
+   };
 
    /* Create an mailbox for interprocess communication between TCP/IP stack and
     * EtherCAT stack.
     */
    pbuf_mbox = mbox_create (10);
-   /* Create periodic events to run the EtherCAT stack and application  */
-   ecat_events = flags_create (0);
-   ecat_timer = tmr_create (tick_from_ms (1), soes_timer, ecat_events, TMR_CYCL);
-   tmr_start (ecat_timer);
    /* Set up dummy IF */
    found_if = net_add_interface(eoe_netif_init);
    if(found_if == NULL)
@@ -384,55 +351,11 @@ void main_run(void * arg)
    }
    /* Init EoE */
    EOE_config(&eoe_config);
-   EOE_init();
-   /* Init EtherCAT slave stack */
-   ecat_slv_init(&config);
-   for(;;)
-   {
-      if(config.use_interrupt != 0)
-      {
-         /* Wait for incoming event from application or EtherCAT stack */
-         flags_wait_any (ecat_events, mask, &flags);
-         /* Cyclic event */
-         if(flags & EVENT_PERIODIC)
-         {
-            DIG_process(DIG_PROCESS_WD_FLAG);
-            ecat_slv_poll();
-            ESC_eoeprocess_tx();
-            flags_clr(ecat_events, EVENT_PERIODIC);
-         }
-         /* Low prio interrupt from the ESC */
-         if(flags & EVENT_ISR)
-         {
-            ecat_slv_poll();
-            ESC_eoeprocess_tx();
-            flags_clr(ecat_events, EVENT_ISR);
-            ESC_interrupt_enable(ESCREG_ALEVENT_CONTROL | ESCREG_ALEVENT_SMCHANGE
-                  | ESCREG_ALEVENT_SM0 | ESCREG_ALEVENT_SM1 | ESCREG_ALEVENT_EEP);
 
-         }
-         /* The TCP/IP stack have posted a TX job */
-         if(flags & EVENT_TX)
-         {
-            ESC_eoeprocess_tx();
-            flags_clr(ecat_events, EVENT_TX);
-         }
-      }
-      else
-      {
-         ecat_slv();
-         ESC_eoeprocess_tx();
-      }
-   }
-}
+   rprintf ("Hello world\n");
+   ecat_slv_init (&config);
 
-/* Start the main application loop */
-int main(void)
-{
-   rprintf("Hello Main\n");
-   task_spawn ("soes", main_run, 4, 2048, NULL);
+   /* The stack is run from interrupt and a worker thread in esc_hw.c */
 
    return 0;
 }
-
-

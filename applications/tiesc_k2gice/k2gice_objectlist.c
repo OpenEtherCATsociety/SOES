@@ -1,4 +1,3 @@
-#ifndef SOES_V1
 #include "esc_coe.h"
 #include "utypes.h"
 #include <stddef.h>
@@ -12,13 +11,9 @@
 #endif
 
 static const char acName1000[] = "Device Type";
-static const char acName1000_0[] = "Device Type";
 static const char acName1008[] = "Device Name";
-static const char acName1008_0[] = "Device Name";
 static const char acName1009[] = "Hardware Version";
-static const char acName1009_0[] = "Hardware Version";
 static const char acName100A[] = "Software Version";
-static const char acName100A_0[] = "Software Version";
 static const char acName1018[] = "Identity Object";
 static const char acName1018_00[] = "Max SubIndex";
 static const char acName1018_01[] = "Vendor ID";
@@ -44,31 +39,29 @@ static const char acName1C13[] = "Sync Manager 3 PDO Assignment";
 static const char acName1C13_00[] = "Max SubIndex";
 static const char acName1C13_01[] = "PDO Mapping";
 static const char acName6000[] = "BUTTON";
-static const char acName6000_0[] = "BUTTON";
 static const char acName7000[] = "LED";
-static const char acName7000_0[] = "LED";
 
 const _objd SDO1000[] =
 {
-  {0x0, DTYPE_UNSIGNED32, 32, ATYPE_RO, acName1000_0, 0x00001389, NULL},
+  {0x0, DTYPE_UNSIGNED32, 32, ATYPE_RO, acName1000, 0x00001389, NULL},
 };
 const _objd SDO1008[] =
 {
-  {0x0, DTYPE_VISIBLE_STRING, 48, ATYPE_RO, acName1008_0, 0, "k2gice"},
+  {0x0, DTYPE_VISIBLE_STRING, 48, ATYPE_RO, acName1008, 0, "k2gice"},
 };
 const _objd SDO1009[] =
 {
-  {0x0, DTYPE_VISIBLE_STRING, 24, ATYPE_RO, acName1009_0, 0, HW_REV},
+  {0x0, DTYPE_VISIBLE_STRING, 24, ATYPE_RO, acName1009, 0, HW_REV},
 };
 const _objd SDO100A[] =
 {
-  {0x0, DTYPE_VISIBLE_STRING, 24, ATYPE_RO, acName100A_0, 0, SW_REV},
+  {0x0, DTYPE_VISIBLE_STRING, 24, ATYPE_RO, acName100A, 0, SW_REV},
 };
 const _objd SDO1018[] =
 {
   {0x00, DTYPE_UNSIGNED8, 8, ATYPE_RO, acName1018_00, 4, NULL},
   {0x01, DTYPE_UNSIGNED32, 32, ATYPE_RO, acName1018_01, 0x1337, NULL},
-  {0x02, DTYPE_UNSIGNED32, 32, ATYPE_RO, acName1018_02, 0x1234, NULL},
+  {0x02, DTYPE_UNSIGNED32, 32, ATYPE_RO, acName1018_02, 0x4291ce, NULL},
   {0x03, DTYPE_UNSIGNED32, 32, ATYPE_RO, acName1018_03, 0, NULL},
   {0x04, DTYPE_UNSIGNED32, 32, ATYPE_RO, acName1018_04, 0x00000000, NULL},
 };
@@ -102,11 +95,11 @@ const _objd SDO1C13[] =
 };
 const _objd SDO6000[] =
 {
-  {0x0, DTYPE_UNSIGNED32, 32, ATYPE_RO, acName6000_0, 0, &Rb.BUTTON},
+  {0x0, DTYPE_UNSIGNED32, 32, ATYPE_RO | ATYPE_TXPDO, acName6000, 0, &Obj.BUTTON},
 };
 const _objd SDO7000[] =
 {
-  {0x0, DTYPE_UNSIGNED32, 32, ATYPE_RO, acName7000_0, 0, &Wb.LED},
+  {0x0, DTYPE_UNSIGNED32, 32, ATYPE_RO | ATYPE_RXPDO, acName7000, 0, &Obj.LED},
 };
 
 const _objectlist SDOobjects[] =
@@ -125,4 +118,3 @@ const _objectlist SDOobjects[] =
   {0x7000, OTYPE_VAR, 0, 0, acName7000, SDO7000},
   {0xffff, 0xff, 0xff, 0xff, NULL, NULL}
 };
-#endif

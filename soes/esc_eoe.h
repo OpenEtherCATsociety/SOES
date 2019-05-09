@@ -43,6 +43,8 @@ typedef struct eoe_cfg
    void (*handle_recv_buffer) (uint8_t port, eoe_pbuf_t * ebuf);
    /** Callback to fetch a buffer to send */
    int (*fetch_send_buffer) (uint8_t port, eoe_pbuf_t * ebuf);
+   /** Callback to notify the application fragment sent */
+   void (*fragment_sent_event) (void);
 } eoe_cfg_t;
 
 int EOE_ecat_get_mac (uint8_t port, uint8_t mac[]);
