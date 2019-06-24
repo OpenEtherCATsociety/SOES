@@ -118,7 +118,7 @@ uint16_t FOE_fread (uint8_t * data, uint16_t maxlength)
    while (maxlength && (FOEvar.fend - FOEvar.fposition))
    {
       maxlength--;
-      *(data++) = fbuffer[FOEvar.fposition++];
+      *(data++) = foe_cfg->fbuffer[FOEvar.fposition++];
       ncopied++;
    }
 
@@ -245,11 +245,11 @@ int FOE_send_data_packet ()
    if (mbxhandle)
    {
       foembx = (_FOE *) &MBX[mbxhandle * ESC_MBXSIZE];
-      data_len = FOE_fread (foembx->data, FOE_DATA_SIZE);
+      data_len = FOE_fread (foembx->data, ESC_FOE_DATA_SIZE);
       foembx->foeheader.opcode = FOE_OP_DATA;
       foembx->foeheader.packetnumber = htoel (FOEvar.foepacket);
       FOEvar.foepacket++;
-      foembx->mbxheader.length = htoes (data_len + FOEHSIZE);
+      foembx->mbxheader.length = htoes (data_len + ESC_FOEHSIZE);
       foembx->mbxheader.mbxtype = MBXFOE;
       /* Mark the outbound mailbox as filled. */
       MBXcontrol[mbxhandle].state = MBXstate_outreq;
@@ -315,7 +315,7 @@ void FOE_read ()
    FOE_init ();
    foembx = (_FOE *) &MBX[0];
    /* Get the length of the file name in octets. */
-   data_len = etohs (foembx->mbxheader.length) - FOEHSIZE;
+   data_len = etohs (foembx->mbxheader.length) - ESC_FOEHSIZE;
    password = etohl (foembx->foeheader.password);
 
    res = FOE_fopen (foembx->filename, data_len, password, FOE_OP_RRQ);
@@ -326,7 +326,7 @@ void FOE_read ()
        * Attempt to send the packet
        */
       res = FOE_send_data_packet ();
-      if (res <= (int)FOE_DATA_SIZE)
+      if (res <= (int)ESC_FOE_DATA_SIZE)
       {
          FOEvar.foestate = FOE_WAIT_FOR_ACK;
       }
@@ -368,7 +368,7 @@ void FOE_ack ()
       return;
    }
    res = FOE_send_data_packet ();
-   if (res < (int) FOE_DATA_SIZE)
+   if (res < (int)ESC_FOE_DATA_SIZE)
    {
       FOEvar.foestate = FOE_WAIT_FOR_FINAL_ACK;
    }
