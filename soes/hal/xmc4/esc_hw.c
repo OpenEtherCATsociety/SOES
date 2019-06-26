@@ -26,7 +26,7 @@
 #define ECAT_MDO                    P0_12
 #define ECAT_MCLK                   P3_3
 
-#define ENABLE_ECAT_RESET_REQ       0U //bool
+#define ENABLE_ECAT_RESET_REQ       0U
 #define ECAT_PORT_CTRL_LATCHIN0     XMC_ECAT_PORT_CTRL_LATCHIN0_P14_5
 #define ECAT_PORT_CTRL_LATCHIN1     XMC_ECAT_PORT_CTRL_LATCHIN1_P14_4
 #define ECAT_PHYADDR_OFFSET         0
@@ -122,7 +122,7 @@
 #define ECAT_MDO                    P0_12
 #define ECAT_MCLK                   P3_3
 
-#define ENABLE_ECAT_RESET_REQ       0U //bool
+#define ENABLE_ECAT_RESET_REQ       0U
 #define ECAT_PORT_CTRL_LATCHIN0     XMC_ECAT_PORT_CTRL_LATCHIN0_P14_5
 #define ECAT_PORT_CTRL_LATCHIN1     XMC_ECAT_PORT_CTRL_LATCHIN1_P14_4
 #define ECAT_PHYADDR_OFFSET         0
@@ -217,7 +217,7 @@ static const XMC_ECAT_PORT_CTRL_t port_control = {
       .latch_input0 = ECAT_PORT_CTRL_LATCHIN0,
       .latch_input1 = ECAT_PORT_CTRL_LATCHIN1,
       .phyaddr_offset = ECAT_PHYADDR_OFFSET,
-      .mdio = ECAT_PORT_CTRL_MDIO       
+      .mdio = ECAT_PORT_CTRL_MDIO
    },
    .port0 = {
       .rxd0 = ECAT_PORT0_CTRL_RXD0,
