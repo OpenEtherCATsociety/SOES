@@ -339,4 +339,7 @@ void ecat_slv_init (esc_cfg_t * config)
    ESC_stopmbx();
    ESC_stopinput();
    ESC_stopoutput();
+
+   /* Init CoE OD default values*/
+   COE_initDefaultValues ();
 }
