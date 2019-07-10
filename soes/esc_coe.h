@@ -21,7 +21,7 @@ typedef struct CC_PACKED
    uint16_t bitlength;
    uint16_t flags;
    const char *name;
-   uint64_t value;
+   uint32_t value;
    void *data;
 } _objd;
 CC_PACKED_END
