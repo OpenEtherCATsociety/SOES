@@ -790,8 +790,7 @@ static void EOE_receive_fragment (void)
    }
    else
    {
-      DPRINT("Size of data exceed available buffer size\n",
-            EOEvar.rxframeoffset);
+      DPRINT("Size of data exceed available buffer size\n");
       EOE_init_rx ();
       return;
    }

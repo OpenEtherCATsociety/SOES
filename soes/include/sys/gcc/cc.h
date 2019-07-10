@@ -70,11 +70,16 @@ extern "C"
 #endif
 
 #ifdef ESC_DEBUG
+#ifdef __rtk__
 #include <rprint.h>
-#define DPRINT(...) rprintp ("soes: "__VA_ARGS__) /* TODO */
+#define DPRINT(...) rprintp ("soes: "__VA_ARGS__)
+#else
+#include <stdio.h>
+#define DPRINT(...) printf ("soes: "__VA_ARGS__)
+#endif
 #else
 #define DPRINT(...)
-#endif  /* DEBUG */
+#endif
 
 #ifdef __cplusplus
 }
