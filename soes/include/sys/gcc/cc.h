@@ -43,7 +43,7 @@ extern "C"
 #define CC_DEPRECATED   __attribute__((deprecated))
 
 #define CC_SWAP32(x) __builtin_bswap32 (x)
-#define CC_SWAP16(x) ((uint16_t)(x) >> 8 | ((uint16_t)(x) & 0xFF) << 8)
+#define CC_SWAP16(x) __builtin_bswap16 (x)
 
 #define CC_ATOMIC_SET(var,val)   __atomic_store_n(&var,val,__ATOMIC_SEQ_CST)
 #define CC_ATOMIC_GET(var)       __atomic_load_n(&var,__ATOMIC_SEQ_CST)
@@ -70,11 +70,16 @@ extern "C"
 #endif
 
 #ifdef ESC_DEBUG
+#ifdef __rtk__
 #include <rprint.h>
-#define DPRINT(...) rprintp ("soes: "__VA_ARGS__) /* TODO */
+#define DPRINT(...) rprintp ("soes: "__VA_ARGS__)
+#else
+#include <stdio.h>
+#define DPRINT(...) printf ("soes: "__VA_ARGS__)
+#endif
 #else
 #define DPRINT(...)
-#endif  /* DEBUG */
+#endif
 
 #ifdef __cplusplus
 }
