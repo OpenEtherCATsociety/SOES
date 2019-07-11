@@ -1121,7 +1121,7 @@ void COE_initDefaultValues (void)
       i = 0;
       do
       {
-         if (objd[i].data != NULL && objd[i].bitlength <= sizeof(objd[i].value))
+         if (objd[i].data != NULL)
          {
             COE_setValue (&objd[i], objd[i].value);
             DPRINT ("%04x:%02x = %x\n", SDOobjects[n].index, objd[i].subindex, objd[i].value);
