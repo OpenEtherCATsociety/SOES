@@ -26,7 +26,7 @@
 
 /** Variable holding current filename read at FOE Open.
  */
-char foe_file_name[FOE_FN_MAX + 1];
+static char foe_file_name[FOE_FN_MAX + 1];
 
 
 /** Main FoE configuration pointer data array. Structure i allocated and filled
@@ -50,7 +50,7 @@ static _FOEvar FOEvar;
  * @return 0= if we succeed, FOE_ERR_NOTFOUND something wrong with filename or
  * password
  */
-int FOE_fopen (char *name, uint8_t num_chars, uint32_t pass, uint8_t op)
+static int FOE_fopen (char *name, uint8_t num_chars, uint32_t pass, uint8_t op)
 {
    uint32_t i;
 
@@ -107,7 +107,7 @@ int FOE_fopen (char *name, uint8_t num_chars, uint32_t pass, uint8_t op)
 
  * @return Number of copied bytes.
  */
-uint16_t FOE_fread (uint8_t * data, uint16_t maxlength)
+static uint16_t FOE_fread (uint8_t * data, uint16_t maxlength)
 {
    uint16_t ncopied = 0;
 
@@ -133,7 +133,7 @@ uint16_t FOE_fread (uint8_t * data, uint16_t maxlength)
 
  * @return Number of copied bytes.
  */
-uint16_t FOE_fwrite (uint8_t *data, uint16_t length)
+static uint16_t FOE_fwrite (uint8_t *data, uint16_t length)
 {
     uint16_t ncopied = 0;
     uint32_t failed = 0;
@@ -166,7 +166,7 @@ uint16_t FOE_fwrite (uint8_t *data, uint16_t length)
  *
  * @return Number of copied bytes on success, 0= if failed.
  */
-uint32_t FOE_fclose (void)
+static uint32_t FOE_fclose (void)
 {
    uint32_t failed = 0;
 
@@ -196,7 +196,7 @@ void FOE_init ()
  *
  * @param[in] code   = abort code
  */
-void FOE_abort (uint32_t code)
+static void FOE_abort (uint32_t code)
 {
    _FOE *foembx;
    uint8_t mbxhandle;
@@ -231,7 +231,7 @@ void FOE_abort (uint32_t code)
  * @return Number of data bytes written or an error number. Error numbers
  * will be greater than FOE_DATA_SIZE.
  */
-int FOE_send_data_packet ()
+static int FOE_send_data_packet ()
 {
    _FOE *foembx;
    uint16_t data_len;
@@ -262,7 +262,7 @@ int FOE_send_data_packet ()
 
  * @return 0= or error number.
  */
-int FOE_send_ack ()
+static int FOE_send_ack ()
 {
    _FOE *foembx;
    uint8_t mbxhandle;
@@ -295,7 +295,7 @@ int FOE_send_ack ()
  * On error we will send FOE Abort.
  *
  */
-void FOE_read ()
+static void FOE_read ()
 {
    _FOE *foembx;
    uint32_t data_len;
@@ -337,7 +337,7 @@ void FOE_read ()
    }
 }
 #else
-void FOE_read()
+static void FOE_read()
 {
    FOE_abort(FOE_ERR_NOTDEFINED);
 }
@@ -347,7 +347,7 @@ void FOE_read()
 /** FoE data ack handler. Will continue sending next frame until finished.
  * On error we will send FOE Abort.
  */
-void FOE_ack ()
+static void FOE_ack ()
 {
    int res;
 
@@ -379,7 +379,7 @@ void FOE_ack ()
  * receive data. On error we will send FOE Abort.
  *
  */
-void FOE_write ()
+static void FOE_write ()
 {
    _FOE *foembx;
    uint32_t data_len;
@@ -421,7 +421,7 @@ void FOE_write ()
  * read frame follwed by an Ack frame. On error we will send FOE Abort.
  *
  */
-void FOE_data ()
+static void FOE_data ()
 {
    _FOE *foembx;
    uint32_t packet;
@@ -499,7 +499,7 @@ void FOE_data ()
  * we will send FOE Abort.
  *
  */
-void FOE_busy ()
+static void FOE_busy ()
 {
    /* Only valid if we're servicing a read request. */
    if (FOEvar.foestate != FOE_WAIT_FOR_ACK)
@@ -519,7 +519,7 @@ void FOE_busy ()
 /** FoE error requesthandler. Send an FOE Abort.
  *
  */
-void FOE_error ()
+static void FOE_error ()
 {
    /* Master panic! abort the transfer. */
    FOE_abort (0);
