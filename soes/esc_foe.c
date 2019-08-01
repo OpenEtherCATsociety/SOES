@@ -33,10 +33,6 @@ char foe_file_name[FOE_FN_MAX + 1];
  * by the application defining what preferences it require.
  */
 static foe_cfg_t * foe_cfg;
-/** Collection of files possible to receive by FoE. Structure i allocated and
- * filled by the application defining what preferences it require.
- */
-static foe_writefile_cfg_t * foe_files;
 /** Pointer to current file configuration item used by FoE.
  */
 static foe_writefile_cfg_t * foe_file;
@@ -73,10 +69,10 @@ int FOE_fopen (char *name, uint8_t num_chars, uint32_t pass, uint8_t op)
    /* Figure out what file they're talking about. */
    for (i = 0; i < foe_cfg->n_files; i++)
    {
-      if ((0 == strncmp (foe_file_name, foe_files[i].name, num_chars)) &&
-          (pass == foe_files[i].filepass))
+      if ((0 == strncmp (foe_file_name, foe_cfg->files[i].name, num_chars)) &&
+          (pass == foe_cfg->files[i].filepass))
       {
-         foe_file = &foe_files[i];
+         foe_file = &foe_cfg->files[i];
          foe_file->address_offset = 0;
          foe_file->total_size = 0;
          switch (op)
@@ -84,13 +80,13 @@ int FOE_fopen (char *name, uint8_t num_chars, uint32_t pass, uint8_t op)
             case FOE_OP_RRQ:
             {
                FOEvar.fposition = 0;
-               FOEvar.fend = foe_files[i].max_data;
+               FOEvar.fend = foe_cfg->files[i].max_data;
                return 0;
             }
             case FOE_OP_WRQ:
             {
                FOEvar.fposition = 0;
-               FOEvar.fend = foe_files[i].max_data;
+               FOEvar.fend = foe_cfg->files[i].max_data;
                return 0;
             }
          }
@@ -538,10 +534,9 @@ void FOE_error ()
  * configuration variable holding file specific details for files to be handled
  * by FoE
  */
-void FOE_config (foe_cfg_t * cfg, foe_writefile_cfg_t * cfg_files)
+void FOE_config (foe_cfg_t * cfg)
 {
    foe_cfg = cfg;
-   foe_files = cfg_files;
 }
 
 /** Main FoE function checking the status on current mailbox buffers carrying

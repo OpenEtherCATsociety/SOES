@@ -66,7 +66,7 @@ typedef struct CC_PACKED
 } _FOEvar;
 
 /* Initializes FoE state. */
-void FOE_config (foe_cfg_t * cfg, foe_writefile_cfg_t * cfg_files);
+void FOE_config (foe_cfg_t * cfg);
 void FOE_init (void);
 void ESC_foeprocess (void);
 
