@@ -69,9 +69,20 @@ static int FOE_fopen (char *name, uint8_t num_chars, uint32_t pass, uint8_t op)
    /* Figure out what file they're talking about. */
    for (i = 0; i < foe_cfg->n_files; i++)
    {
-      if ((0 == strncmp (foe_file_name, foe_cfg->files[i].name, num_chars)) &&
-          (pass == foe_cfg->files[i].filepass))
+      if (0 == strncmp (foe_file_name, foe_cfg->files[i].name, num_chars))
       {
+        if (pass != foe_cfg->files[i].filepass)
+        {
+          return FOE_ERR_NORIGHTS;
+        }
+
+        if (op == FOE_OP_WRQ &&
+            (foe_cfg->files[i].write_only_in_boot) &&
+            (ESCvar.ALstatus != ESCboot))
+      {
+          return FOE_ERR_NOTINBOOTSTRAP;
+        }
+
          foe_file = &foe_cfg->files[i];
          foe_file->address_offset = 0;
          foe_file->total_size = 0;

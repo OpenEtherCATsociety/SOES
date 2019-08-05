@@ -31,6 +31,10 @@ struct foe_writefile_cfg
    uint32_t       total_size;
    /** FoE password */
    uint32_t       filepass;
+   /** This file can be written only in BOOT state. Intended for FW files */
+   uint8_t        write_only_in_boot;
+   /** for feature use */
+   uint32_t       padding:24;
    /** Pointer to application foe write function */
    uint32_t       (*write_function) (foe_writefile_cfg_t * self, uint8_t * data, size_t length);
 };
