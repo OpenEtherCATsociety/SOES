@@ -83,6 +83,25 @@ void ESC_enable(void)
    scu_put_peripheral_in_reset (SCU_PERIPHERAL_ECAT0);
    scu_ungate_clock_to_peripheral (SCU_PERIPHERAL_ECAT0);
    scu_release_peripheral_from_reset (SCU_PERIPHERAL_ECAT0);
+
+   /* Used to perform PHY reset after ECAT module have been released as
+    * described in 16.3.2.3 final section;
+    * "In some case PHYs may be released from reset after releasing the ECAT
+    * module, the pin for nPHY_RESET can be used as an I/O and shell be
+    * switched later to the alternate output function".
+    * Works well with relax boards.
+    */
+   static const gpio_cfg_t gpio_cfg[] =
+   {
+      { ECAT0_PHY_RESET,
+        ECAT0_PHY_RESET_GPIO_AF,
+        GPIO_STRONG_SOFT,
+        GPIO_PAD_ENABLED,
+        GPIO_POWS_DISABLED,
+        GPIO_SW },
+   };
+   /* Re-configure the pin to correct alternate output function */
+   gpio_configure (gpio_cfg, NELEMENTS (gpio_cfg));
 }
 
 /* EtherCAT module clock gating and assert reset API (Disables ECAT)*/
