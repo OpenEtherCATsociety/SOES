@@ -239,9 +239,8 @@ static void sync0_isr (void * arg)
  */
 static void ecat_isr (void * arg)
 {
-   ESC_read (ESCREG_LOCALTIME, (void *) &ESCvar.Time, sizeof (ESCvar.Time));
-   ESCvar.Time = etohl (ESCvar.Time);
    CC_ATOMIC_SET(ESCvar.ALevent, etohl(ecat0->AL_EVENT_REQ));
+   CC_ATOMIC_SET(ESCvar.Time, etohl(ecat0->READMode_DC_SYS_TIME[0]));
 
    /* Handle SM2 interrupt */
    if(ESCvar.ALevent & ESCREG_ALEVENT_SM2)
@@ -300,6 +299,8 @@ static void isr_run(void * arg)
       /* Do while to handle write of eeprom, the write to flash is delayed */
       do
       {
+         /* Update time, used by emulated eeprom handler to measure idle time */
+         CC_ATOMIC_SET(ESCvar.Time, etohl(ecat0->READMode_DC_SYS_TIME[0]));
          ecat_slv_worker(ESCREG_ALEVENT_CONTROL | ESCREG_ALEVENT_SMCHANGE
                | ESCREG_ALEVENT_SM0 | ESCREG_ALEVENT_SM1 | ESCREG_ALEVENT_EEP);
 
