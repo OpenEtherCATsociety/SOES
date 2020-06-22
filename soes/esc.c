@@ -1165,6 +1165,8 @@ void ESC_config (esc_cfg_t * cfg)
    ESCvar.safeoutput_override = cfg->safeoutput_override;
    ESCvar.pre_object_download_hook = cfg->pre_object_download_hook;
    ESCvar.post_object_download_hook = cfg->post_object_download_hook;
+   ESCvar.pre_object_upload_hook = cfg->pre_object_upload_hook;
+   ESCvar.post_object_upload_hook = cfg->post_object_upload_hook;
    ESCvar.rxpdo_override = cfg->rxpdo_override;
    ESCvar.txpdo_override = cfg->txpdo_override;
    ESCvar.esc_hw_interrupt_enable = cfg->esc_hw_interrupt_enable;

@@ -106,12 +106,18 @@ void COE_pdoPack (uint8_t * buffer, int nmappings, _SMmap * sm);
 void COE_pdoUnpack (uint8_t * buffer, int nmappings, _SMmap * sm);
 uint8_t COE_maxSub (uint16_t index);
 
-extern void ESC_objecthandler (uint16_t index, uint8_t subindex, uint16_t flags);
-extern uint32_t ESC_pre_objecthandler (uint16_t index,
+extern uint32_t ESC_download_post_objecthandler (uint16_t index, uint8_t subindex, uint16_t flags);
+extern uint32_t ESC_download_pre_objecthandler (uint16_t index,
       uint8_t subindex,
       void * data,
       size_t size,
       uint16_t flags);
+extern uint32_t ESC_upload_pre_objecthandler (uint16_t index,
+      uint8_t subindex,
+      void * data,
+      size_t size,
+      uint16_t flags);
+extern uint32_t ESC_upload_post_objecthandler (uint16_t index, uint8_t subindex, uint16_t flags);
 extern const _objectlist SDOobjects[];
 
 #endif

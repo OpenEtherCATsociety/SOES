@@ -40,14 +40,12 @@ extern uint8_t * txpdo;
  * @param[in] sub-index  = sub-index of SDO download request to check
  * @return SDO abort code, or 0 on success
  */
-uint32_t ESC_pre_objecthandler (uint16_t index,
+uint32_t ESC_download_pre_objecthandler (uint16_t index,
       uint8_t subindex,
       void * data,
       size_t size,
       uint16_t flags)
 {
-   uint32_t abort = 0;
-
    if (IS_RXPDO (index) ||
        IS_TXPDO (index) ||
        index == RX_PDO_OBJIDX ||
@@ -55,20 +53,20 @@ uint32_t ESC_pre_objecthandler (uint16_t index,
    {
       if (subindex > 0 && COE_maxSub (index) != 0)
       {
-         abort = ABORT_SUBINDEX0_NOT_ZERO;
+         return ABORT_SUBINDEX0_NOT_ZERO;
       }
    }
 
    if (ESCvar.pre_object_download_hook)
    {
-      abort = (ESCvar.pre_object_download_hook) (index,
+      return (ESCvar.pre_object_download_hook) (index,
             subindex,
             data,
             size,
             flags);
    }
 
-   return abort;
+   return 0;
 }
 
 /** Hook called from the slave stack SDO Download handler to act on
@@ -76,13 +74,57 @@ uint32_t ESC_pre_objecthandler (uint16_t index,
  *
  * @param[in] index      = index of SDO download request to handle
  * @param[in] sub-index  = sub-index of SDO download request to handle
+ * @return SDO abort code, or 0 on success
  */
-void ESC_objecthandler (uint16_t index, uint8_t subindex, uint16_t flags)
+uint32_t ESC_download_post_objecthandler (uint16_t index, uint8_t subindex, uint16_t flags)
 {
    if (ESCvar.post_object_download_hook != NULL)
    {
-      (ESCvar.post_object_download_hook)(index, subindex, flags);
+      return (ESCvar.post_object_download_hook)(index, subindex, flags);
    }
+
+   return 0;
+}
+
+/** Function to pre-qualify the incoming SDO upload.
+ *
+ * @param[in] index      = index of SDO upload request to handle
+ * @param[in] sub-index  = sub-index of SDO upload request to handle
+ * @return SDO abort code, or 0 on success
+ */
+uint32_t ESC_upload_pre_objecthandler (uint16_t index,
+      uint8_t subindex,
+      void * data,
+      size_t size,
+      uint16_t flags)
+{
+   if (ESCvar.pre_object_upload_hook != NULL)
+   {
+      return (ESCvar.pre_object_upload_hook) (index,
+            subindex,
+            data,
+            size,
+            flags);
+   }
+
+   return 0;
+}
+
+/** Hook called from the slave stack SDO Upload handler to act on
+ * user specified Index and Sub-index.
+ *
+ * @param[in] index      = index of SDO upload request to handle
+ * @param[in] sub-index  = sub-index of SDO upload request to handle
+ * @return SDO abort code, or 0 on success
+ */
+uint32_t ESC_upload_post_objecthandler (uint16_t index, uint8_t subindex, uint16_t flags)
+{
+   if (ESCvar.post_object_upload_hook != NULL)
+   {
+      return (ESCvar.post_object_upload_hook)(index, subindex, flags);
+   }
+
+   return 0;
 }
 
 /** Hook called from the slave stack ESC_stopoutputs to act on state changes

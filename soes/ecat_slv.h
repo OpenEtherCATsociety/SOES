@@ -1,7 +1,11 @@
+/*
+ * Licensed under the GNU General Public License version 2 with exceptions. See
+ * LICENSE file in the project root for full license information
+ */
+
 #ifndef __ECAT_SLV_H__
 #define __ECAT_SLV_H__
 
-#include "ecat_slv.h"
 #include "options.h"
 #include "esc.h"
 
