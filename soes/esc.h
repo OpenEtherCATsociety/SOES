@@ -287,7 +287,15 @@ typedef struct esc_cfg
          void * data,
          size_t size,
          uint16_t flags);
-   void (*post_object_download_hook) (uint16_t index,
+   uint32_t (*post_object_download_hook) (uint16_t index,
+         uint8_t subindex,
+         uint16_t flags);
+   uint32_t (*pre_object_upload_hook) (uint16_t index,
+         uint8_t subindex,
+         void * data,
+         size_t size,
+         uint16_t flags);
+   uint32_t (*post_object_upload_hook) (uint16_t index,
          uint8_t subindex,
          uint16_t flags);
    void (*rxpdo_override) (void);
@@ -402,7 +410,15 @@ typedef struct
          void * data,
          size_t size,
          uint16_t flags);
-   void (*post_object_download_hook) (uint16_t index,
+   uint32_t (*post_object_download_hook) (uint16_t index,
+         uint8_t subindex,
+         uint16_t flags);
+   uint32_t (*pre_object_upload_hook) (uint16_t index,
+         uint8_t subindex,
+         void * data,
+         size_t size,
+         uint16_t flags);
+   uint32_t (*post_object_upload_hook) (uint16_t index,
          uint8_t subindex,
          uint16_t flags);
    void (*rxpdo_override) (void);
@@ -436,6 +452,7 @@ typedef struct
    uint16_t entries;
    uint16_t frags;
    uint16_t fragsleft;
+   uint16_t flags;
 
    uint8_t toggle;
 

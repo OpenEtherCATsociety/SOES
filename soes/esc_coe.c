@@ -245,6 +245,7 @@ void SDO_upload (void)
    uint8_t MBXout;
    uint32_t size;
    uint8_t dss;
+   uint32_t abort = 1;
    const _objd *objd;
    coesdo = (_COEsdo *) &MBX[0];
    index = etohs (coesdo->index);
@@ -295,8 +296,17 @@ void SDO_upload (void)
                {
                   /* convert bits to bytes */
                   size = (size + 7) >> 3;
-                  /* use dynamic data */
-                  copy2mbx ((objd + nsub)->data, &(coeres->size), size);
+                  abort = ESC_upload_pre_objecthandler (index, subindex,
+                        (objd + nsub)->data, size, (objd + nsub)->flags);
+                  if (abort == 0)
+                  {
+                     /* use dynamic data */
+                     copy2mbx ((objd + nsub)->data, &(coeres->size), size);
+                  }
+                  else
+                  {
+                     SDO_abort (index, subindex, abort);
+                  }
                }
             }
             else
@@ -319,14 +329,33 @@ void SDO_upload (void)
                   /* signal segmented transfer */
                   ESCvar.segmented = MBXSEU;
                   ESCvar.data = (objd + nsub)->data;
+                  ESCvar.flags = (objd + nsub)->flags;
                }
                else
                {
                   ESCvar.segmented = 0;
                }
                coeres->mbxheader.length = htoes (COE_HEADERSIZE + size);
-               /* use dynamic data */
-               copy2mbx ((objd + nsub)->data, (&(coeres->size)) + 1, size);
+               abort = ESC_upload_pre_objecthandler (index, subindex,
+                     (objd + nsub)->data, size, (objd + nsub)->flags);
+               if (abort == 0)
+               {
+                  /* use dynamic data */
+                  copy2mbx ((objd + nsub)->data, (&(coeres->size)) + 1, size);
+               }
+               else
+               {
+                  SDO_abort (index, subindex, abort);
+               }
+            }
+            if ((abort == 0) && (ESCvar.segmented == 0))
+            {
+               abort = ESC_upload_post_objecthandler (index, subindex,
+                                                      (objd + nsub)->flags);
+               if (abort != 0)
+               {
+                  SDO_abort (index, subindex, abort);
+               }
             }
             MBXcontrol[MBXout].state = MBXstate_outreq;
          }
@@ -352,7 +381,7 @@ void SDO_uploadsegment (void)
 {
    _COEsdo *coesdo, *coeres;
    uint8_t MBXout;
-   uint32_t size, offset;
+   uint32_t size, offset, abort;
    coesdo = (_COEsdo *) &MBX[0];
    MBXout = ESC_claimbuffer ();
    if (MBXout)
@@ -392,6 +421,12 @@ void SDO_uploadsegment (void)
       }
       copy2mbx ((uint8_t *) ESCvar.data + offset, (&(coeres->command)) + 1, size);        //copy to mailbox
 
+      abort = ESC_upload_post_objecthandler (etohs (coesdo->index),
+                                             coesdo->subindex, ESCvar.flags);
+      if (abort != 0)
+      {
+         SDO_abort (etohs (coesdo->index), coesdo->subindex, abort);
+      }
       MBXcontrol[MBXout].state = MBXstate_outreq;
    }
    MBXcontrol[0].state = MBXstate_idle;
@@ -444,7 +479,7 @@ void SDO_download (void)
             actsize = ((objd + nsub)->bitlength + 7) >> 3;
             if (actsize == size)
             {
-               abort = ESC_pre_objecthandler (
+               abort = ESC_download_pre_objecthandler (
                   index,
                   subindex,
                   mbxdata,
@@ -469,7 +504,11 @@ void SDO_download (void)
                      MBXcontrol[MBXout].state = MBXstate_outreq;
                   }
                   /* external object write handler */
-                  ESC_objecthandler (index, subindex, (objd + nsub)->flags);
+                  abort = ESC_download_post_objecthandler (index, subindex, (objd + nsub)->flags);
+                  if (abort != 0)
+                  {
+                     SDO_abort (index, subindex, abort);
+                  }
                }
                else
                {
