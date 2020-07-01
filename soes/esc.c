@@ -978,7 +978,6 @@ void ESC_state (void)
       {
          /* get station address */
          ESC_address ();
-         COE_initDefaultValues ();
          an = ESC_startmbx (ac);
          break;
       }
