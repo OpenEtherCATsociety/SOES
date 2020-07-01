@@ -367,18 +367,20 @@ void ecat_slv_init (esc_cfg_t * config)
 
 #if USE_FOE
    /* Init FoE */
-   FOE_init();
+   FOE_init ();
 #endif
 
 #if USE_EOE
    /* Init EoE */
-   EOE_init();
+   EOE_init ();
 #endif
 
    /* reset ESC to init state */
    ESC_ALstatus (ESCinit);
    ESC_ALerror (ALERR_NONE);
-   ESC_stopmbx();
-   ESC_stopinput();
-   ESC_stopoutput();
+   ESC_stopmbx ();
+   ESC_stopinput ();
+   ESC_stopoutput ();
+   /* Init Object Dictionary default values */
+   COE_initDefaultValues ();
 }
