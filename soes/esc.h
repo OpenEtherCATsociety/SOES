@@ -192,6 +192,7 @@
 #define COE_COMMAND_UPLOADRESPONSE      0x40
 #define COE_COMMAND_UPLOADSEGMENT       0x00
 #define COE_COMMAND_UPLOADSEGREQ        0x60
+#define COE_COMMAND_DOWNLOADREQUEST     0x20
 #define COE_COMMAND_DOWNLOADRESPONSE    0x60
 #define COE_COMMAND_LASTSEGMENTBIT      0x01
 #define COE_SIZE_INDICATOR              0x01
@@ -262,6 +263,9 @@
 #define APPSTATE_IDLE                  0x00
 #define APPSTATE_INPUT                 0x01
 #define APPSTATE_OUTPUT                0x02
+
+#define PREALLOC_FACTOR       3
+#define PREALLOC_BUFFER_SIZE  (PREALLOC_FACTOR * MBXSIZE)
 
 typedef struct sm_cfg
 {
@@ -468,6 +472,7 @@ typedef struct
    volatile uint16_t ALevent;
    volatile int8_t synccounter;
    volatile _App App;
+   uint8_t mbxdata[PREALLOC_BUFFER_SIZE];
 } _ESCvar;
 
 CC_PACKED_BEGIN
