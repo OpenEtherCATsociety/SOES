@@ -51,7 +51,8 @@ uint32_t ESC_download_pre_objecthandler (uint16_t index,
        index == RX_PDO_OBJIDX ||
        index == TX_PDO_OBJIDX)
    {
-      if (subindex > 0 && COE_maxSub (index) != 0)
+      uint8_t minSub = ((flags & COMPLETE_ACCESS_FLAG) == 0) ? 0 : 1;
+      if (subindex > minSub && COE_maxSub (index) != 0)
       {
          return ABORT_SUBINDEX0_NOT_ZERO;
       }
