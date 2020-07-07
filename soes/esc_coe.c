@@ -12,6 +12,7 @@
 
 #include <stdlib.h>
 #include <stddef.h>
+#include <stdbool.h>
 #include <string.h>
 #include <cc.h>
 #include "esc.h"
