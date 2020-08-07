@@ -436,7 +436,7 @@ static uint32_t complete_access_subindex_loop(const _objd *objd,
        (objd->datatype == DTYPE_OCTET_STRING)   ||
        (objd->datatype == DTYPE_UNICODE_STRING))
    {
-      return ABORT_UNSUPPORTED;
+      return ABORT_CA_NOT_SUPPORTED;
    }
 
    uint32_t size = 0;
