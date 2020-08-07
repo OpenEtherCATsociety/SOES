@@ -604,6 +604,7 @@ static void SDO_upload_complete_access (void)
          /* signal segmented transfer */
          ESCvar.segmented = MBXSEU;
          ESCvar.data = ESCvar.mbxdata;
+         ESCvar.flags = COMPLETE_ACCESS_FLAG;
       }
 
       coeres->mbxheader.length = htoes (COE_HEADERSIZE + size);
@@ -629,7 +630,7 @@ static void SDO_upload_complete_access (void)
 /** Function for handling the following SDO Upload if previous SDOUpload
  * response was flagged it needed to be segmented.
  */
-static void SDO_uploadsegment (bool complete_access)
+static void SDO_uploadsegment (void)
 {
    _COEsdo *coesdo, *coeres;
    uint8_t MBXout;
@@ -643,10 +644,6 @@ static void SDO_uploadsegment (bool complete_access)
       size = ESCvar.frags - ESCvar.fragsleft;
       uint8_t command = COE_COMMAND_UPLOADSEGMENT +
             (coesdo->command & COE_TOGGLEBIT);  /* copy toggle bit */
-      if (complete_access)
-      {
-         command |= COE_COMPLETEACCESS;
-      }
       init_coesdo(coeres, COE_SDORESPONSE, command,
             coesdo->index, coesdo->subindex);
       if ((size + COE_SEGMENTHEADERSIZE) > ESC_MBXDSIZE)
@@ -680,15 +677,8 @@ static void SDO_uploadsegment (bool complete_access)
 
       if (ESCvar.segmented == 0)
       {
-         uint16_t flags = ESCvar.flags;
-
-         if (complete_access)
-         {
-            flags |= COMPLETE_ACCESS_FLAG;
-         }
-
          abort = ESC_upload_post_objecthandler (etohs (coesdo->index),
-               coesdo->subindex, flags);
+               coesdo->subindex, ESCvar.flags);
          if (abort != 0)
          {
             SDO_abort (etohs (coesdo->index), coesdo->subindex, abort);
@@ -756,6 +746,21 @@ void SDO_download (void)
                );
                if (abort == 0)
                {
+                  if ((size > 4) &&
+                      (size > (coesdo->mbxheader.length - COE_HEADERSIZE)))
+                  {
+                     size = coesdo->mbxheader.length - COE_HEADERSIZE;
+                     /* signal segmented transfer */
+                     ESCvar.segmented = MBXSED;
+                     ESCvar.data = (objd + nsub)->data + size;
+                     ESCvar.index = index;
+                     ESCvar.subindex = subindex;
+                     ESCvar.flags = (objd + nsub)->flags;
+                  }
+                  else
+                  {
+                     ESCvar.segmented = 0;
+                  }
                   copy2mbx (mbxdata, (objd + nsub)->data, size);
                   MBXout = ESC_claimbuffer ();
                   if (MBXout)
@@ -771,11 +776,14 @@ void SDO_download (void)
                      coeres->size = htoel (0);
                      MBXcontrol[MBXout].state = MBXstate_outreq;
                   }
-                  /* external object write handler */
-                  abort = ESC_download_post_objecthandler (index, subindex, (objd + nsub)->flags);
-                  if (abort != 0)
+                  if (ESCvar.segmented == 0)
                   {
-                     SDO_abort (index, subindex, abort);
+                     /* external object write handler */
+                     abort = ESC_download_post_objecthandler (index, subindex, (objd + nsub)->flags);
+                     if (abort != 0)
+                     {
+                        SDO_abort (index, subindex, abort);
+                     }
                   }
                }
                else
@@ -904,6 +912,51 @@ static void SDO_download_complete_access (void)
    }
 
    set_state_idle (index, subindex, 0);
+}
+
+static void SDO_downloadsegment (void)
+{
+   _COEsdo *coesdo = (_COEsdo *) &MBX[0];
+   uint8_t MBXout = ESC_claimbuffer ();
+   if (MBXout)
+   {
+      _COEsdo *coeres = (_COEsdo *) &MBX[MBXout * ESC_MBXSIZE];
+      uint32_t size = coesdo->mbxheader.length - 3;
+      if (size == 7)
+      {
+         size = 7 - ((coesdo->command >> 1) & 7);
+      }
+      uint8_t command = COE_COMMAND_DOWNLOADSEGRESP +
+            (coesdo->command & COE_TOGGLEBIT);  /* copy toggle bit */
+      init_coesdo(coeres, COE_SDORESPONSE, command, 0, 0);
+
+      uint32_t *mbxdata = (uint32_t *)&(coesdo->index);  /* data pointer */
+      copy2mbx (mbxdata, (uint8_t *)ESCvar.data, size);
+
+      if (coesdo->command & COE_COMMAND_LASTSEGMENTBIT)
+      {
+         /* last segment */
+         ESCvar.segmented = 0;
+
+         /* external object write handler */
+         uint32_t abort = ESC_download_post_objecthandler
+               (ESCvar.index, ESCvar.subindex, ESCvar.flags);
+         if (abort != 0)
+         {
+            set_state_idle (ESCvar.index, ESCvar.subindex, abort);
+            return;
+         }
+      }
+      else
+      {
+         /* more segmented transfer needed: increase offset */
+         ESCvar.data += size;
+      }
+
+      MBXcontrol[MBXout].state = MBXstate_outreq;
+   }
+
+   set_state_idle (0, 0, 0);
 }
 
 /** Function for sending an SDO Info Error reply.
@@ -1258,34 +1311,31 @@ void ESC_coeprocess (void)
       coesdo = (_COEsdo *) &MBX[0];
       coeobjdesc = (_COEobjdesc *) &MBX[0];
       service = etohs (coesdo->coeheader.numberservice) >> 12;
-      /* initiate SDO upload request */
-      if ((service == COE_SDOREQUEST)
-          && (SDO_COMMAND(coesdo->command) == COE_COMMAND_UPLOADREQUEST)
-          && (etohs (coesdo->mbxheader.length) == COE_HEADERSIZE))
+      if (service == COE_SDOREQUEST)
       {
-         if (SDO_COMPLETE_ACCESS(coesdo->command))
+         if ((SDO_COMMAND(coesdo->command) == COE_COMMAND_UPLOADREQUEST)
+               && (etohs (coesdo->mbxheader.length) == COE_HEADERSIZE))
          {
-            SDO_upload_complete_access ();
+            /* initiate SDO upload request */
+            if (SDO_COMPLETE_ACCESS(coesdo->command))
+            {
+               SDO_upload_complete_access ();
+            }
+            else
+            {
+               SDO_upload ();
+            }
          }
-         else
+         else if (((coesdo->command & 0xef) == COE_COMMAND_UPLOADSEGREQ)
+               && (etohs (coesdo->mbxheader.length) == COE_HEADERSIZE)
+               && (ESCvar.segmented == MBXSEU))
          {
-            SDO_upload ();
+            /* SDO upload segment request */
+            SDO_uploadsegment ();
          }
-      }
-      /* SDO upload segment request */
-      if ((service == COE_SDOREQUEST)
-          && ((coesdo->command & 0xef) == COE_COMMAND_UPLOADSEGREQ)
-          && (etohs (coesdo->mbxheader.length) == COE_HEADERSIZE)
-          && (ESCvar.segmented == MBXSEU))
-      {
-         SDO_uploadsegment (SDO_COMPLETE_ACCESS(coesdo->command));
-      }
-      /* initiate SDO download request */
-      else
-      {
-         if ((service == COE_SDOREQUEST)
-             && (SDO_COMMAND(coesdo->command) == COE_COMMAND_DOWNLOADREQUEST))
+         else if (SDO_COMMAND(coesdo->command) == COE_COMMAND_DOWNLOADREQUEST)
          {
+            /* initiate SDO download request */
             if (SDO_COMPLETE_ACCESS(coesdo->command))
             {
                SDO_download_complete_access ();
@@ -1295,46 +1345,51 @@ void ESC_coeprocess (void)
                SDO_download ();
             }
          }
-         /* initiate SDO get OD list */
+         else if (SDO_COMMAND(coesdo->command) == COE_COMMAND_DOWNLOADSEGREQ)
+         {
+            /* SDO download segment request */
+            SDO_downloadsegment ();
+         }
+      }
+      /* initiate SDO get OD list */
+      else
+      {
+         if ((service == COE_SDOINFORMATION)
+               && (coeobjdesc->infoheader.opcode == 0x01))
+         {
+            SDO_getodlist ();
+         }
+         /* initiate SDO get OD */
          else
          {
             if ((service == COE_SDOINFORMATION)
-                && (coeobjdesc->infoheader.opcode == 0x01))
+                  && (coeobjdesc->infoheader.opcode == 0x03))
             {
-               SDO_getodlist ();
+               SDO_getod ();
             }
-            /* initiate SDO get OD */
+            /* initiate SDO get ED */
             else
             {
                if ((service == COE_SDOINFORMATION)
-                   && (coeobjdesc->infoheader.opcode == 0x03))
+                     && (coeobjdesc->infoheader.opcode == 0x05))
                {
-                  SDO_getod ();
+                  SDO_geted ();
                }
-               /* initiate SDO get ED */
                else
                {
-                  if ((service == COE_SDOINFORMATION)
-                      && (coeobjdesc->infoheader.opcode == 0x05))
+                  /* COE not recognised above */
+                  if (ESCvar.xoe == MBXCOE)
                   {
-                     SDO_geted ();
-                  }
-                  else
-                  {
-                     /* COE not recognised above */
-                     if (ESCvar.xoe == MBXCOE)
+                     if (service == 0)
                      {
-                        if (service == 0)
-                        {
-                           MBX_error (MBXERR_INVALIDHEADER);
-                        }
-                        else
-                        {
-                           SDO_abort (etohs (coesdo->index), coesdo->subindex, ABORT_UNSUPPORTED);
-                        }
-                        MBXcontrol[0].state = MBXstate_idle;
-                        ESCvar.xoe = 0;
+                        MBX_error (MBXERR_INVALIDHEADER);
                      }
+                     else
+                     {
+                        SDO_abort (etohs (coesdo->index), coesdo->subindex, ABORT_UNSUPPORTED);
+                     }
+                     MBXcontrol[0].state = MBXstate_idle;
+                     ESCvar.xoe = 0;
                   }
                }
             }

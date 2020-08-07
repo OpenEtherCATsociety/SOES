@@ -194,6 +194,8 @@
 #define COE_COMMAND_UPLOADSEGREQ        0x60
 #define COE_COMMAND_DOWNLOADREQUEST     0x20
 #define COE_COMMAND_DOWNLOADRESPONSE    0x60
+#define COE_COMMAND_DOWNLOADSEGREQ      0x00
+#define COE_COMMAND_DOWNLOADSEGRESP     0x20
 #define COE_COMMAND_LASTSEGMENTBIT      0x01
 #define COE_SIZE_INDICATOR              0x01
 #define COE_EXPEDITED_INDICATOR         0x02
@@ -456,6 +458,8 @@ typedef struct
    uint16_t entries;
    uint16_t frags;
    uint16_t fragsleft;
+   uint16_t index;
+   uint8_t subindex;
    uint16_t flags;
 
    uint8_t toggle;

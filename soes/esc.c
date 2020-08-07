@@ -395,6 +395,9 @@ void ESC_stopmbx (void)
    ESCvar.frags = 0;
    ESCvar.fragsleft = 0;
    ESCvar.txcue = 0;
+   ESCvar.index = 0;
+   ESCvar.subindex = 0;
+   ESCvar.flags = 0;
 }
 
 /** Read Receive mailbox and store data in local ESCvar.MBX variable.
