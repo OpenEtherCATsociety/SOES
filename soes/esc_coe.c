@@ -296,26 +296,28 @@ void SDO_upload (void)
                /* expedited response i.e. length<=4 bytes */
                coeres->command = COE_COMMAND_UPLOADRESPONSE +
                   COE_SIZE_INDICATOR + COE_EXPEDITED_INDICATOR + dss;
-               if ((objd + nsub)->data == NULL)
+               /* convert bits to bytes */
+               size = BITS2BYTES(size);
+               void *dataptr = ((objd + nsub)->data) ?
+                     (objd + nsub)->data : (void *)&((objd + nsub)->value);
+               abort = ESC_upload_pre_objecthandler (index, subindex,
+                     dataptr, size, (objd + nsub)->flags);
+               if (abort == 0)
                {
-                  /* use constant value */
-                  coeres->size = htoel ((objd + nsub)->value);
-               }
-               else
-               {
-                  /* convert bits to bytes */
-                  size = BITS2BYTES(size);
-                  abort = ESC_upload_pre_objecthandler (index, subindex,
-                        (objd + nsub)->data, size, (objd + nsub)->flags);
-                  if (abort == 0)
+                  if ((objd + nsub)->data == NULL)
+                  {
+                     /* use constant value */
+                     coeres->size = htoel ((objd + nsub)->value);
+                  }
+                  else
                   {
                      /* use dynamic data */
                      copy2mbx ((objd + nsub)->data, &(coeres->size), size);
                   }
-                  else
-                  {
-                     SDO_abort (index, subindex, abort);
-                  }
+               }
+               else
+               {
+                  SDO_abort (index, subindex, abort);
                }
             }
             else
