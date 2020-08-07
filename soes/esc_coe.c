@@ -1496,17 +1496,20 @@ static uint64_t COE_getValue (const _objd * obj)
    case DTYPE_BOOLEAN:
    case DTYPE_UNSIGNED8:
    case DTYPE_INTEGER8:
+   case DTYPE_BITARR8:
       value = *(uint8_t *)obj->data;
       break;
 
    case DTYPE_UNSIGNED16:
    case DTYPE_INTEGER16:
+   case DTYPE_BITARR16:
       value = *(uint16_t *)obj->data;
       break;
 
    case DTYPE_REAL32:
    case DTYPE_UNSIGNED32:
    case DTYPE_INTEGER32:
+   case DTYPE_BITARR32:
       value = *(uint32_t *)obj->data;
       break;
 
@@ -1547,17 +1550,20 @@ static void COE_setValue (const _objd * obj, uint64_t value)
    case DTYPE_BOOLEAN:
    case DTYPE_UNSIGNED8:
    case DTYPE_INTEGER8:
+   case DTYPE_BITARR8:
       *(uint8_t *)obj->data = value & UINT8_MAX;
       break;
 
    case DTYPE_UNSIGNED16:
    case DTYPE_INTEGER16:
+   case DTYPE_BITARR16:
       *(uint16_t *)obj->data = value & UINT16_MAX;
       break;
 
    case DTYPE_REAL32:
    case DTYPE_UNSIGNED32:
    case DTYPE_INTEGER32:
+   case DTYPE_BITARR32:
       *(uint32_t *)obj->data = value & UINT32_MAX;
       break;
 

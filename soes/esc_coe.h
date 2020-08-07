@@ -72,6 +72,9 @@ typedef struct
 #define DTYPE_REAL64            0x0011
 #define DTYPE_PDO_MAPPING       0x0021
 #define DTYPE_IDENTITY          0x0023
+#define DTYPE_BITARR8           0x002D
+#define DTYPE_BITARR16          0x002E
+#define DTYPE_BITARR32          0x002F
 #define DTYPE_BIT1              0x0030
 #define DTYPE_BIT2              0x0031
 #define DTYPE_BIT3              0x0032
