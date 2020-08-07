@@ -327,12 +327,12 @@ void SDO_upload (void)
                   COE_SIZE_INDICATOR;
                /* convert bits to bytes */
                size = BITS2BYTES(size);
+               /* set total size in bytes */
+               ESCvar.frags = size;
                coeres->size = htoel (size);
                if ((size + COE_HEADERSIZE) > ESC_MBXDSIZE)
                {
                   /* segmented transfer needed */
-                  /* set total size in bytes */
-                  ESCvar.frags = size;
                   /* limit to mailbox size */
                   size = ESC_MBXDSIZE - COE_HEADERSIZE;
                   /* number of bytes done */
@@ -348,7 +348,7 @@ void SDO_upload (void)
                }
                coeres->mbxheader.length = htoes (COE_HEADERSIZE + size);
                abort = ESC_upload_pre_objecthandler (index, subindex,
-                     (objd + nsub)->data, size, (objd + nsub)->flags);
+                     (objd + nsub)->data, ESCvar.frags, (objd + nsub)->flags);
                if (abort == 0)
                {
                   /* use dynamic data */
