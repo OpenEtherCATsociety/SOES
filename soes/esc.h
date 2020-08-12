@@ -161,17 +161,41 @@
 #define MBXERR_INVALIDSIZE              0x0008
 
 #define ABORT_NOTOGGLE                  0x05030000
+#define ABORT_TRANSFER_TIMEOUT          0x05040000
 #define ABORT_UNKNOWN                   0x05040001
+#define ABORT_INVALID_BLOCK_SIZE        0x05040002
+#define ABORT_INVALID_SEQUENCE_NUMBER   0x05040003
+#define ABORT_BLOCK_CRC_ERROR           0x05040004
+#define ABORT_OUT_OF_MEMORY             0x05040005
 #define ABORT_UNSUPPORTED               0x06010000
 #define ABORT_WRITEONLY                 0x06010001
 #define ABORT_READONLY                  0x06010002
 #define ABORT_SUBINDEX0_NOT_ZERO        0x06010003
+#define ABORT_CA_NOT_SUPPORTED          0x06010004
 #define ABORT_EXCEEDS_MBOX_SIZE         0x06010005
+#define ABORT_SDO_DOWNLOAD_BLOCKED      0x06010006
 #define ABORT_NOOBJECT                  0x06020000
+#define ABORT_MAPPING_OBJECT_ERROR      0x06040041
+#define ABORT_MAPPING_LENGTH_ERROR      0x06040042
+#define ABORT_GENERAL_PARAMETER_ERROR   0x06040043
+#define ABORT_GENERAL_DEVICE_ERROR      0x06040047
+#define ABORT_HARDWARE_ERROR            0x06060000
 #define ABORT_TYPEMISMATCH              0x06070010
+#define ABORT_DATATYPE_TOO_HIGH         0x06070012
+#define ABORT_DATATYPE_TOO_LOW          0x06070013
 #define ABORT_NOSUBINDEX                0x06090011
+#define ABORT_VALUE_EXCEEDED            0x06090030
+#define ABORT_VALUE_TOO_HIGH            0x06090031
+#define ABORT_VALUE_TOO_LOW             0x06090032
+#define ABORT_MODULE_LIST_MISMATCH      0x06090033
+#define ABORT_MAX_VAL_LESS_THAN_MIN_VAL 0x06090036
+#define ABORT_RESOURCE_NOT_AVAILABLE    0x060A0023
 #define ABORT_GENERALERROR              0x08000000
+#define ABORT_DATA_STORE_ERROR          0x08000020
+#define ABORT_DATA_STORE_LOCAL_ERROR    0x08000021
 #define ABORT_NOTINTHISSTATE            0x08000022
+#define ABORT_OBJECT_DICTIONARY_ERROR   0x08000023
+#define ABORT_NO_DATA_AVAILABLE         0x08000024
 
 #define MBXstate_idle                   0x00
 #define MBXstate_inclaim                0x01
@@ -194,6 +218,8 @@
 #define COE_COMMAND_UPLOADSEGREQ        0x60
 #define COE_COMMAND_DOWNLOADREQUEST     0x20
 #define COE_COMMAND_DOWNLOADRESPONSE    0x60
+#define COE_COMMAND_DOWNLOADSEGREQ      0x00
+#define COE_COMMAND_DOWNLOADSEGRESP     0x20
 #define COE_COMMAND_LASTSEGMENTBIT      0x01
 #define COE_SIZE_INDICATOR              0x01
 #define COE_EXPEDITED_INDICATOR         0x02
@@ -456,6 +482,8 @@ typedef struct
    uint16_t entries;
    uint16_t frags;
    uint16_t fragsleft;
+   uint16_t index;
+   uint8_t subindex;
    uint16_t flags;
 
    uint8_t toggle;
