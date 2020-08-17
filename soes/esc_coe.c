@@ -737,65 +737,76 @@ void SDO_download (void)
                mbxdata = (&(coesdo->size)) + 1;
             }
             actsize = BITS2BYTES((objd + nsub)->bitlength);
-            if (actsize == size)
+            if (actsize != size)
             {
-               abort = ESC_download_pre_objecthandler (
+               /* entries with data types VISIBLE_STRING, OCTET_STRING,
+                * and UNICODE_STRING may have flexible length
+                */
+               uint16_t type = (objd + nsub)->datatype;
+               if (type == DTYPE_VISIBLE_STRING)
+               {
+                  /* pad with zeroes up to the maximum size of the entry */
+                  memset((objd + nsub)->data + size, 0, actsize - size);
+               }
+               else if ((type != DTYPE_OCTET_STRING) &&
+                        (type != DTYPE_UNICODE_STRING))
+               {
+                  set_state_idle (index, subindex, ABORT_TYPEMISMATCH);
+                  return;
+               }
+            }
+            abort = ESC_download_pre_objecthandler (
                   index,
                   subindex,
                   mbxdata,
                   size,
                   (objd + nsub)->flags
-               );
-               if (abort == 0)
+            );
+            if (abort == 0)
+            {
+               if ((size > 4) &&
+                     (size > (coesdo->mbxheader.length - COE_HEADERSIZE)))
                {
-                  if ((size > 4) &&
-                      (size > (coesdo->mbxheader.length - COE_HEADERSIZE)))
-                  {
-                     size = coesdo->mbxheader.length - COE_HEADERSIZE;
-                     /* signal segmented transfer */
-                     ESCvar.segmented = MBXSED;
-                     ESCvar.data = (objd + nsub)->data + size;
-                     ESCvar.index = index;
-                     ESCvar.subindex = subindex;
-                     ESCvar.flags = (objd + nsub)->flags;
-                  }
-                  else
-                  {
-                     ESCvar.segmented = 0;
-                  }
-                  copy2mbx (mbxdata, (objd + nsub)->data, size);
-                  MBXout = ESC_claimbuffer ();
-                  if (MBXout)
-                  {
-                     coeres = (_COEsdo *) &MBX[MBXout * ESC_MBXSIZE];
-                     coeres->mbxheader.length = htoes (COE_DEFAULTLENGTH);
-                     coeres->mbxheader.mbxtype = MBXCOE;
-                     coeres->coeheader.numberservice =
-                        htoes ((0 & 0x01f) | (COE_SDORESPONSE << 12));
-                     coeres->index = htoes (index);
-                     coeres->subindex = subindex;
-                     coeres->command = COE_COMMAND_DOWNLOADRESPONSE;
-                     coeres->size = htoel (0);
-                     MBXcontrol[MBXout].state = MBXstate_outreq;
-                  }
-                  if (ESCvar.segmented == 0)
-                  {
-                     /* external object write handler */
-                     abort = ESC_download_post_objecthandler (index, subindex, (objd + nsub)->flags);
-                     if (abort != 0)
-                     {
-                        SDO_abort (index, subindex, abort);
-                     }
-                  }
+                  size = coesdo->mbxheader.length - COE_HEADERSIZE;
+                  /* signal segmented transfer */
+                  ESCvar.segmented = MBXSED;
+                  ESCvar.data = (objd + nsub)->data + size;
+                  ESCvar.index = index;
+                  ESCvar.subindex = subindex;
+                  ESCvar.flags = (objd + nsub)->flags;
                }
                else
                {
-                  SDO_abort (index, subindex, abort);
+                  ESCvar.segmented = 0;
+               }
+               copy2mbx (mbxdata, (objd + nsub)->data, size);
+               MBXout = ESC_claimbuffer ();
+               if (MBXout)
+               {
+                  coeres = (_COEsdo *) &MBX[MBXout * ESC_MBXSIZE];
+                  coeres->mbxheader.length = htoes (COE_DEFAULTLENGTH);
+                  coeres->mbxheader.mbxtype = MBXCOE;
+                  coeres->coeheader.numberservice =
+                        htoes ((0 & 0x01f) | (COE_SDORESPONSE << 12));
+                  coeres->index = htoes (index);
+                  coeres->subindex = subindex;
+                  coeres->command = COE_COMMAND_DOWNLOADRESPONSE;
+                  coeres->size = htoel (0);
+                  MBXcontrol[MBXout].state = MBXstate_outreq;
+               }
+               if (ESCvar.segmented == 0)
+               {
+                  /* external object write handler */
+                  abort = ESC_download_post_objecthandler (index, subindex, (objd + nsub)->flags);
+                  if (abort != 0)
+                  {
+                     SDO_abort (index, subindex, abort);
+                  }
                }
             }
             else
             {
-               SDO_abort (index, subindex, ABORT_TYPEMISMATCH);
+               SDO_abort (index, subindex, abort);
             }
          }
          else
