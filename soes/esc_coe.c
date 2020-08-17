@@ -54,6 +54,15 @@ static int16_t SDO_findsubindex (int16_t nidx, uint8_t subindex)
    uint8_t maxsub;
    objd = SDOobjects[nidx].objdesc;
    maxsub = SDOobjects[nidx].maxsub;
+
+   /* Since most objects contain all subindexes (i.e. are not sparse),
+    * check the most likely scenario first
+    */
+   if ((subindex <= maxsub) && ((objd + subindex)->subindex == subindex))
+   {
+      return subindex;
+   }
+
    while (((objd + n)->subindex < subindex) && (n < maxsub))
    {
       n++;
