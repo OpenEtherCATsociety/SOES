@@ -47,7 +47,7 @@ typedef enum { UPLOAD, DOWNLOAD } load_t;
  * @param[in] subindex   = value on sub-index of object we want to locate
  * @return local array index if we succeed, -1 if we didn't find the index.
  */
-int16_t SDO_findsubindex (int16_t nidx, uint8_t subindex)
+static int16_t SDO_findsubindex (int16_t nidx, uint8_t subindex)
 {
    const _objd *objd;
    int16_t n = 0;
@@ -220,7 +220,7 @@ uint16_t sizeOfPDO (uint16_t index, int * nmappings, _SMmap * mappings,
  * @param[in] dest   = pointer to destination
  * @param[in] size   = Size to copy
  */
-void copy2mbx (void *source, void *dest, uint16_t size)
+static void copy2mbx (void *source, void *dest, uint16_t size)
 {
    memcpy (dest, source, size);
 }
@@ -268,7 +268,7 @@ static void set_state_idle(uint16_t index,
  *  requested in a free Mailbox buffer. Depending of size of data expedited,
  *  normal or segmented transfer is used. On error an SDO Abort will be sent.
  */
-void SDO_upload (void)
+static void SDO_upload (void)
 {
    _COEsdo *coesdo, *coeres;
    uint16_t index;
@@ -719,7 +719,7 @@ static void SDO_uploadsegment (void)
 /** Function for handling incoming requested SDO Download, validating the
  * request and sending an response. On error an SDO Abort will be sent.
  */
-void SDO_download (void)
+static void SDO_download (void)
 {
    _COEsdo *coesdo, *coeres;
    uint16_t index;
@@ -997,7 +997,7 @@ static void SDO_downloadsegment (void)
  *
  * @param[in] abortcode  = = abort code to send in reply
  */
-void SDO_infoerror (uint32_t abortcode)
+static void SDO_infoerror (uint32_t abortcode)
 {
    uint8_t MBXout;
    _COEobjdesc *coeres;
@@ -1027,7 +1027,7 @@ void SDO_infoerror (uint32_t abortcode)
 /** Function for handling incoming requested SDO Get OD List, validating the
  * request and sending an response. On error an SDO Info Error will be sent.
  */
-void SDO_getodlist (void)
+static void SDO_getodlist (void)
 {
    uint16_t frags;
    uint8_t MBXout = 0;
@@ -1119,9 +1119,8 @@ void SDO_getodlist (void)
 }
 /** Function for continuing sending left overs from previous requested
  * SDO Get OD List, validating the request and sending an response.
- *
  */
-void SDO_getodlistcont (void)
+static void SDO_getodlistcont (void)
 {
    uint8_t MBXout;
    uint16_t i, n, s;
@@ -1168,7 +1167,7 @@ void SDO_getodlistcont (void)
  * validating the request and sending an response. On error an
  * SDO Info Error will be sent.
  */
-void SDO_getod (void)
+static void SDO_getod (void)
 {
    uint8_t MBXout;
    uint16_t index;
@@ -1240,7 +1239,7 @@ void SDO_getod (void)
  * validating the request and sending an response. On error an
  * SDO Info Error will be sent.
  */
-void SDO_geted (void)
+static void SDO_geted (void)
 {
    uint8_t MBXout;
    uint16_t index;
