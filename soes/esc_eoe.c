@@ -108,6 +108,8 @@
 #define EOE_DNS_NAME_LENGTH  32
 /** Ethernet address length not including VLAN */
 #define EOE_ETHADDR_LENGTH    6
+/** IPv4 address length */
+#define EOE_IP4_LENGTH        sizeof(uint32_t)
 
 /** EOE ip4 address in network order */
 struct eoe_ip4_addr {
@@ -524,7 +526,6 @@ static void EOE_get_ip (void)
       return;
    }
 
-
    /* Refresh settings if needed */
    if(eoe_cfg->load_eth_settings != NULL)
    {
@@ -552,55 +553,60 @@ static void EOE_get_ip (void)
          memcpy(&eoembx->data[data_offset] ,
                nic_ports[port_ix].mac.addr,
                EOE_ETHADDR_LENGTH);
+         /* Add size of mac address */
+         data_offset += EOE_ETHADDR_LENGTH;
+
       }
-      /* Add size of mac address */
-      data_offset += EOE_ETHADDR_LENGTH;
       /* include ip in get ip request */
       if(nic_ports[port_ix].ip_set)
       {
          flags |= EOE_PARAM_IP_INCLUDE;
          EOE_ip_uint32_to_byte(&nic_ports[port_ix].ip,
                &eoembx->data[data_offset]);
+         /* Add size of uint32 IP address */
+         data_offset += EOE_IP4_LENGTH;
       }
-      /* Add size of uint32 IP address */
-      data_offset += 4;
+
       /* include subnet in get ip request */
       if(nic_ports[port_ix].subnet_set)
       {
          flags |= EOE_PARAM_SUBNET_IP_INCLUDE;
          EOE_ip_uint32_to_byte(&nic_ports[port_ix].subnet,
                &eoembx->data[data_offset]);
+         /* Add size of uint32 IP address */
+         data_offset += EOE_IP4_LENGTH;
       }
-      /* Add size of uint32 IP address */
-      data_offset += 4;
+
       /* include default gateway in get ip request */
       if(nic_ports[port_ix].default_gateway_set)
       {
          flags |= EOE_PARAM_DEFAULT_GATEWAY_INCLUDE;
          EOE_ip_uint32_to_byte(&nic_ports[port_ix].default_gateway,
                &eoembx->data[data_offset]);
+         /* Add size of uint32 IP address */
+         data_offset += EOE_IP4_LENGTH;
       }
-      /* Add size of uint32 IP address */
-      data_offset += 4;
       /* include dns ip in get ip request */
       if(nic_ports[port_ix].dns_ip_set)
       {
          flags |= EOE_PARAM_DNS_IP_INCLUDE;
          EOE_ip_uint32_to_byte(&nic_ports[port_ix].dns_ip,
                &eoembx->data[data_offset]);
+         /* Add size of uint32 IP address */
+         data_offset += EOE_IP4_LENGTH;
       }
-      /* Add size of uint32 IP address */
-      data_offset += 4;
+
       /* include dns name in get ip request */
       if(nic_ports[port_ix].dns_name_set)
       {
+         /* TwinCAT include EOE_DNS_NAME_LENGTH chars even if name is shorter */
          flags |= EOE_PARAM_DNS_NAME_INCLUDE;
          memcpy(&eoembx->data[data_offset],
                nic_ports[port_ix].dns_name,
                EOE_DNS_NAME_LENGTH);
+         /* Add size of dns name length */
+         data_offset += EOE_DNS_NAME_LENGTH;
       }
-      /* Add size of dns name length */
-      data_offset += EOE_DNS_NAME_LENGTH;
 
       eoembx->data[0] = flags;
       eoembx->mbxheader.length = htoes (ESC_EOEHSIZE + data_offset);
@@ -646,45 +652,45 @@ static void EOE_set_ip (void)
             &eoembx->data[data_offset],
             EOE_ETHADDR_LENGTH);
       nic_ports[port_ix].mac_set = 1;
+      /* Add size of mac address */
+      data_offset += EOE_ETHADDR_LENGTH;
    }
-   /* Add size of mac address */
-   data_offset += EOE_ETHADDR_LENGTH;
    /* ip included in set ip request? */
    if(flags & EOE_PARAM_IP_INCLUDE)
    {
       EOE_ip_byte_to_uint32(&eoembx->data[data_offset],
             &nic_ports[port_ix].ip);
       nic_ports[port_ix].ip_set = 1;
+      /* Add size of uint32 IP address */
+      data_offset += EOE_IP4_LENGTH;
    }
-   /* Add size of uint32 IP address */
-   data_offset += 4;
    /* subnet included in set ip request? */
    if(flags & EOE_PARAM_SUBNET_IP_INCLUDE)
    {
       EOE_ip_byte_to_uint32(&eoembx->data[data_offset],
             &nic_ports[port_ix].subnet);
       nic_ports[port_ix].subnet_set = 1;
+      /* Add size of uint32 IP address */
+      data_offset += EOE_IP4_LENGTH;
    }
-   /* Add size of uint32 IP address */
-   data_offset += 4;
    /* default gateway included in set ip request? */
    if(flags & EOE_PARAM_DEFAULT_GATEWAY_INCLUDE)
    {
       EOE_ip_byte_to_uint32(&eoembx->data[data_offset],
             &nic_ports[port_ix].default_gateway);
       nic_ports[port_ix].default_gateway_set = 1;
+      /* Add size of uint32 IP address */
+      data_offset += EOE_IP4_LENGTH;
    }
-   /* Add size of uint32 IP address */
-   data_offset += 4;
    /* dns ip included in set ip request? */
    if(flags & EOE_PARAM_DNS_IP_INCLUDE)
    {
       EOE_ip_byte_to_uint32(&eoembx->data[data_offset],
             &nic_ports[port_ix].dns_ip);
       nic_ports[port_ix].dns_ip_set = 1;
+      /* Add size of uint32 IP address */
+      data_offset += EOE_IP4_LENGTH;
    }
-   /* Add size of uint32 IP address */
-   data_offset += 4;
    /* dns name included in set ip request? */
    if(flags & EOE_PARAM_DNS_NAME_INCLUDE)
    {
@@ -693,8 +699,8 @@ static void EOE_set_ip (void)
             &eoembx->data[data_offset],
             dns_len);
       nic_ports[port_ix].dns_name_set = 1;
+      data_offset += dns_len; /* expected 1- EOE_DNS_NAME_LENGTH; */
    }
-   data_offset += EOE_DNS_NAME_LENGTH;
 
    if(data_offset > eoedatasize)
    {
