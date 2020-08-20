@@ -94,7 +94,8 @@ typedef struct
 #define ATYPE_TXPDO             0x80
 
 #define ATYPE_RO                (ATYPE_Rpre | ATYPE_Rsafe | ATYPE_Rop)
-#define ATYPE_RW                (ATYPE_Wpre | ATYPE_Wsafe | ATYPE_Wop | ATYPE_RO)
+#define ATYPE_WO                (ATYPE_Wpre | ATYPE_Wsafe | ATYPE_Wop)
+#define ATYPE_RW                (ATYPE_RO | ATYPE_WO)
 #define ATYPE_RWpre             (ATYPE_Wpre | ATYPE_RO)
 
 #define TX_PDO_OBJIDX           0x1c13
