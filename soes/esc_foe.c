@@ -403,7 +403,7 @@ void FOE_write ()
 
    /* Get an address we can write the file to, if possible. */
    res = FOE_fopen (foembx->filename, data_len, password, FOE_OP_WRQ);
-   DPRINT("FOE_write\n");
+   DPRINT("%s %sOK, file \"%s\"\n", __func__, (res == 0) ? "" : "N", foe_file_name);
    if (res == 0)
    {
       res = FOE_send_ack ();
