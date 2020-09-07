@@ -308,6 +308,7 @@ typedef struct esc_cfg
    void * user_arg;
    int use_interrupt;
    int watchdog_cnt;
+   bool skip_default_initialization;
    void (*set_defaults_hook) (void);
    void (*pre_state_change_hook) (uint8_t * as, uint8_t * an);
    void (*post_state_change_hook) (uint8_t * as, uint8_t * an);
@@ -431,6 +432,7 @@ typedef struct
    int use_interrupt;
    sm_cfg_t  mb[2];
    sm_cfg_t  mbboot[2];
+   bool skip_default_initialization;
    void (*set_defaults_hook) (void);
    void (*pre_state_change_hook) (uint8_t * as, uint8_t * an);
    void (*post_state_change_hook) (uint8_t * as, uint8_t * an);

@@ -1630,6 +1630,12 @@ void COE_initDefaultValues (void)
    int n;
    uint8_t maxsub;
 
+   /* Let application decide if initialization will be skipped */
+   if (ESCvar.skip_default_initialization)
+   {
+      return;
+   }
+
    /* Set default values from object descriptor */
    for (n = 0; SDOobjects[n].index != 0xffff; n++)
    {
