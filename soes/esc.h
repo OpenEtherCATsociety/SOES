@@ -266,6 +266,7 @@
 #define FOE_ERR_NOTINBOOTSTRAP         0x8009
 #define FOE_ERR_NORIGHTS               0x800A
 #define FOE_ERR_PROGERROR              0x800B
+#define FOE_ERR_CHECKSUM               0x800C
 
 #define FOE_OP_RRQ                     1
 #define FOE_OP_WRQ                     2
