@@ -14,7 +14,7 @@
 #include <cc.h>
 
 /** Maximum number of characters allowed in a file name. */
-#define FOE_FN_MAX      15
+#define FOE_FN_MAX      31
 
 typedef struct foe_writefile_cfg foe_writefile_cfg_t;
 struct foe_writefile_cfg
