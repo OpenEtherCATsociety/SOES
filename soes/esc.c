@@ -1160,6 +1160,7 @@ void ESC_config (esc_cfg_t * cfg)
    ESCvar.mbboot[0] = mbboot0;
    ESCvar.mbboot[1] = mbboot1;
 
+   ESCvar.skip_default_initialization = cfg->skip_default_initialization;
    ESCvar.set_defaults_hook = cfg->set_defaults_hook;
    ESCvar.pre_state_change_hook = cfg->pre_state_change_hook;
    ESCvar.post_state_change_hook = cfg->post_state_change_hook;

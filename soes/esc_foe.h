@@ -14,10 +14,10 @@
 #include <cc.h>
 
 /** Maximum number of characters allowed in a file name. */
-#define FOE_FN_MAX      15
+#define FOE_FN_MAX      31
 
-typedef struct foe_writefile_cfg foe_writefile_cfg_t;
-struct foe_writefile_cfg
+typedef struct foe_file_cfg foe_file_cfg_t;
+struct foe_file_cfg
 {
    /** Name of file to receive from master */
    const char * name;
@@ -31,8 +31,12 @@ struct foe_writefile_cfg
    uint32_t       total_size;
    /** FoE password */
    uint32_t       filepass;
+   /** This file can be written only in BOOT state. Intended for FW files */
+   uint8_t        write_only_in_boot;
+   /** for feature use */
+   uint32_t       padding:24;
    /** Pointer to application foe write function */
-   uint32_t       (*write_function) (foe_writefile_cfg_t * self, uint8_t * data, size_t length);
+   uint32_t       (*write_function) (foe_file_cfg_t * self, uint8_t * data, size_t length);
 };
 
 typedef struct foe_cfg
@@ -44,7 +48,7 @@ typedef struct foe_cfg
    /** Number of files used in firmware update */
    uint32_t  n_files;
    /** Pointer to files configured to be used by FoE */
-   foe_writefile_cfg_t * files;
+   foe_file_cfg_t * files;
 } foe_cfg_t;
 
 typedef struct CC_PACKED
@@ -66,7 +70,7 @@ typedef struct CC_PACKED
 } _FOEvar;
 
 /* Initializes FoE state. */
-void FOE_config (foe_cfg_t * cfg, foe_writefile_cfg_t * cfg_files);
+void FOE_config (foe_cfg_t * cfg);
 void FOE_init (void);
 void ESC_foeprocess (void);
 

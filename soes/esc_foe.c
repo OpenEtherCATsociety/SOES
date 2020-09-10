@@ -26,20 +26,16 @@
 
 /** Variable holding current filename read at FOE Open.
  */
-char foe_file_name[FOE_FN_MAX + 1];
+static char foe_file_name[FOE_FN_MAX + 1];
 
 
-/** Main FoE configuration pointer data array. Structure i allocated and filled
- * by the application defining what preferences it require.
+/** Main FoE configuration pointer data array. Structure is allocated and filled
+ * by the application defining what preferences it requires.
  */
 static foe_cfg_t * foe_cfg;
-/** Collection of files possible to receive by FoE. Structure i allocated and
- * filled by the application defining what preferences it require.
- */
-static foe_writefile_cfg_t * foe_files;
 /** Pointer to current file configuration item used by FoE.
  */
-static foe_writefile_cfg_t * foe_file;
+static foe_file_cfg_t * foe_file;
 /** Main FoE status data array. Structure gets filled with current status
  * variables during FoE usage.
  */
@@ -54,7 +50,7 @@ static _FOEvar FOEvar;
  * @return 0= if we succeed, FOE_ERR_NOTFOUND something wrong with filename or
  * password
  */
-int FOE_fopen (char *name, uint8_t num_chars, uint32_t pass, uint8_t op)
+static int FOE_fopen (char *name, uint8_t num_chars, uint32_t pass, uint8_t op)
 {
    uint32_t i;
 
@@ -73,10 +69,21 @@ int FOE_fopen (char *name, uint8_t num_chars, uint32_t pass, uint8_t op)
    /* Figure out what file they're talking about. */
    for (i = 0; i < foe_cfg->n_files; i++)
    {
-      if ((0 == strncmp (foe_file_name, foe_files[i].name, num_chars)) &&
-          (pass == foe_files[i].filepass))
+      if (0 == strncmp (foe_file_name, foe_cfg->files[i].name, num_chars))
       {
-         foe_file = &foe_files[i];
+         if (pass != foe_cfg->files[i].filepass)
+         {
+            return FOE_ERR_NORIGHTS;
+         }
+
+         if (op == FOE_OP_WRQ &&
+             (foe_cfg->files[i].write_only_in_boot) &&
+             (ESCvar.ALstatus != ESCboot))
+         {
+            return FOE_ERR_NOTINBOOTSTRAP;
+         }
+
+         foe_file = &foe_cfg->files[i];
          foe_file->address_offset = 0;
          foe_file->total_size = 0;
          switch (op)
@@ -84,13 +91,13 @@ int FOE_fopen (char *name, uint8_t num_chars, uint32_t pass, uint8_t op)
             case FOE_OP_RRQ:
             {
                FOEvar.fposition = 0;
-               FOEvar.fend = foe_files[i].max_data;
+               FOEvar.fend = foe_cfg->files[i].max_data;
                return 0;
             }
             case FOE_OP_WRQ:
             {
                FOEvar.fposition = 0;
-               FOEvar.fend = foe_files[i].max_data;
+               FOEvar.fend = foe_cfg->files[i].max_data;
                return 0;
             }
          }
@@ -111,7 +118,7 @@ int FOE_fopen (char *name, uint8_t num_chars, uint32_t pass, uint8_t op)
 
  * @return Number of copied bytes.
  */
-uint16_t FOE_fread (uint8_t * data, uint16_t maxlength)
+static uint16_t FOE_fread (uint8_t * data, uint16_t maxlength)
 {
    uint16_t ncopied = 0;
 
@@ -137,7 +144,7 @@ uint16_t FOE_fread (uint8_t * data, uint16_t maxlength)
 
  * @return Number of copied bytes.
  */
-uint16_t FOE_fwrite (uint8_t *data, uint16_t length)
+static uint16_t FOE_fwrite (uint8_t *data, uint16_t length)
 {
     uint16_t ncopied = 0;
     uint32_t failed = 0;
@@ -170,7 +177,7 @@ uint16_t FOE_fwrite (uint8_t *data, uint16_t length)
  *
  * @return Number of copied bytes on success, 0= if failed.
  */
-uint32_t FOE_fclose (void)
+static uint32_t FOE_fclose (void)
 {
    uint32_t failed = 0;
 
@@ -200,7 +207,7 @@ void FOE_init ()
  *
  * @param[in] code   = abort code
  */
-void FOE_abort (uint32_t code)
+static void FOE_abort (uint32_t code)
 {
    _FOE *foembx;
    uint8_t mbxhandle;
@@ -235,7 +242,7 @@ void FOE_abort (uint32_t code)
  * @return Number of data bytes written or an error number. Error numbers
  * will be greater than FOE_DATA_SIZE.
  */
-int FOE_send_data_packet ()
+static int FOE_send_data_packet ()
 {
    _FOE *foembx;
    uint16_t data_len;
@@ -266,7 +273,7 @@ int FOE_send_data_packet ()
 
  * @return 0= or error number.
  */
-int FOE_send_ack ()
+static int FOE_send_ack ()
 {
    _FOE *foembx;
    uint8_t mbxhandle;
@@ -299,7 +306,7 @@ int FOE_send_ack ()
  * On error we will send FOE Abort.
  *
  */
-void FOE_read ()
+static void FOE_read ()
 {
    _FOE *foembx;
    uint32_t data_len;
@@ -340,18 +347,11 @@ void FOE_read ()
       FOE_abort (res);
    }
 }
-#else
-void FOE_read()
-{
-   FOE_abort(FOE_ERR_NOTDEFINED);
-}
-#endif
 
-#ifdef FOE_READ_SUPPORTED
 /** FoE data ack handler. Will continue sending next frame until finished.
  * On error we will send FOE Abort.
  */
-void FOE_ack ()
+static void FOE_ack ()
 {
    int res;
 
@@ -383,7 +383,7 @@ void FOE_ack ()
  * receive data. On error we will send FOE Abort.
  *
  */
-void FOE_write ()
+static void FOE_write ()
 {
    _FOE *foembx;
    uint32_t data_len;
@@ -403,7 +403,7 @@ void FOE_write ()
 
    /* Get an address we can write the file to, if possible. */
    res = FOE_fopen (foembx->filename, data_len, password, FOE_OP_WRQ);
-   DPRINT("FOE_write\n");
+   DPRINT("%s %sOK, file \"%s\"\n", __func__, (res == 0) ? "" : "N", foe_file_name);
    if (res == 0)
    {
       res = FOE_send_ack ();
@@ -421,11 +421,11 @@ void FOE_write ()
       FOE_abort (res);
    }
 }
-/** FoE data request handler. Validates and reads data until we're finsihed. Every
- * read frame follwed by an Ack frame. On error we will send FOE Abort.
+/** FoE data request handler. Validates and reads data until we're finished. Every
+ * read frame followed by an Ack frame. On error we will send FOE Abort.
  *
  */
-void FOE_data ()
+static void FOE_data ()
 {
    _FOE *foembx;
    uint32_t packet;
@@ -444,7 +444,7 @@ void FOE_data ()
 
    if (packet != FOEvar.foepacket)
    {
-      DPRINT("FOE_data packet error,packet: %d foeheader.packet: %d\n",packet,FOEvar.foepacket);
+      DPRINT("FOE_data packet error, packet: %d, foeheader.packet: %d\n",packet,FOEvar.foepacket);
       FOE_abort (FOE_ERR_PACKETNO);
    }
    else if (data_len == 0)
@@ -499,11 +499,11 @@ void FOE_data ()
 }
 
 #ifdef FOE_READ_SUPPORTED
-/** FoE read request buys handler. Send an Ack of last frame again. On error
+/** FoE read request busy handler. Send an Ack of last frame again. On error
  * we will send FOE Abort.
  *
  */
-void FOE_busy ()
+static void FOE_busy ()
 {
    /* Only valid if we're servicing a read request. */
    if (FOEvar.foestate != FOE_WAIT_FOR_ACK)
@@ -523,7 +523,7 @@ void FOE_busy ()
 /** FoE error requesthandler. Send an FOE Abort.
  *
  */
-void FOE_error ()
+static void FOE_error ()
 {
    /* Master panic! abort the transfer. */
    FOE_abort (0);
@@ -534,14 +534,10 @@ void FOE_error ()
  *
  * @param[in] cfg       = Pointer to by the Application static declared
  * configuration variable holding application specific details.
- * @param[in] cfg_files = Pointer to by the Application static declared
- * configuration variable holding file specific details for files to be handled
- * by FoE
  */
-void FOE_config (foe_cfg_t * cfg, foe_writefile_cfg_t * cfg_files)
+void FOE_config (foe_cfg_t * cfg)
 {
    foe_cfg = cfg;
-   foe_files = cfg_files;
 }
 
 /** Main FoE function checking the status on current mailbox buffers carrying

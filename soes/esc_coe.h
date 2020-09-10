@@ -104,6 +104,7 @@ typedef struct
 #define COMPLETE_ACCESS_FLAG    (1 << 15)
 
 void ESC_coeprocess (void);
+int16_t SDO_findsubindex (int16_t nidx, uint8_t subindex);
 uint16_t sizeOfPDO (uint16_t index, int * nmappings, _SMmap * sm, int max_mappings);
 void SDO_abort (uint16_t index, uint8_t subindex, uint32_t abortcode);
 void COE_initDefaultValues (void);

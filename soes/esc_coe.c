@@ -47,7 +47,7 @@ typedef enum { UPLOAD, DOWNLOAD } load_t;
  * @param[in] subindex   = value on sub-index of object we want to locate
  * @return local array index if we succeed, -1 if we didn't find the index.
  */
-static int16_t SDO_findsubindex (int16_t nidx, uint8_t subindex)
+int16_t SDO_findsubindex (int16_t nidx, uint8_t subindex)
 {
    const _objd *objd;
    int16_t n = 0;
@@ -1629,6 +1629,12 @@ void COE_initDefaultValues (void)
    const _objd *objd;
    int n;
    uint8_t maxsub;
+
+   /* Let application decide if initialization will be skipped */
+   if (ESCvar.skip_default_initialization)
+   {
+      return;
+   }
 
    /* Set default values from object descriptor */
    for (n = 0; SDOobjects[n].index != 0xffff; n++)

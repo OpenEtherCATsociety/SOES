@@ -266,6 +266,7 @@
 #define FOE_ERR_NOTINBOOTSTRAP         0x8009
 #define FOE_ERR_NORIGHTS               0x800A
 #define FOE_ERR_PROGERROR              0x800B
+#define FOE_ERR_CHECKSUM               0x800C
 
 #define FOE_OP_RRQ                     1
 #define FOE_OP_WRQ                     2
@@ -307,6 +308,7 @@ typedef struct esc_cfg
    void * user_arg;
    int use_interrupt;
    int watchdog_cnt;
+   bool skip_default_initialization;
    void (*set_defaults_hook) (void);
    void (*pre_state_change_hook) (uint8_t * as, uint8_t * an);
    void (*post_state_change_hook) (uint8_t * as, uint8_t * an);
@@ -430,6 +432,7 @@ typedef struct
    int use_interrupt;
    sm_cfg_t  mb[2];
    sm_cfg_t  mbboot[2];
+   bool skip_default_initialization;
    void (*set_defaults_hook) (void);
    void (*pre_state_change_hook) (uint8_t * as, uint8_t * an);
    void (*post_state_change_hook) (uint8_t * as, uint8_t * an);
