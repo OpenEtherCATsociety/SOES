@@ -776,7 +776,8 @@ static void SDO_download (void)
             if (actsize != size)
             {
                /* entries with data types VISIBLE_STRING, OCTET_STRING,
-                * and UNICODE_STRING may have flexible length
+                * UNICODE_STRING, ARRAY_OF_INT, ARRAY_OF_SINT,
+                * ARRAY_OF_DINT, and ARRAY_OF_UDINT may have flexible length
                 */
                uint16_t type = (objd + nsub)->datatype;
                if (type == DTYPE_VISIBLE_STRING)
@@ -785,7 +786,11 @@ static void SDO_download (void)
                   memset((objd + nsub)->data + size, 0, actsize - size);
                }
                else if ((type != DTYPE_OCTET_STRING) &&
-                        (type != DTYPE_UNICODE_STRING))
+                        (type != DTYPE_UNICODE_STRING) &&
+                        (type != DTYPE_ARRAY_OF_INT) &&
+                        (type != DTYPE_ARRAY_OF_SINT) &&
+                        (type != DTYPE_ARRAY_OF_DINT) &&
+                        (type != DTYPE_ARRAY_OF_UDINT))
                {
                   set_state_idle (index, subindex, ABORT_TYPEMISMATCH);
                   return;

@@ -83,6 +83,10 @@ typedef struct
 #define DTYPE_BIT6              0x0035
 #define DTYPE_BIT7              0x0036
 #define DTYPE_BIT8              0x0037
+#define DTYPE_ARRAY_OF_INT      0x0260
+#define DTYPE_ARRAY_OF_SINT     0x0261
+#define DTYPE_ARRAY_OF_DINT     0x0262
+#define DTYPE_ARRAY_OF_UDINT    0x0263
 
 #define ATYPE_Rpre              0x01
 #define ATYPE_Rsafe             0x02
