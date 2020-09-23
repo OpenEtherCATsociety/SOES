@@ -330,17 +330,18 @@ static void SDO_upload (void)
             }
             coeres->index = htoes (index);
             coeres->subindex = subindex;
-            if (size <= 32)
+            coeres->command = COE_COMMAND_UPLOADRESPONSE +
+               COE_SIZE_INDICATOR;
+            /* convert bits to bytes */
+            size = BITS2BYTES(size);
+            if (size <= 4)
             {
                /* expedited response i.e. length<=4 bytes */
-               coeres->command = COE_COMMAND_UPLOADRESPONSE +
-                  COE_SIZE_INDICATOR + COE_EXPEDITED_INDICATOR + dss;
-               /* convert bits to bytes */
-               size = BITS2BYTES(size);
+               coeres->command += COE_EXPEDITED_INDICATOR + dss;
                void *dataptr = ((objd + nsub)->data) ?
                      (objd + nsub)->data : (void *)&((objd + nsub)->value);
                abort = ESC_upload_pre_objecthandler (index, subindex,
-                     dataptr, size, (objd + nsub)->flags);
+                     dataptr, (size_t *)&size, (objd + nsub)->flags);
                if (abort == 0)
                {
                   if ((objd + nsub)->data == NULL)
@@ -362,34 +363,31 @@ static void SDO_upload (void)
             else
             {
                /* normal response i.e. length>4 bytes */
-               coeres->command = COE_COMMAND_UPLOADRESPONSE +
-                  COE_SIZE_INDICATOR;
-               /* convert bits to bytes */
-               size = BITS2BYTES(size);
-               /* set total size in bytes */
-               ESCvar.frags = size;
-               coeres->size = htoel (size);
-               if ((size + COE_HEADERSIZE) > ESC_MBXDSIZE)
-               {
-                  /* segmented transfer needed */
-                  /* limit to mailbox size */
-                  size = ESC_MBXDSIZE - COE_HEADERSIZE;
-                  /* number of bytes done */
-                  ESCvar.fragsleft = size;
-                  /* signal segmented transfer */
-                  ESCvar.segmented = MBXSEU;
-                  ESCvar.data = (objd + nsub)->data;
-                  ESCvar.flags = (objd + nsub)->flags;
-               }
-               else
-               {
-                  ESCvar.segmented = 0;
-               }
-               coeres->mbxheader.length = htoes (COE_HEADERSIZE + size);
                abort = ESC_upload_pre_objecthandler (index, subindex,
-                     (objd + nsub)->data, ESCvar.frags, (objd + nsub)->flags);
+                     (objd + nsub)->data, (size_t *)&size, (objd + nsub)->flags);
                if (abort == 0)
                {
+                  /* set total size in bytes */
+                  ESCvar.frags = size;
+                  coeres->size = htoel (size);
+                  if ((size + COE_HEADERSIZE) > ESC_MBXDSIZE)
+                  {
+                     /* segmented transfer needed */
+                     /* limit to mailbox size */
+                     size = ESC_MBXDSIZE - COE_HEADERSIZE;
+                     /* number of bytes done */
+                     ESCvar.fragsleft = size;
+                     /* signal segmented transfer */
+                     ESCvar.segmented = MBXSEU;
+                     ESCvar.data = (objd + nsub)->data;
+                     ESCvar.flags = (objd + nsub)->flags;
+                  }
+                  else
+                  {
+                     ESCvar.segmented = 0;
+                  }
+                  coeres->mbxheader.length = htoes (COE_HEADERSIZE + size);
+
                   /* use dynamic data */
                   copy2mbx ((objd + nsub)->data, (&(coeres->size)) + 1, size);
                }
@@ -597,8 +595,14 @@ static void SDO_upload_complete_access (void)
       return;
    }
 
+   /* expedited bits used calculation */
+   uint8_t dss = (size > 24) ? 0 : (4 * (3 - ((size - 1) >> 3)));
+
+   /* convert bits to bytes */
+   size = BITS2BYTES(size);
+
    abortcode = ESC_upload_pre_objecthandler(index, subindex,
-         objd->data, BITS2BYTES(size), objd->flags | COMPLETE_ACCESS_FLAG);
+         objd->data, (size_t *)&size, objd->flags | COMPLETE_ACCESS_FLAG);
    if (abortcode != 0)
    {
       SDO_abort (index, subindex, abortcode);
@@ -611,12 +615,6 @@ static void SDO_upload_complete_access (void)
    init_coesdo(coeres, COE_SDORESPONSE,
          COE_COMMAND_UPLOADRESPONSE | COE_COMPLETEACCESS | COE_SIZE_INDICATOR,
          index, subindex);
-
-   /* expedited bits used calculation */
-   uint8_t dss = (size > 24) ? 0 : (4 * (3 - ((size - 1) >> 3)));
-
-   /* convert bits to bytes */
-   size = BITS2BYTES(size);
 
    ESCvar.segmented = 0;
 

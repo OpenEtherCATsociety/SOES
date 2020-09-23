@@ -96,7 +96,7 @@ uint32_t ESC_download_post_objecthandler (uint16_t index, uint8_t subindex, uint
 uint32_t ESC_upload_pre_objecthandler (uint16_t index,
       uint8_t subindex,
       void * data,
-      size_t size,
+      size_t *size,
       uint16_t flags)
 {
    if (ESCvar.pre_object_upload_hook != NULL)
