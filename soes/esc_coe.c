@@ -455,7 +455,8 @@ static uint32_t complete_access_subindex_loop(const _objd *objd,
                                               int16_t nidx,
                                               int16_t nsub,
                                               uint8_t *mbxdata,
-                                              load_t load_type)
+                                              load_t load_type,
+                                              uint16_t max_bytes)
 {
    /* Objects with dynamic entries cannot be accessed with Complete Access */
    if ((objd->datatype == DTYPE_VISIBLE_STRING) ||
@@ -525,6 +526,11 @@ static uint32_t complete_access_subindex_loop(const _objd *objd,
       /* Subindex 0 is padded to 16 bit */
       size += (nsub == 0) ? 16 : bitlen;
       nsub++;
+
+      if ((max_bytes > 0) && (BITS2BYTES(size) >= max_bytes))
+      {
+         break;
+      }
    }
 
    return size;
@@ -576,7 +582,7 @@ static void SDO_upload_complete_access (void)
    const _objd *objd = SDOobjects[nidx].objdesc;
 
    /* loop through the subindexes to get the total size */
-   uint32_t size = complete_access_subindex_loop(objd, nidx, nsub, NULL, UPLOAD);
+   uint32_t size = complete_access_subindex_loop(objd, nidx, nsub, NULL, UPLOAD, 0);
    if (size > 0xffff)
    {
       /* 'size' is in this case actually an abort code */
@@ -599,7 +605,7 @@ static void SDO_upload_complete_access (void)
    }
 
    /* copy subindex data into the preallocated buffer */
-   complete_access_subindex_loop(objd, nidx, nsub, ESCvar.mbxdata, UPLOAD);
+   complete_access_subindex_loop(objd, nidx, nsub, ESCvar.mbxdata, UPLOAD, 0);
 
    _COEsdo *coeres = (_COEsdo *) &MBX[MBXout * ESC_MBXSIZE];
    init_coesdo(coeres, COE_SDORESPONSE,
@@ -770,7 +776,8 @@ static void SDO_download (void)
             if (actsize != size)
             {
                /* entries with data types VISIBLE_STRING, OCTET_STRING,
-                * and UNICODE_STRING may have flexible length
+                * UNICODE_STRING, ARRAY_OF_INT, ARRAY_OF_SINT,
+                * ARRAY_OF_DINT, and ARRAY_OF_UDINT may have flexible length
                 */
                uint16_t type = (objd + nsub)->datatype;
                if (type == DTYPE_VISIBLE_STRING)
@@ -779,7 +786,11 @@ static void SDO_download (void)
                   memset((objd + nsub)->data + size, 0, actsize - size);
                }
                else if ((type != DTYPE_OCTET_STRING) &&
-                        (type != DTYPE_UNICODE_STRING))
+                        (type != DTYPE_UNICODE_STRING) &&
+                        (type != DTYPE_ARRAY_OF_INT) &&
+                        (type != DTYPE_ARRAY_OF_SINT) &&
+                        (type != DTYPE_ARRAY_OF_DINT) &&
+                        (type != DTYPE_ARRAY_OF_UDINT))
                {
                   set_state_idle (index, subindex, ABORT_TYPEMISMATCH);
                   return;
@@ -900,14 +911,20 @@ static void SDO_download_complete_access (void)
    const _objd *objd = SDOobjects[nidx].objdesc;
 
    /* loop through the subindexes to get the total size */
-   uint32_t size = complete_access_subindex_loop(objd, nidx, nsub, NULL, DOWNLOAD);
+   uint32_t size = complete_access_subindex_loop(objd, nidx, nsub, NULL, DOWNLOAD, 0);
    if (size > 0xffff)
    {
       /* 'size' is in this case actually an abort code */
       set_state_idle (index, subindex, size);
       return;
    }
-   else if (bytes == BITS2BYTES(size))
+   /* The document ETG.1020 S (R) V1.3.0, chapter 12.2, states that
+    * "The SDO Download Complete Access data length shall always match
+    * the full current object size (defined by SubIndex0)".
+    * But EtherCAT Conformance Test Tool doesn't follow this rule for some test
+    * cases, which is the reason to here only check for 'less than or equal'.
+    */
+   else if (bytes <= BITS2BYTES(size))
    {
       abortcode = ESC_download_pre_objecthandler(index, subindex, mbxdata,
             size, objd->flags | COMPLETE_ACCESS_FLAG);
@@ -918,7 +935,7 @@ static void SDO_download_complete_access (void)
       }
 
       /* copy download data to subindexes */
-      complete_access_subindex_loop(objd, nidx, nsub, (uint8_t *)mbxdata, DOWNLOAD);
+      complete_access_subindex_loop(objd, nidx, nsub, (uint8_t *)mbxdata, DOWNLOAD, bytes);
 
       abortcode = ESC_download_post_objecthandler(index, subindex,
             objd->flags | COMPLETE_ACCESS_FLAG);
@@ -930,16 +947,8 @@ static void SDO_download_complete_access (void)
    }
    else
    {
-#if 0
-      /* The document ETG.1020 S (R) V1.3.0, chapter 12.2, states that
-       * "The SDO Download Complete Access data length shall always match
-       * the full current object size (defined by SubIndex0)".
-       * But EtherCAT Conformance Test Tool doesn't follow this rule for some
-       * test cases, which thus will fail if the correct abort code is used :(
-       */
       set_state_idle (index, subindex, ABORT_TYPEMISMATCH);
       return;
-#endif
    }
 
    uint8_t MBXout = ESC_claimbuffer ();
