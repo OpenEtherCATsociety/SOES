@@ -292,7 +292,6 @@
 #define APPSTATE_INPUT                 0x01
 #define APPSTATE_OUTPUT                0x02
 
-#define PREALLOC_FACTOR       3
 #define PREALLOC_BUFFER_SIZE  (PREALLOC_FACTOR * MBXSIZE)
 
 typedef struct sm_cfg
