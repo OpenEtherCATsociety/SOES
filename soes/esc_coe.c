@@ -593,7 +593,14 @@ static void SDO_upload_complete_access (void)
 
    /* loop through the subindexes to get the total size */
    uint32_t size = complete_access_subindex_loop(objd, nidx, nsub, NULL, UPLOAD, 0);
-   if (BITS2BYTES(size) > 0xffff)
+
+   /* expedited bits used calculation */
+   uint8_t dss = (size > 24) ? 0 : (4 * (3 - ((size - 1) >> 3)));
+
+   /* convert bits to bytes */
+   size = BITS2BYTES(size);
+
+   if (size > 0xffff)
    {
       /* 'size' is in this case actually an abort code */
       set_state_idle (MBXout, index, subindex, size);
@@ -606,13 +613,6 @@ static void SDO_upload_complete_access (void)
       set_state_idle (MBXout, index, subindex, ABORT_CA_NOT_SUPPORTED);
       return;
    }
-
-   /* expedited bits used calculation */
-   uint8_t dss = (size > 24) ? 0 : (4 * (3 - ((size - 1) >> 3)));
-
-   /* convert bits to bytes */
-   size = BITS2BYTES(size);
-
    abortcode = ESC_upload_pre_objecthandler(index, subindex,
          objd->data, (size_t *)&size, objd->flags | COMPLETE_ACCESS_FLAG);
    if (abortcode != 0)
