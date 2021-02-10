@@ -292,7 +292,6 @@
 #define APPSTATE_INPUT                 0x01
 #define APPSTATE_OUTPUT                0x02
 
-#define PREALLOC_FACTOR       3
 #define PREALLOC_BUFFER_SIZE  (PREALLOC_FACTOR * MBXSIZE)
 
 typedef struct sm_cfg
@@ -326,7 +325,7 @@ typedef struct esc_cfg
    uint32_t (*pre_object_upload_hook) (uint16_t index,
          uint8_t subindex,
          void * data,
-         size_t size,
+         size_t *size,
          uint16_t flags);
    uint32_t (*post_object_upload_hook) (uint16_t index,
          uint8_t subindex,
@@ -450,7 +449,7 @@ typedef struct
    uint32_t (*pre_object_upload_hook) (uint16_t index,
          uint8_t subindex,
          void * data,
-         size_t size,
+         size_t *size,
          uint16_t flags);
    uint32_t (*post_object_upload_hook) (uint16_t index,
          uint8_t subindex,

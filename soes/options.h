@@ -31,6 +31,10 @@
 #define MBXBUFFERS       3
 #endif
 
+#ifndef PREALLOC_FACTOR
+#define PREALLOC_FACTOR  3
+#endif
+
 #ifndef MBX0_sma
 #define MBX0_sma         0x1000
 #endif
