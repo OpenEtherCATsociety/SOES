@@ -7,6 +7,10 @@
 
 typedef struct
 {
+   /* Identity */
+
+   uint32_t serial;
+
    /* Inputs */
 
    struct

@@ -1571,7 +1571,7 @@
           <Name>TXPDO 2</Name>
         </TxPdo>
         <Mailbox DataLinkLayer="true">
-          <CoE CompleteAccess="false" PdoAssign="true" PdoConfig="true" PdoUpload="false" SdoInfo="true"/>
+          <CoE CompleteAccess="true" PdoAssign="true" PdoConfig="true" PdoUpload="false" SdoInfo="true"/>
         </Mailbox>
         <Eeprom>
           <ByteSize>256</ByteSize>
