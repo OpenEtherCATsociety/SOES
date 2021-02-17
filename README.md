@@ -1,6 +1,6 @@
 Simple Open Source EtherCAT Slave
 ====
-[![Build Status](https://travis-ci.org/OpenEtherCATsociety/SOES.svg?branch=master)](https://travis-ci.org/OpenEtherCATsociety/SOES)
+[![Build Status](https://github.com/OpenEtherCATsociety/SOES/workflows/build/badge.svg?branch=master)](https://github.com/OpenEtherCATsociety/SOES/actions?workflow=build)
 
 SOES (Simple OpenSource EtherCAT Slave Stack) is an opensource slave
 stack that is very easy to use and provides a small footprint. It is a
