@@ -906,7 +906,7 @@ static void SDO_download_complete_access (void)
       return;
    }
 
-   uint16_t bytes;
+   uint32_t bytes;
    uint32_t *mbxdata = &(coesdo->size);
 
    if (coesdo->command & COE_EXPEDITED_INDICATOR)
@@ -925,7 +925,8 @@ static void SDO_download_complete_access (void)
 
    /* loop through the subindexes to get the total size */
    uint32_t size = complete_access_subindex_loop(objd, nidx, nsub, NULL, DOWNLOAD, 0);
-   if (BITS2BYTES(size) > 0xffff)
+   size = BITS2BYTES(size);
+   if (size > 0xffff)
    {
       /* 'size' is in this case actually an abort code */
       set_state_idle (0, index, subindex, size);
@@ -937,7 +938,7 @@ static void SDO_download_complete_access (void)
     * But EtherCAT Conformance Test Tool doesn't follow this rule for some test
     * cases, which is the reason to here only check for 'less than or equal'.
     */
-   else if (bytes <= BITS2BYTES(size))
+   else if (bytes <= size)
    {
       abortcode = ESC_download_pre_objecthandler(index, subindex, mbxdata,
             size, objd->flags | COMPLETE_ACCESS_FLAG);
@@ -947,15 +948,41 @@ static void SDO_download_complete_access (void)
          return;
       }
 
-      /* copy download data to subindexes */
-      complete_access_subindex_loop(objd, nidx, nsub, (uint8_t *)mbxdata, DOWNLOAD, bytes);
-
-      abortcode = ESC_download_post_objecthandler(index, subindex,
-            objd->flags | COMPLETE_ACCESS_FLAG);
-      if (abortcode != 0)
+      if ((bytes + COE_HEADERSIZE) > ESC_MBXDSIZE)
       {
-         set_state_idle (0, index, subindex, abortcode);
-         return;
+         /* check that download data fits in the preallocated buffer */
+         if ((bytes + PREALLOC_FACTOR * COE_HEADERSIZE) > PREALLOC_BUFFER_SIZE)
+         {
+             set_state_idle(0, index, subindex, ABORT_CA_NOT_SUPPORTED);
+             return;
+         }
+         /* set total size in bytes */
+         ESCvar.frags = bytes;
+         /* limit to mailbox size */
+         size = ESC_MBXDSIZE - COE_HEADERSIZE;
+         /* number of bytes done */
+         ESCvar.fragsleft = size;
+         ESCvar.segmented = MBXSED;
+         ESCvar.data = ESCvar.mbxdata + size;
+         ESCvar.index = index;
+         ESCvar.subindex = subindex;
+         ESCvar.flags = COMPLETE_ACCESS_FLAG;
+         /* Store the data */
+         copy2mbx (mbxdata, ESCvar.mbxdata, size);
+      }
+      else
+      {
+         ESCvar.segmented = 0;
+         /* copy download data to subindexes */
+         complete_access_subindex_loop(objd, nidx, nsub, (uint8_t *)mbxdata, DOWNLOAD, bytes);
+
+         abortcode = ESC_download_post_objecthandler(index, subindex,
+               objd->flags | COMPLETE_ACCESS_FLAG);
+         if (abortcode != 0)
+         {
+            set_state_idle (0, index, subindex, abortcode);
+            return;
+         }
       }
    }
    else
@@ -1003,9 +1030,29 @@ static void SDO_downloadsegment (void)
          /* last segment */
          ESCvar.segmented = 0;
 
-         /* external object write handler */
-         uint32_t abort = ESC_download_post_objecthandler
-               (ESCvar.index, ESCvar.subindex, ESCvar.flags);
+         if(ESCvar.flags == COMPLETE_ACCESS_FLAG)
+         {
+            int16_t nidx;
+
+            nidx = SDO_findobject(ESCvar.index);
+            if (nidx < 0)
+            {
+               set_state_idle (0, ESCvar.index, ESCvar.subindex, ABORT_NOOBJECT);
+               return;
+            }
+            /* copy download data to subindexes */
+            const _objd *objd = SDOobjects[nidx].objdesc;
+            complete_access_subindex_loop(objd,
+                  ESCvar.index,
+                  ESCvar.subindex,
+                  (uint8_t *)ESCvar.data,
+                  DOWNLOAD,
+                  ESCvar.frags);
+
+         }
+        /* external object write handler */
+        uint32_t abort = ESC_download_post_objecthandler
+              (ESCvar.index, ESCvar.subindex, ESCvar.flags);
          if (abort != 0)
          {
             set_state_idle (MBXout, ESCvar.index, ESCvar.subindex, abort);
