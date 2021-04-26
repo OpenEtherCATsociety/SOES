@@ -7,7 +7,7 @@ include_directories(
   )
 
 set(HAL_SOURCES
-  ${SOES_SOURCE_DIR}/soes/hal/linux-lan9252/esc_hw.c
+  ${SOES_SOURCE_DIR}/soes/hal/raspberrypi-lan9252/esc_hw.c
   )
 
 # Common compile flags
