@@ -15,6 +15,7 @@
 #include <fcntl.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include <stdio.h>
 #include <bcm2835.h>
 
 #define BIT(x)	1 << (x)
@@ -452,12 +453,12 @@ void ESC_init (const esc_cfg_t * config)
       }
       else
       {
-         //printf("bcm2835_spi_begin failed. Are you running as root ?\n");
+         printf("bcm2835_spi_begin failed. Are you running as root ?\n");
          bcm2835_close();
       }
    }
    else
    { 
-      //printf("bcm2835_init failed. Are you running as root ?\n");
+      printf("bcm2835_init failed. Are you running as root ?\n");
    }
 }
