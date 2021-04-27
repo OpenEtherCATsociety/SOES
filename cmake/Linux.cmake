@@ -1,5 +1,5 @@
 
-set(SOES_DEMO applications/linux_lan9252demo)
+set(SOES_DEMO applications/raspberry_lan9252demo)
 
 include_directories(
   ${SOES_SOURCE_DIR}/soes/include/sys/gcc

@@ -68,7 +68,7 @@ static void bcm2835_spi_write_32 (uint16_t address, uint32_t val)
     data[6] = ((val >> 24) & 0xFF);
 
     /* Write data */
-    bcm2835_spi_transfern(data, sizeof(data));
+    bcm2835_spi_transfern((char *)data, sizeof(data));
 }
 
 /* bcm2835 spi single read */
@@ -81,12 +81,12 @@ static uint32_t bcm2835_spi_read_32 (uint32_t address)
    data[2] = (address & 0xFF);
    
    /* Read data */
-   bcm2835_spi_transfern(data, sizeof(data));
+   bcm2835_spi_transfern((char *)data, sizeof(data));
 
-   return ((result[6] << 24) |
-           (result[5] << 16) |
-           (result[4] << 8) |
-            result[3]);
+   return ((data[6] << 24) |
+           (data[5] << 16) |
+           (data[4] << 8) |
+            data[3]);
 }
 
 /* ESC read CSR function */
@@ -133,7 +133,6 @@ static void ESC_read_pram (uint16_t address, void *buf, uint16_t len)
    int i, array_size, size;
    float quotient,remainder;
    uint32_t temp;
-   int n;
 
    value = ESC_PRAM_CMD_ABORT;
    bcm2835_spi_write_32(ESC_PRAM_RD_CMD_REG, value);
@@ -193,7 +192,7 @@ static void ESC_read_pram (uint16_t address, void *buf, uint16_t len)
         buffer[2] = ( ESC_PRAM_RD_FIFO_REG & 0xFF);
    
          /* Read data */
-        bcm2835_spi_transfern(buffer, size);
+        bcm2835_spi_transfern((char *)buffer, size);
                    
         while(len > 0)
         {
@@ -222,7 +221,6 @@ static void ESC_write_pram (uint16_t address, void *buf, uint16_t len)
    uint8_t *buffer;
    int i, array_size, size;
    float quotient,remainder;   
-   int n;
 
    value = ESC_PRAM_CMD_ABORT;
    bcm2835_spi_write_32(ESC_PRAM_WR_CMD_REG, value);
@@ -298,7 +296,7 @@ static void ESC_write_pram (uint16_t address, void *buf, uint16_t len)
             }
         }
 
-        bcm2835_spi_transfern(buffer, size);
+        bcm2835_spi_transfern((char *)buffer, size);
         free(buffer);
     }
 }
@@ -425,7 +423,6 @@ void ESC_reset (void)
 void ESC_init (const esc_cfg_t * config)
 {
    uint32_t value;
-   const char * spi_name = (char *)config->user_arg;
    
    if (bcm2835_init())
    {
@@ -455,12 +452,12 @@ void ESC_init (const esc_cfg_t * config)
       }
       else
       {
-         printf("bcm2835_spi_begin failed. Are you running as root ?\n");
+         //printf("bcm2835_spi_begin failed. Are you running as root ?\n");
          bcm2835_close();
       }
    }
-   els
+   else
    { 
-      printf("bcm2835_init failed. Are you running as root ?\n");
+      //printf("bcm2835_init failed. Are you running as root ?\n");
    }
 }
