@@ -448,10 +448,10 @@ void ESC_init (const esc_cfg_t * config)
          //bcm2835_spi_setChipSelectPolarity(BCM2835_SPI_CS1, LOW);  // enable CS1 and set polarity (for RPI_GPIO_P1_26)
          //bcm2835_gpio_fsel(RPI_GPIO_P1_24, BCM2835_GPIO_FSEL_OUTP); // EtherC only?
          
-         /* Reset the ecat core here due to evb-lan9252-digio not having any GPIO
-          * for that purpose.
-          */
+         // Reset the ecat core here due to evb-lan9252-digio not having any GPIO for that purpose.
          bcm2835_spi_write_32(ESC_CMD_RESET_CTL,ESC_RESET_CTRL_RST);
+         
+         // Wait until reset command has been executed
          do
          {
             usleep(100);
@@ -459,6 +459,7 @@ void ESC_init (const esc_cfg_t * config)
             value = bcm2835_spi_read_32(ESC_CMD_RESET_CTL);
          } while ((value & ESC_RESET_CTRL_RST) && (counter < timeout));
 
+         // Perform byte test
          do
          {
             usleep(100);
@@ -466,14 +467,19 @@ void ESC_init (const esc_cfg_t * config)
             value = bcm2835_spi_read_32(ESC_CMD_BYTE_TEST);
          } while ((value != ESC_BYTE_TEST_OK) && (counter < timeout));
          
+         // Check hardware is ready
          do
          {
             usleep(100);
             counter++;
             value = bcm2835_spi_read_32(ESC_CMD_HW_CFG);
          } while (!(value & ESC_HW_CFG_READY) && (counter < timeout));
-         if (counter < timeout) {
-            value = bcm2835_spi_read_32(ESC_CMD_ID_REV);  // read the chip identification and revision
+         
+         // Check if timeout occured
+         if (counter < timeout)
+         {
+            // Read the chip identification and revision
+            value = bcm2835_spi_read_32(ESC_CMD_ID_REV);  
             printf("Detected chip %x Rev %u \n", ((value >> 16) & 0xFFFF), (value & 0xFFFF));
          }
          else
