@@ -448,7 +448,8 @@ void ESC_init (const esc_cfg_t * config)
          //bcm2835_spi_setChipSelectPolarity(BCM2835_SPI_CS1, LOW);  // enable CS1 and set polarity (for RPI_GPIO_P1_26)
          //bcm2835_gpio_fsel(RPI_GPIO_P1_24, BCM2835_GPIO_FSEL_OUTP); // EtherC only?
          
-         // Reset the ecat core here due to evb-lan9252-digio not having any GPIO for that purpose.
+         // Reset the ecat core here due to 
+         evb-lan9252-digio not having any GPIO for that purpose.
          bcm2835_spi_write_32(ESC_CMD_RESET_CTL,ESC_RESET_CTRL_RST);
          
          // Wait until reset command has been executed
