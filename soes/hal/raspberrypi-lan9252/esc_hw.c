@@ -22,43 +22,47 @@
 
 #define ESC_CMD_SERIAL_WRITE     0x02
 #define ESC_CMD_SERIAL_READ      0x03
-#define ESC_CMD_FAST_READ        0x0B
-#define ESC_CMD_RESET_SQI        0xFF
 
-#define ESC_CMD_FAST_READ_DUMMY  1
-#define ESC_CMD_ADDR_INC         BIT(6)
+#define ESC_CMD_RESET_CTL        0x01F8      // reset register
+#define ESC_CMD_HW_CFG           0x0074      // hardware configuration register
+#define ESC_CMD_BYTE_TEST        0x0064      // byte order test register
+#define ESC_CMD_ID_REV           0x0050      // chip ID and revision
+#define ESC_CMD_IRQ_CFG          0x0054      // interrupt configuration
+#define ESC_CMD_INT_EN           0x005C      // interrupt enable
 
-#define ESC_PRAM_RD_FIFO_REG     0x000
-#define ESC_PRAM_WR_FIFO_REG     0x020
-#define ESC_PRAM_RD_ADDR_LEN_REG 0x308
-#define ESC_PRAM_RD_CMD_REG      0x30C
-#define ESC_PRAM_WR_ADDR_LEN_REG 0x310
-#define ESC_PRAM_WR_CMD_REG      0x314
+#define ESC_RESET_DIGITAL        0x00000001
+#define ESC_RESET_ETHERCAT       0x00000040
+#define ESC_RESET_CTRL_RST       (ESC_RESET_DIGITAL & ESC_RESET_ETHERCAT)
+#define ESC_HW_CFG_READY         0x08000000
+#define ESC_BYTE_TEST_OK         0x87654321
 
-#define ESC_PRAM_CMD_BUSY        BIT(31)
-#define ESC_PRAM_CMD_ABORT       BIT(30)
+#define ESC_PRAM_RD_FIFO_REG     0x0000
+#define ESC_PRAM_WR_FIFO_REG     0x0020
+#define ESC_PRAM_RD_ADDR_LEN_REG 0x0308
+#define ESC_PRAM_RD_CMD_REG      0x030C
+#define ESC_PRAM_WR_ADDR_LEN_REG 0x0310
+#define ESC_PRAM_WR_CMD_REG      0x0314
 
+#define ESC_PRAM_CMD_BUSY        0x80000000
+#define ESC_PRAM_CMD_ABORT       0x40000000
+#define ESC_PRAM_CMD_AVAIL       0x00000001
 #define ESC_PRAM_CMD_CNT(x)      ((x >> 8) & 0x1F)
-#define ESC_PRAM_CMD_AVAIL       BIT(0)
-
 #define ESC_PRAM_SIZE(x)         ((x) << 16)
 #define ESC_PRAM_ADDR(x)         ((x) << 0)
 
-#define ESC_CSR_DATA_REG         0x300
-#define ESC_CSR_CMD_REG          0x304
+#define ESC_CSR_DATA_REG         0x0300
+#define ESC_CSR_CMD_REG          0x0304
 
-#define ESC_CSR_CMD_BUSY         BIT(31)
-#define ESC_CSR_CMD_READ         (BIT(31) | BIT(30))
-#define ESC_CSR_CMD_WRITE        BIT(31)
+#define ESC_CSR_CMD_BUSY         0x80000000
+#define ESC_CSR_CMD_READ         (0x80000000 | 0x40000000)
+#define ESC_CSR_CMD_WRITE        0x80000000
 #define ESC_CSR_CMD_SIZE(x)      (x << 16)
 
-#define ESC_RESET_CTRL_REG       0x1F8
-#define ESC_RESET_CTRL_RST       BIT(6)
 
 /* bcm2835 spi singel write */
 static void bcm2835_spi_write_32 (uint16_t address, uint32_t val)
 {
-    uint8_t data[7];
+    char data[7];
 
     data[0] = ESC_CMD_SERIAL_WRITE;
     data[1] = ((address >> 8) & 0xFF);
@@ -69,20 +73,20 @@ static void bcm2835_spi_write_32 (uint16_t address, uint32_t val)
     data[6] = ((val >> 24) & 0xFF);
 
     /* Write data */
-    bcm2835_spi_transfern((char *)data, sizeof(data));
+    bcm2835_spi_transfern(data, 7);
 }
 
 /* bcm2835 spi single read */
-static uint32_t bcm2835_spi_read_32 (uint32_t address)
+static uint32_t bcm2835_spi_read_32 (uint16_t address)
 {
-   uint8_t data[7];
+   char data[7];
 
    data[0] = ESC_CMD_SERIAL_READ;
-   data[1] = ((address >>8) & 0xFF);
+   data[1] = ((address >> 8) & 0xFF);
    data[2] = (address & 0xFF);
    
    /* Read data */
-   bcm2835_spi_transfern((char *)data, sizeof(data));
+   bcm2835_spi_transfern(data, 7);
 
    return ((data[6] << 24) |
            (data[5] << 16) |
@@ -424,32 +428,60 @@ void ESC_reset (void)
 void ESC_init (const esc_cfg_t * config)
 {
    uint32_t value;
+   uint32_t counter = 0;
+   uint32_t timeout = 1000; // wait 100msec
    
    if (bcm2835_init())
    {
       if (bcm2835_spi_begin())
       {
-         bcm2835_spi_setBitOrder(BCM2835_SPI_BIT_ORDER_MSBFIRST); // Set SPI bit order
-         bcm2835_spi_setDataMode(BCM2835_SPI_MODE0); //  Set SPI data mode BCM2835_SPI_MODE0 = 0, CPOL = 0, CPHA = 0, Clock idle low, data is clocked in on rising edge, output data (change) on falling edge
-         bcm2835_spi_setClockDivider(BCM2835_SPI_CLOCK_DIVIDER_16); //  Set SPI clock speed BCM2835_SPI_CLOCK_DIVIDER_16 = 16, 16 = 64ns = 15.625MHz
-         //bcm2835_spi_setClockDivider(BCM2835_SPI_CLOCK_DIVIDER_32); // Raspberry 4 due to a higher CPU speed this value is to change to: BCM2835_SPI_CLOCK_DIVIDER_32
-         bcm2835_spi_chipSelect(BCM2835_SPI_CS_NONE); //Enable management of CS pin
-         bcm2835_spi_setChipSelectPolarity(BCM2835_SPI_CS0, LOW); // enable CS0 and set polarity  (for RPI_GPIO_P1_24)
-         //bcm2835_spi_setChipSelectPolarity(BCM2835_SPI_CS1, LOW); // enable CS1 and set polarity (for RPI_GPIO_P1_26)
+         bcm2835_spi_setBitOrder(BCM2835_SPI_BIT_ORDER_MSBFIRST);    // Set SPI bit order
+         bcm2835_spi_setDataMode(BCM2835_SPI_MODE0);                 //  Set SPI data mode BCM2835_SPI_MODE0 = 0, CPOL = 0, CPHA = 0, Clock idle low, data is clocked in on rising edge, output data (change) on falling edge
+         #ifdef RPI4
+         bcm2835_spi_setClockDivider(BCM2835_SPI_CLOCK_DIVIDER_32);  // Raspberry 4 due to a higher CPU speed this value is to change to: BCM2835_SPI_CLOCK_DIVIDER_32
+         #else
+         bcm2835_spi_setClockDivider(BCM2835_SPI_CLOCK_DIVIDER_16);  // Set SPI clock speed BCM2835_SPI_CLOCK_DIVIDER_16 = 16, 16 = 64ns = 15.625MHz
+         #endif
+         bcm2835_spi_chipSelect(BCM2835_SPI_CS0); //Enable management of CS pin
+         bcm2835_spi_setChipSelectPolarity(BCM2835_SPI_CS0, LOW);    // enable CS0 and set polarity  (for RPI_GPIO_P1_24)
+         //bcm2835_spi_chipSelect(BCM2835_SPI_CS1); //Enable management of CS pin
+         //bcm2835_spi_setChipSelectPolarity(BCM2835_SPI_CS1, LOW);  // enable CS1 and set polarity (for RPI_GPIO_P1_26)
          //bcm2835_gpio_fsel(RPI_GPIO_P1_24, BCM2835_GPIO_FSEL_OUTP); // EtherC only?
          
          /* Reset the ecat core here due to evb-lan9252-digio not having any GPIO
           * for that purpose.
           */
-         bcm2835_spi_write_32(ESC_RESET_CTRL_REG,ESC_RESET_CTRL_RST);
-         usleep (100000);  // wait 100mS
+         bcm2835_spi_write_32(ESC_CMD_RESET_CTL,ESC_RESET_CTRL_RST);
          do
          {
-            value = bcm2835_spi_read_32(ESC_CSR_CMD_REG);
-         } while(value & ESC_RESET_CTRL_RST);
+            usleep(100);
+            counter++;
+            value = bcm2835_spi_read_32(ESC_CMD_RESET_CTL);
+         } while ((value & ESC_RESET_CTRL_RST) && (counter < timeout));
 
-         // Return SPI pins to default inputs state
-         //bcm2835_spi_end(); // EtherC only?
+         do
+         {
+            usleep(100);
+            counter++;
+            value = bcm2835_spi_read_32(ESC_CMD_BYTE_TEST);
+         } while ((value != ESC_BYTE_TEST_OK) && (counter < timeout));
+         
+         do
+         {
+            usleep(100);
+            counter++;
+            value = bcm2835_spi_read_32(ESC_CMD_HW_CFG);
+         } while (!(value & ESC_HW_CFG_READY) && (counter < timeout));
+         if (counter < timeout) {
+            value = bcm2835_spi_read_32(ESC_CMD_ID_REV);  // read the chip identification and revision
+            printf("Detected chip %x Rev %u \n", ((value >> 16) & 0xFFFF), (value & 0xFFFF));
+         }
+         else
+         {
+            printf("Timeout occurred during reset \n");
+            bcm2835_spi_end();
+            bcm2835_close();
+         }
       }
       else
       {
