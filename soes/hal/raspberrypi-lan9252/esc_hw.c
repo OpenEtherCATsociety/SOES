@@ -430,8 +430,12 @@ void ESC_init (const esc_cfg_t * config)
    uint32_t value;
    uint32_t counter = 0;
    uint32_t timeout = 1000; // wait 100msec
-   char * user_arg = (char *)config->user_arg;
-   char * token = strtok(user_arg," ,.-_");
+   const char * user_arg = (char *)config->user_arg;
+   size_t arg_len = strlen(user_arg)+1;
+   char * arg_str = (char *)calloc(arg_len, sizeof(char));
+   strncpy(arg_str,user_arg,arg_len);
+   char * delim = " ,.-_";
+   char * token = strtok(arg_str,delim);
    
    // parse user arguments
    while (token != NULL)
@@ -444,9 +448,11 @@ void ESC_init (const esc_cfg_t * config)
       {
          rpi4 = true; // select clock divider for raspberry pi 4 or newer
       }
-      token = strtok(NULL," ,.-_");
+      token = strtok(NULL,delim);
    }
+   free(arg_str);
    
+   // start initialization
    if (bcm2835_init())
    {
       if (bcm2835_spi_begin())
