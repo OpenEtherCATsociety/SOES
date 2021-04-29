@@ -29,6 +29,10 @@
 #define ESC_CMD_IRQ_CFG          0x0054      // interrupt configuration
 #define ESC_CMD_INT_EN           0x005C      // interrupt enable
 
+#define ESC_AL_STATUS            0x0130      // AL status
+#define ESC_WDOG_STATUS          0x0440      // watch dog status
+#define ESC_AL_EVENT_MASK        0x0204      // AL event interrupt mask
+
 #define ESC_RESET_DIGITAL        0x00000001
 #define ESC_RESET_ETHERCAT       0x00000040
 #define ESC_RESET_CTRL_RST       (ESC_RESET_DIGITAL & ESC_RESET_ETHERCAT)
@@ -56,6 +60,13 @@
 #define ESC_CSR_CMD_READ         (0x80000000 | 0x40000000)
 #define ESC_CSR_CMD_WRITE        0x80000000
 #define ESC_CSR_CMD_SIZE(x)      (x << 16)
+
+typedef enum
+{
+  ASYNC,
+  DC_SYNC,
+  SM_SYNC
+} syncmode;
 
 
 /* bcm2835 spi singel write */
@@ -284,8 +295,8 @@ static void ESC_write_pram (uint16_t address, void *buf, uint16_t len)
         buffer[2] = (ESC_PRAM_WR_FIFO_REG & 0xFF);
 
         while(len > 0)
-        {                        
-            for (i=3; i<size; i=i+4) {           
+        {
+            for (i=3; i<size; i=i+4) {
                 temp_len = (len > 4) ? 4 : len;
 
                 memcpy((uint8_t *)&value, (temp_buf + byte_offset), temp_len);
@@ -427,6 +438,7 @@ void ESC_reset (void)
 void ESC_init (const esc_cfg_t * config)
 {
    bool rpi4 = false, cs1 = false;
+   syncmode sync = ASYNC;
    uint32_t value;
    uint32_t counter = 0;
    uint32_t timeout = 1000; // wait 100msec
@@ -434,7 +446,7 @@ void ESC_init (const esc_cfg_t * config)
    size_t arg_len = strlen(user_arg)+1;
    char * arg_str = (char *)calloc(arg_len, sizeof(char));
    strncpy(arg_str,user_arg,arg_len);
-   char * delim = " ,.-_";
+   char * delim = " ,.-";
    char * token = strtok(arg_str,delim);
    
    // parse user arguments
@@ -442,11 +454,27 @@ void ESC_init (const esc_cfg_t * config)
    {
       if (strncmp(token,"cs1",3) == 0)
       {
-         cs1 = true;  // select CS1 pin
+         cs1 = true; // select CS1 pin
       }
       else if (strncmp(token,"rpi4",4) == 0)
       {
          rpi4 = true; // select clock divider for raspberry pi 4 or newer
+      }
+      else if (strncmp(token,"dcsync",6) == 0)
+      {
+         sync = DC_SYNC; // select distributed clock 
+      }
+      else if (strncmp(token,"dc_sync",7) == 0)
+      {
+         sync = DC_SYNC; // select distributed clock 
+      }
+      else if (strncmp(token,"smsync",6) == 0)
+      {
+         sync = SM_SYNC; // select synchronization manager
+      }
+      else if (strncmp(token,"sm_sync",7) == 0)
+      {
+         sync = SM_SYNC; // select synchronization manager
       }
       token = strtok(NULL,delim);
    }
@@ -524,6 +552,31 @@ void ESC_init (const esc_cfg_t * config)
             // Read the chip identification and revision
             value = bcm2835_spi_read_32(ESC_CMD_ID_REV);
             DPRINT("Detected chip %x Rev %u \n", ((value >> 16) & 0xFFFF), (value & 0xFFFF));
+            
+            // If requested, enable interrupt generation 
+            if ((sync == DC_SYNC) || (sync == SM_SYNC))
+            {
+               if (sync == DC_SYNC)
+               {
+                  // enable interrupt from SYNC0
+                  value = 0x00000004;
+                  ESC_write_csr(ESC_AL_EVENT_MASK,&value,4);
+                  DPRINT("DC_SYNC\n");
+               }
+               else
+               {
+                  // enable interrupt from SM0 event
+                  value = 0x00000100;
+                  ESC_write_csr(ESC_AL_EVENT_MASK,&value,4);
+                  DPRINT("SM_SYNC\n");
+               }
+               
+               // set LAN9252 interrupt pin driver as push-pull active high
+               bcm2835_spi_write_32(IRQ_CFG, 0x00000111);
+               
+               // enable LAN9252 interrupt
+               bcm2835_spi_write_32(INT_EN, 0x00000001);
+            }
          }
          else
          {
