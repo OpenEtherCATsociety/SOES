@@ -17,7 +17,7 @@ int main_run (void * arg)
 {
    static esc_cfg_t config =
    {
-      .user_arg = "bcm2835",
+      .user_arg = "rpi3,cs0",
       .use_interrupt = 0,
       .watchdog_cnt = 150,
       .set_defaults_hook = NULL,
@@ -35,9 +35,9 @@ int main_run (void * arg)
       .esc_check_dc_handler = NULL,
    };
 
-   printf ("Hello Main\n");
+   printf ("Start slave init\n");
    ecat_slv_init (&config);
-   printf ("Init Succesfull\n");
+   printf ("Init finished\n");
    while (1)
    {
       ecat_slv();

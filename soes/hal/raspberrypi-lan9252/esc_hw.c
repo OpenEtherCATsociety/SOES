@@ -15,7 +15,6 @@
 #include <fcntl.h>
 #include <stdlib.h>
 #include <unistd.h>
-#include <stdio.h>
 #include <bcm2835.h>
 
 #define BIT(x)	1 << (x)
@@ -427,29 +426,66 @@ void ESC_reset (void)
 
 void ESC_init (const esc_cfg_t * config)
 {
+   bool rpi4 = false, cs1 = false;
    uint32_t value;
    uint32_t counter = 0;
    uint32_t timeout = 1000; // wait 100msec
+   char * user_arg = (char *)config->user_arg;
+   char * token = strtok(user_arg," ,.-_");
+   
+   // parse user arguments
+   while (token != NULL)
+   {
+      if (strncmp(token,"cs1",3) == 0)
+      {
+         cs1 = true;  // select CS1 pin
+      }
+      else if (strncmp(token,"rpi4",4) == 0)
+      {
+         rpi4 = true; // select clock divider for raspberry pi 4 or newer
+      }
+      token = strtok(NULL," ,.-_");
+   }
    
    if (bcm2835_init())
    {
       if (bcm2835_spi_begin())
       {
-         bcm2835_spi_setBitOrder(BCM2835_SPI_BIT_ORDER_MSBFIRST);    // Set SPI bit order
-         bcm2835_spi_setDataMode(BCM2835_SPI_MODE0);                 //  Set SPI data mode BCM2835_SPI_MODE0 = 0, CPOL = 0, CPHA = 0, Clock idle low, data is clocked in on rising edge, output data (change) on falling edge
-         #ifdef RPI4
-         bcm2835_spi_setClockDivider(BCM2835_SPI_CLOCK_DIVIDER_32);  // Raspberry 4 due to a higher CPU speed this value is to change to: BCM2835_SPI_CLOCK_DIVIDER_32
-         #else
-         bcm2835_spi_setClockDivider(BCM2835_SPI_CLOCK_DIVIDER_16);  // Set SPI clock speed BCM2835_SPI_CLOCK_DIVIDER_16 = 16, 16 = 64ns = 15.625MHz
-         #endif
-         bcm2835_spi_chipSelect(BCM2835_SPI_CS0); //Enable management of CS pin
-         bcm2835_spi_setChipSelectPolarity(BCM2835_SPI_CS0, LOW);    // enable CS0 and set polarity  (for RPI_GPIO_P1_24)
-         //bcm2835_spi_chipSelect(BCM2835_SPI_CS1); //Enable management of CS pin
-         //bcm2835_spi_setChipSelectPolarity(BCM2835_SPI_CS1, LOW);  // enable CS1 and set polarity (for RPI_GPIO_P1_26)
-         //bcm2835_gpio_fsel(RPI_GPIO_P1_24, BCM2835_GPIO_FSEL_OUTP); // EtherC only?
+         // Set SPI bit order
+         bcm2835_spi_setBitOrder(BCM2835_SPI_BIT_ORDER_MSBFIRST);
+         // Set SPI data mode BCM2835_SPI_MODE0 = 0, CPOL = 0, CPHA = 0, 
+         // Clock idle low, data is clocked in on rising edge, output data (change) on falling edge
+         bcm2835_spi_setDataMode(BCM2835_SPI_MODE0);
+         if (rpi4)
+         {
+            // Raspberry 4 due to a higher CPU speed this value is to change to: BCM2835_SPI_CLOCK_DIVIDER_32
+            bcm2835_spi_setClockDivider(BCM2835_SPI_CLOCK_DIVIDER_32);
+            DPRINT("bcm2835_spi_setClockDivider set to 32 \n");
+         }
+         else
+         {
+            // Set SPI clock speed BCM2835_SPI_CLOCK_DIVIDER_16 = 16, 16 = 64ns = 15.625MHz
+            bcm2835_spi_setClockDivider(BCM2835_SPI_CLOCK_DIVIDER_16);
+            DPRINT("bcm2835_spi_setClockDivider set to 16 \n");
+         }
+         if (cs1)
+         {
+            // Enable management of CS1 pin
+            bcm2835_spi_chipSelect(BCM2835_SPI_CS1);
+            // Enable CS1 and set polarity
+            bcm2835_spi_setChipSelectPolarity(BCM2835_SPI_CS1, LOW);
+            DPRINT("bcm2835_spi_chipSelect set to CS1 \n");
+         }
+         else
+         {
+            // Enable management of CS0 pin
+            bcm2835_spi_chipSelect(BCM2835_SPI_CS0);
+            // enable CS0 and set polarity 
+            bcm2835_spi_setChipSelectPolarity(BCM2835_SPI_CS0, LOW);
+            DPRINT("bcm2835_spi_chipSelect set to CS0 \n");
+         }
          
-         // Reset the ecat core here due to 
-         evb-lan9252-digio not having any GPIO for that purpose.
+         // Reset the ecat core here due to evb-lan9252-digio not having any GPIO for that purpose.
          bcm2835_spi_write_32(ESC_CMD_RESET_CTL,ESC_RESET_CTRL_RST);
          
          // Wait until reset command has been executed
@@ -480,24 +516,24 @@ void ESC_init (const esc_cfg_t * config)
          if (counter < timeout)
          {
             // Read the chip identification and revision
-            value = bcm2835_spi_read_32(ESC_CMD_ID_REV);  
-            printf("Detected chip %x Rev %u \n", ((value >> 16) & 0xFFFF), (value & 0xFFFF));
+            value = bcm2835_spi_read_32(ESC_CMD_ID_REV);
+            DPRINT("Detected chip %x Rev %u \n", ((value >> 16) & 0xFFFF), (value & 0xFFFF));
          }
          else
          {
-            printf("Timeout occurred during reset \n");
+            DPRINT("Timeout occurred during reset \n");
             bcm2835_spi_end();
             bcm2835_close();
          }
       }
       else
       {
-         printf("bcm2835_spi_begin failed. Are you running as root ?\n");
+         DPRINT("bcm2835_spi_begin failed. Are you running as root?\n");
          bcm2835_close();
       }
    }
    else
    { 
-      printf("bcm2835_init failed. Are you running as root ?\n");
+      DPRINT("bcm2835_init failed. Are you running as root?\n");
    }
 }
