@@ -1,10 +1,10 @@
 Simple Open Source EtherCAT Slave
 ====
-[![Build Status](https://github.com/OpenEtherCATsociety/SOES/workflows/build/badge.svg?branch=master)](https://github.com/OpenEtherCATsociety/SOES/actions?workflow=build)
-
 SOES (Simple OpenSource EtherCAT Slave Stack) is an opensource slave
 stack that is very easy to use and provides a small footprint. It is a
 good alternative to more complex stacks on the market.
+
+This forks adds support for EtherCAT slave HAT with LAN9252 chip (like EasyCAT or EtherC/EtherBerry) for Raspberry PI using the BCM2835 library.
 
 Overview
 ----
