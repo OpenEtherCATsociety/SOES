@@ -5,12 +5,8 @@
 /* Application variables */
 _Objects    Obj;
 
-
-
-
 void cb_get_inputs (void)
 {
-
 }
 
 void cb_set_outputs (void)
