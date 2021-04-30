@@ -4,7 +4,7 @@
 
 #ifdef BYTE_NUM // for BYTE_NUM we accept only 16  32  64  128 --
   #if ((BYTE_NUM !=16) && (BYTE_NUM !=32) && (BYTE_NUM !=64)  && (BYTE_NUM !=128))
-    #error "BYTE_NUM must be 16, 32, 64 or 128 !!! define it correctly in file EasyCAT.h"
+    #error "BYTE_NUM must be 16, 32, 64 or 128 !!! define it correctly in file utypes.h"
   #endif 
 #else
 
