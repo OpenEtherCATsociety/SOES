@@ -1,16 +1,25 @@
 #include <stdio.h>
+#include <string.h>
 #include "ecat_slv.h"
-#include "utypes.h"
 
 /* Application variables */
 _Objects    Obj;
 
+
+
+
 void cb_get_inputs (void)
 {
+
 }
 
 void cb_set_outputs (void)
 {
+}
+
+void application (void)
+{
+   memcpy(Obj.txpdo,Obj.rxpdo,BYTE_NUM);
 }
 
 int main_run (void * arg)
@@ -23,7 +32,7 @@ int main_run (void * arg)
       .set_defaults_hook = NULL,
       .pre_state_change_hook = NULL,
       .post_state_change_hook = NULL,
-      .application_hook = NULL,
+      .application_hook = application,
       .safeoutput_override = NULL,
       .pre_object_download_hook = NULL,
       .post_object_download_hook = NULL,

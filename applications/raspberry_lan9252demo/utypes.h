@@ -4,38 +4,40 @@
 #include "cc.h"
 
 
+#define DEVICE_EASYCAT
+//#define DEVICE_ETHERC
+
+#ifdef DEVICE_EASYCAT
+#define DEVICE_NAME "EasyCAT"
+#else
+#ifdef DEVICE_ETHERC
+#define DEVICE_NAME "EtherBerry"
+#else
+#define DEVICE_NAME "Unknown"
+#endif
+#endif
+
+#define BYTE_NUM 32 // or 16, 64, 128
+
+
 /* Object dictionary storage */
 
 typedef struct
 {
    /* Inputs */
-   struct
-   {
-      uint8_t Button1;
-   } Buttons;
-
 
    /* Outputs */
-   struct
-   {
-      uint8_t LED0;
-      uint8_t LED1;
-   } LEDs;
-
 
    /* Parameters */
-   struct
-   {
-      uint32_t Multiplier;
-   } Parameters;
-
 
    /* Manufacturer specific data */
 
    /* Dynamic TX PDO:s */
+   uint8_t txpdo[BYTE_NUM];
 
    /* Dynamic RX PDO:s */
-
+   uint8_t rxpdo[BYTE_NUM];
+   
    /* Sync Managers */
 
 } _Objects;
