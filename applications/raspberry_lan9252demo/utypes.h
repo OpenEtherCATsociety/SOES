@@ -8,10 +8,10 @@
 //#define DEVICE_ETHERC
 
 #ifdef DEVICE_EASYCAT
-#define DEVICE_NAME "EasyCAT"
+#define DEVICE_NAME "EasyCAT 32+32 rev 1"
 #else
 #ifdef DEVICE_ETHERC
-#define DEVICE_NAME "EtherBerry"
+#define DEVICE_NAME "EtherBerry 32+32"
 #else
 #define DEVICE_NAME "Unknown"
 #endif
