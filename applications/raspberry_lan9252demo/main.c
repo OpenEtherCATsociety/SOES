@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <string.h>
 #include "ecat_slv.h"
+#include "utypes.h"
 
 /* Application variables */
 _Objects    Obj;

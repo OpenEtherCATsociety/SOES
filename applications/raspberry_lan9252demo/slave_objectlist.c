@@ -317,7 +317,7 @@ const _objd SDO1000[] =
 };
 const _objd SDO1008[] =
 {
-  {0x0, DTYPE_VISIBLE_STRING, 88, ATYPE_RO, acName1008, 0, DEVICE},
+  {0x0, DTYPE_VISIBLE_STRING, 88, ATYPE_RO, acName1008, 0, DEVICE_NAME},
 };
 const _objd SDO1009[] =
 {
