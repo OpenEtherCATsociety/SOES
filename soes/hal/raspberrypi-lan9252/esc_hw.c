@@ -572,10 +572,10 @@ void ESC_init (const esc_cfg_t * config)
                }
                
                // set LAN9252 interrupt pin driver as push-pull active high
-               bcm2835_spi_write_32(IRQ_CFG, 0x00000111);
+               bcm2835_spi_write_32(ESC_CMD_IRQ_CFG, 0x00000111);
                
                // enable LAN9252 interrupt
-               bcm2835_spi_write_32(INT_EN, 0x00000001);
+               bcm2835_spi_write_32(ESC_CMD_INT_EN, 0x00000001);
             }
          }
          else
