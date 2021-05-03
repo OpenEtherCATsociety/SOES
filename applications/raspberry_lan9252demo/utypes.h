@@ -33,10 +33,10 @@ typedef struct
    /* Manufacturer specific data */
 
    /* Dynamic TX PDO:s */
-   uint8_t txpdo[BYTE_NUM];
+   uint8_t txpdo[BYTE_NUM] __attribute__((aligned (8)));
 
    /* Dynamic RX PDO:s */
-   uint8_t rxpdo[BYTE_NUM];
+   uint8_t rxpdo[BYTE_NUM] __attribute__((aligned (8)));
    
    /* Sync Managers */
 

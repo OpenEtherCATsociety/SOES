@@ -6,17 +6,18 @@
 /* Application variables */
 _Objects    Obj;
 
+#ifndef DYN_PDO_MAPPING
+uint8_t * txpdo = Obj.txpdo;
+uint8_t * rxpdo = Obj.rxpdo;
+#endif
+
 void cb_get_inputs (void)
 {
+   memcpy(Obj.txpdo,Obj.rxpdo,BYTE_NUM);
 }
 
 void cb_set_outputs (void)
 {
-}
-
-void application (void)
-{
-   memcpy(Obj.txpdo,Obj.rxpdo,BYTE_NUM);
 }
 
 int main_run (void * arg)
@@ -29,7 +30,7 @@ int main_run (void * arg)
       .set_defaults_hook = NULL,
       .pre_state_change_hook = NULL,
       .post_state_change_hook = NULL,
-      .application_hook = application,
+      .application_hook = NULL,
       .safeoutput_override = NULL,
       .pre_object_download_hook = NULL,
       .post_object_download_hook = NULL,
