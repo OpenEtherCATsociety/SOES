@@ -686,8 +686,8 @@ void ESC_xoeprocess (void)
 uint8_t ESC_checkSM23 (uint8_t state)
 {
    _ESCsm2 *SM;
-   ESC_read (ESCREG_SM2, (void *) &ESCvar.SM[2], sizeof (ESCvar.SM[2]));
-   SM = (_ESCsm2 *) & ESCvar.SM[2];
+   ESC_read (ESCREG_SM2, (void *) &ESCvar.SM[SM2_IDX], sizeof (ESCvar.SM[SM2_IDX]));
+   SM = (_ESCsm2 *) & ESCvar.SM[SM2_IDX];
    if ((etohs (SM->PSA) != ESC_SM2_sma) || (etohs (SM->Length) != ESCvar.ESC_SM2_sml)
        || (SM->Command != ESC_SM2_smc) || !(SM->ActESC & ESC_SM2_act))
    {
@@ -701,8 +701,8 @@ uint8_t ESC_checkSM23 (uint8_t state)
       /* SM2 overlaps SM3, fail state change */
       return (ESCpreop | ESCerror);
    }
-   ESC_read (ESCREG_SM3, (void *) &ESCvar.SM[3], sizeof (ESCvar.SM[3]));
-   SM = (_ESCsm2 *) & ESCvar.SM[3];
+   ESC_read (ESCREG_SM3, (void *) &ESCvar.SM[SM3_IDX], sizeof (ESCvar.SM[SM3_IDX]));
+   SM = (_ESCsm2 *) & ESCvar.SM[SM3_IDX];
    if ((etohs (SM->PSA) != ESC_SM3_sma) || (etohs (SM->Length) != ESCvar.ESC_SM3_sml)
        || (SM->Command != ESC_SM3_smc) || !(SM->ActESC & ESC_SM3_act))
    {
@@ -727,13 +727,13 @@ uint8_t ESC_startinput (uint8_t state)
 
    if (state != (ESCpreop | ESCerror))
    {
-      ESC_SMenable (3);
+      ESC_SMenable (SM3_IDX);
       CC_ATOMIC_SET(ESCvar.App.state, APPSTATE_INPUT);
    }
    else
    {
-      ESC_SMdisable (2);
-      ESC_SMdisable (3);
+      ESC_SMdisable (SM2_IDX);
+      ESC_SMdisable (SM3_IDX);
       if (ESCvar.SMtestresult & SMRESULT_ERRSM3)
       {
          ESC_ALerror (ALERR_INVALIDINPUTSM);
@@ -759,8 +759,8 @@ uint8_t ESC_startinput (uint8_t state)
          ESC_ALerror (dc_check_result);
          state = (ESCpreop | ESCerror);
 
-         ESC_SMdisable (2);
-         ESC_SMdisable (3);
+         ESC_SMdisable (SM2_IDX);
+         ESC_SMdisable (SM3_IDX);
          CC_ATOMIC_SET(ESCvar.App.state, APPSTATE_IDLE);
       }
       else
@@ -790,8 +790,8 @@ uint8_t ESC_startinput (uint8_t state)
 void ESC_stopinput (void)
 {
    CC_ATOMIC_SET(ESCvar.App.state, APPSTATE_IDLE);
-   ESC_SMdisable (3);
-   ESC_SMdisable (2);
+   ESC_SMdisable (SM3_IDX);
+   ESC_SMdisable (SM2_IDX);
 
    /* Call interrupt disable hook case it have been configured  */
    if ((ESCvar.use_interrupt != 0) &&
@@ -813,7 +813,7 @@ void ESC_stopinput (void)
 uint8_t ESC_startoutput (uint8_t state)
 {
 
-   ESC_SMenable (2);
+   ESC_SMenable (SM2_IDX);
    CC_ATOMIC_OR(ESCvar.App.state, APPSTATE_OUTPUT);
    return state;
 
@@ -827,7 +827,7 @@ uint8_t ESC_startoutput (uint8_t state)
 void ESC_stopoutput (void)
 {
    CC_ATOMIC_AND(ESCvar.App.state, APPSTATE_INPUT);
-   ESC_SMdisable (2);
+   ESC_SMdisable (SM2_IDX);
    APP_safeoutput ();
 }
 
@@ -866,7 +866,9 @@ void ESC_sm_act_event (void)
        * acknowledge the SyncManager Activation event making us enter
        * this execution path.
        */
+      #if USE_MBX
       ax = ESC_checkmbx (as);
+      #endif
       ax23 = ESC_checkSM23 (as);
       if ((an & ESCerror) && ((ac & ESCerror) == 0))
       {
@@ -875,6 +877,7 @@ void ESC_sm_act_event (void)
       /* Have we been forced to step down to INIT we will stop mailboxes,
        * update AL Status Code and exit ESC_state
        */
+      #if USE_MBX
       else if (ax == (ESCinit | ESCerror))
       {
          /* If we have activated Inputs and Outputs we need to disable them */
@@ -890,6 +893,7 @@ void ESC_sm_act_event (void)
          ESC_ALstatus (ax);
          return;
       }
+      #endif
       /* Have we been forced to step down to PREOP we will stop inputs
        * and outputs, update AL Status Code and exit ESC_state
        */
@@ -981,7 +985,11 @@ void ESC_state (void)
       {
          /* get station address */
          ESC_address ();
+         #if USE_MBX
          an = ESC_startmbx (ac);
+         #else
+         an = ac;
+         #endif
          break;
       }
       case INIT_TO_BOOT:
@@ -989,7 +997,11 @@ void ESC_state (void)
       {
          /* get station address */
          ESC_address ();
+         #if USE_MBX
          an = ESC_startmbxboot (ac);
+         #else
+         an = ac;
+         #endif
          break;
       }
       case INIT_TO_SAFEOP:
@@ -1003,26 +1015,34 @@ void ESC_state (void)
       {
          ESC_stopoutput ();
          ESC_stopinput ();
+         #if USE_MBX
          ESC_stopmbx ();
+         #endif
          an = ESCinit;
          break;
       }
       case SAFEOP_TO_INIT:
       {
          ESC_stopinput ();
+         #if USE_MBX
          ESC_stopmbx ();
+         #endif
          an = ESCinit;
          break;
       }
       case PREOP_TO_INIT:
       {
+         #if USE_MBX
          ESC_stopmbx ();
+         #endif
          an = ESCinit;
          break;
       }
       case BOOT_TO_INIT:
       {
+         #if USE_MBX
          ESC_stopmbx ();
+         #endif
          an = ESCinit;
          break;
       }

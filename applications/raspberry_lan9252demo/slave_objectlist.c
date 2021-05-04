@@ -308,16 +308,11 @@ static const char acName1C00_03[] = "Communications type SM2";
 static const char acName1C00_04[] = "Communications type SM3";
 static const char acName1C10[] = "Sync Manager 0 PDO Assignment";
 static const char acName1C10_00[] = "Max SubIndex";
-//static const char acName1C10_01[] = "PDO Mapping";
+static const char acName1C10_01[] = "PDO Mapping";
 static const char acName1C11[] = "Sync Manager 1 PDO Assignment";
 static const char acName1C11_00[] = "Max SubIndex";
-//static const char acName1C11_01[] = "PDO Mapping";
-static const char acName1C12[] = "Sync Manager 2 PDO Assignment";
-static const char acName1C12_00[] = "Max SubIndex";
-static const char acName1C12_01[] = "PDO Mapping";
-static const char acName1C13[] = "Sync Manager 3 PDO Assignment";
-static const char acName1C13_00[] = "Max SubIndex";
-static const char acName1C13_01[] = "PDO Mapping";
+static const char acName1C11_01[] = "PDO Mapping";
+
 
 const _objd SDO1000[] =
 {
@@ -636,29 +631,22 @@ const _objd SDO1A00[] =
 const _objd SDO1C00[] =
 {
   {0x00, DTYPE_UNSIGNED8, 8, ATYPE_RO, acName1C00_00, 4, NULL},
-  {0x01, DTYPE_UNSIGNED8, 8, ATYPE_RO, acName1C00_01, 0, NULL},
-  {0x02, DTYPE_UNSIGNED8, 8, ATYPE_RO, acName1C00_02, 0, NULL},
-  {0x03, DTYPE_UNSIGNED8, 8, ATYPE_RO, acName1C00_03, 3, NULL},
-  {0x04, DTYPE_UNSIGNED8, 8, ATYPE_RO, acName1C00_04, 4, NULL},
+  {0x01, DTYPE_UNSIGNED8, 8, ATYPE_RO, acName1C00_01, 3, NULL},
+  {0x02, DTYPE_UNSIGNED8, 8, ATYPE_RO, acName1C00_02, 4, NULL},
+  {0x03, DTYPE_UNSIGNED8, 8, ATYPE_RO, acName1C00_03, 0, NULL},
+  {0x04, DTYPE_UNSIGNED8, 8, ATYPE_RO, acName1C00_04, 0, NULL},
 };
 const _objd SDO1C10[] =
 {
-  {0x00, DTYPE_UNSIGNED8, 8, ATYPE_RO, acName1C10_00, 0, NULL},
+  {0x00, DTYPE_UNSIGNED8, 8, ATYPE_RO, acName1C10_00, 1, NULL},
+  {0x01, DTYPE_UNSIGNED16, 16, ATYPE_RO, acName1C10_01, 0x1600, NULL},
 };
 const _objd SDO1C11[] =
 {
-  {0x00, DTYPE_UNSIGNED8, 8, ATYPE_RO, acName1C11_00, 0, NULL},
+  {0x00, DTYPE_UNSIGNED8, 8, ATYPE_RO, acName1C11_00, 1, NULL},
+  {0x01, DTYPE_UNSIGNED16, 16, ATYPE_RO, acName1C11_01, 0x1A00, NULL},
 };
-const _objd SDO1C12[] =
-{
-  {0x00, DTYPE_UNSIGNED8, 8, ATYPE_RO, acName1C12_00, 1, NULL},
-  {0x01, DTYPE_UNSIGNED16, 16, ATYPE_RO, acName1C12_01, 0x1600, NULL},
-};
-const _objd SDO1C13[] =
-{
-  {0x00, DTYPE_UNSIGNED8, 8, ATYPE_RO, acName1C13_00, 1, NULL},
-  {0x01, DTYPE_UNSIGNED16, 16, ATYPE_RO, acName1C13_01, 0x1A00, NULL},
-};
+
 
 const _objectlist SDOobjects[] =
 {
@@ -670,9 +658,7 @@ const _objectlist SDOobjects[] =
   {0x1600, OTYPE_RECORD, BYTE_NUM, 0, acName1600, SDO1600},
   {0x1A00, OTYPE_RECORD, BYTE_NUM, 0, acName1A00, SDO1A00},
   {0x1C00, OTYPE_ARRAY, 4, 0, acName1C00, SDO1C00},
-  {0x1C10, OTYPE_ARRAY, 0, 0, acName1C10, SDO1C10},
-  {0x1C11, OTYPE_ARRAY, 0, 0, acName1C11, SDO1C11},
-  {0x1C12, OTYPE_ARRAY, 1, 0, acName1C12, SDO1C12},
-  {0x1C13, OTYPE_ARRAY, 1, 0, acName1C13, SDO1C13},
+  {0x1C10, OTYPE_ARRAY, 1, 0, acName1C10, SDO1C10},
+  {0x1C11, OTYPE_ARRAY, 1, 0, acName1C11, SDO1C11},
   {0xffff, 0xff, 0xff, 0xff, NULL, NULL}
 };

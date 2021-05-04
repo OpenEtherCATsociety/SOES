@@ -9,6 +9,12 @@
 /* User-defined options, Options defined here will override default values */
 #include "ecat_options.h"
 
+/* Mailbox support */
+/* If disabled SM2 --> SM0, and SM3 --> SM1 */
+#ifndef USE_MBX
+#define USE_MBX          1
+#endif
+
 /* FoE support */
 #ifndef USE_FOE
 #define USE_FOE          1
