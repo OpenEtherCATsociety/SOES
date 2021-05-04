@@ -196,9 +196,16 @@ void DIG_process (uint8_t flags)
    /* Handle watchdog */
    if((flags & DIG_PROCESS_WD_FLAG) > 0)
    {
-      if (CC_ATOMIC_GET(watchdog) > 0)
+      if (ESCvar.watchdogcnt)
       {
-         CC_ATOMIC_SUB(watchdog, 1);
+         if (CC_ATOMIC_GET(watchdog) > 0)
+         {
+            CC_ATOMIC_SUB(watchdog, 1);
+         }
+      }
+      else // Use HW watchdog
+      {
+         CC_ATOMIC_SET(watchdog, (ESC_WDstatus() & 0x01));
       }
 
       if ((CC_ATOMIC_GET(watchdog) <= 0) &&
@@ -209,7 +216,10 @@ void DIG_process (uint8_t flags)
       }
       else if(((CC_ATOMIC_GET(ESCvar.App.state) & APPSTATE_OUTPUT) == 0))
       {
-         CC_ATOMIC_SET(watchdog, ESCvar.watchdogcnt);
+         if (ESCvar.watchdogcnt)
+         {
+            CC_ATOMIC_SET(watchdog, ESCvar.watchdogcnt);
+         }
       }
    }
 
@@ -220,7 +230,10 @@ void DIG_process (uint8_t flags)
          (ESCvar.ALevent & ESCREG_ALEVENT_SM2))
       {
          RXPDO_update();
-         CC_ATOMIC_SET(watchdog, ESCvar.watchdogcnt);
+         if (ESCvar.watchdogcnt)
+         {
+            CC_ATOMIC_SET(watchdog, ESCvar.watchdogcnt);
+         }
          /* Set outputs */
          cb_set_outputs();
       }
@@ -306,6 +319,11 @@ void ecat_slv_poll (void)
    /* Read local time from ESC*/
    ESC_read (ESCREG_LOCALTIME, (void *) &ESCvar.Time, sizeof (ESCvar.Time));
    ESCvar.Time = etohl (ESCvar.Time);
+   
+   DPRINT("ALevent1 = %x /n",ESCvar.ALevent);
+   CC_ATOMIC_SET(ESCvar.ALevent, ESC_ALeventread());
+   DPRINT("ALevent2 = %x /n",ESCvar.ALevent);
+   DPRINT("ALstatus = %x /n",ESCvar.ALstatus);
 
    /* Check the state machine */
    ESC_state();
