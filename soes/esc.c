@@ -837,9 +837,12 @@ void ESC_stopoutput (void)
  */
 void ESC_sm_act_event (void)
 {
-   uint8_t ac, an, as, ax, ax23;
-
-   /* Have at least on Sync Manager  changed */
+   uint8_t ac, an, as, ax23;
+   #if USE_MBX
+   uint8_t ax;
+   #endif
+      
+   /* Have at least one Sync Manager changed */
    if ((ESCvar.ALevent & ESCREG_ALEVENT_SMCHANGE) == 0)
    {
       /* nothing to do */
@@ -860,7 +863,11 @@ void ESC_sm_act_event (void)
     * is up and running
     */
    if ((as & ESCREG_AL_ALLBUTINITMASK) &&
+   #if USE_MBX
        ((as == ESCboot) == 0) && ESCvar.MBXrun)
+   #else
+       ((as == ESCboot) == 0))
+   #endif
    {
       /* Validate Sync Managers, reading the Activation register will
        * acknowledge the SyncManager Activation event making us enter

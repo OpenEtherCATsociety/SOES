@@ -3,7 +3,7 @@
 
 #include "cc.h"
 
-#define DYN_PDO_MAPPING  1
+#define DYN_PDO_MAPPING  0
 
 #define USE_MBX          0
 #define USE_FOE          0
@@ -16,7 +16,6 @@
 #define MBXSIZE          0
 #define MBXSIZEBOOT      0
 #endif
-#define MBXBUFFERS       3
 
 #define SM0_sma          0x1000
 #define SM0_smc          0x64
@@ -24,24 +23,6 @@
 #define SM1_sma          0x1200
 #define SM1_smc          0x20
 #define SM1_act          1
-
-#define MBX0_sma         SM0_sma
-#define MBX0_sml         MBXSIZE
-#define MBX0_sme         MBX0_sma+MBX0_sml-1
-#define MBX0_smc         SM0_smc
-#define MBX1_sma         SM1_sma
-#define MBX1_sml         MBXSIZE
-#define MBX1_sme         MBX1_sma+MBX1_sml-1
-#define MBX1_smc         SM1_act
-
-#define MBX0_sma_b       SM0_sma
-#define MBX0_sml_b       MBXSIZEBOOT
-#define MBX0_sme_b       MBX0_sma_b+MBX0_sml_b-1
-#define MBX0_smc_b       SM0_smc
-#define MBX1_sma_b       SM1_sma
-#define MBX1_sml_b       MBXSIZEBOOT
-#define MBX1_sme_b       MBX1_sma_b+MBX1_sml_b-1
-#define MBX1_smc_b       SM1_act
 
 #define SM2_sma          SM0_sma
 #define SM2_smc          SM0_smc

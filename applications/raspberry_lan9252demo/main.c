@@ -26,7 +26,7 @@ int main_run (void * arg)
    {
       .user_arg = "rpi3,cs0",
       .use_interrupt = 0,
-      .watchdog_cnt = 150,
+      .watchdog_cnt = INT32_MAX, /* Use HW SM watchdog instead */
       .set_defaults_hook = NULL,
       .pre_state_change_hook = NULL,
       .post_state_change_hook = NULL,
