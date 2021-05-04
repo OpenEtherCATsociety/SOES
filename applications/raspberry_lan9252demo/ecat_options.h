@@ -40,7 +40,7 @@
 #define MAX_RXPDO_SIZE   128
 #define MAX_TXPDO_SIZE   128
 
-#ifdef DYN_PDO_BUFFER
+#ifdef DYN_PDO_MAPPING
 #define MAX_MAPPINGS_SM2 1
 #define MAX_MAPPINGS_SM3 1
 #else

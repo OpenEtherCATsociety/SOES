@@ -7,6 +7,8 @@
     #error "BYTE_NUM must be 16, 32, 64 or 128 !!! define it correctly in file utypes.h"
   #endif 
 #else
+  #define BYTE_NUM 32
+#endif
 
 #ifndef HW_REV
 #define HW_REV "1.0"
@@ -306,10 +308,10 @@ static const char acName1C00_03[] = "Communications type SM2";
 static const char acName1C00_04[] = "Communications type SM3";
 static const char acName1C10[] = "Sync Manager 0 PDO Assignment";
 static const char acName1C10_00[] = "Max SubIndex";
-static const char acName1C10_01[] = "PDO Mapping";
+//static const char acName1C10_01[] = "PDO Mapping";
 static const char acName1C11[] = "Sync Manager 1 PDO Assignment";
 static const char acName1C11_00[] = "Max SubIndex";
-static const char acName1C11_01[] = "PDO Mapping";
+//static const char acName1C11_01[] = "PDO Mapping";
 static const char acName1C12[] = "Sync Manager 2 PDO Assignment";
 static const char acName1C12_00[] = "Max SubIndex";
 static const char acName1C12_01[] = "PDO Mapping";
