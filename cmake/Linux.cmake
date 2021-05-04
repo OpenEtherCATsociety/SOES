@@ -11,4 +11,4 @@ set(HAL_SOURCES
   )
 
 # Common compile flags
-add_compile_options(-Wall -Wextra -Wno-unused-parameter -Werror)
+add_compile_options(-DESC_DEBUG -Wall -Wextra -Wno-unused-parameter -Werror)
