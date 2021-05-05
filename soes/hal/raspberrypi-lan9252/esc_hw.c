@@ -58,14 +58,6 @@
 #define ESC_CSR_CMD_WRITE        0x80000000
 #define ESC_CSR_CMD_SIZE(x)      (x << 16)
 
-typedef enum
-{
-  ASYNC,
-  DC_SYNC,
-  SM_SYNC
-} syncmode;
-
-
 /* bcm2835 spi singel write */
 static void bcm2835_spi_write_32 (uint16_t address, uint32_t val)
 {
