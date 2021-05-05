@@ -2,6 +2,7 @@
 #include <string.h>
 #include "ecat_options.h"
 #include "ecat_slv.h"
+#include "esc_hw.h"
 #include "utypes.h"
 
 /* Application variables */
