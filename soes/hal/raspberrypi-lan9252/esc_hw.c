@@ -11,6 +11,7 @@
  * registers and memory.
  */
 #include "esc.h"
+#include "esc_hw.h"
 #include <string.h>
 #include <fcntl.h>
 #include <stdlib.h>
@@ -28,10 +29,6 @@
 #define ESC_CMD_ID_REV           0x0050      // chip ID and revision
 #define ESC_CMD_IRQ_CFG          0x0054      // interrupt configuration
 #define ESC_CMD_INT_EN           0x005C      // interrupt enable
-
-#define ESC_AL_STATUS            0x0130      // AL status
-#define ESC_WDOG_STATUS          0x0440      // watch dog status
-#define ESC_AL_EVENT_MASK        0x0204      // AL event interrupt mask
 
 #define ESC_RESET_DIGITAL        0x00000001
 #define ESC_RESET_ETHERCAT       0x00000040
@@ -235,7 +232,7 @@ static void ESC_write_pram (uint16_t address, void *buf, uint16_t len)
    uint8_t fifo_cnt, first_byte_position, temp_len;
    uint8_t *buffer;
    int i, array_size, size;
-   float quotient,remainder;   
+   float quotient,remainder;
 
    value = ESC_PRAM_CMD_ABORT;
    bcm2835_spi_write_32(ESC_PRAM_WR_CMD_REG, value);
@@ -438,7 +435,6 @@ void ESC_reset (void)
 void ESC_init (const esc_cfg_t * config)
 {
    bool rpi4 = false, cs1 = false;
-   syncmode sync = ASYNC;
    uint32_t value;
    uint32_t counter = 0;
    uint32_t timeout = 1000; // wait 100msec
@@ -459,22 +455,6 @@ void ESC_init (const esc_cfg_t * config)
       else if (strncmp(token,"rpi4",4) == 0)
       {
          rpi4 = true; // select clock divider for raspberry pi 4 or newer
-      }
-      else if (strncmp(token,"dcsync",6) == 0)
-      {
-         sync = DC_SYNC; // select distributed clock 
-      }
-      else if (strncmp(token,"dc_sync",7) == 0)
-      {
-         sync = DC_SYNC; // select distributed clock 
-      }
-      else if (strncmp(token,"smsync",6) == 0)
-      {
-         sync = SM_SYNC; // select synchronization manager
-      }
-      else if (strncmp(token,"sm_sync",7) == 0)
-      {
-         sync = SM_SYNC; // select synchronization manager
       }
       token = strtok(NULL,delim);
    }
@@ -553,30 +533,19 @@ void ESC_init (const esc_cfg_t * config)
             value = bcm2835_spi_read_32(ESC_CMD_ID_REV);
             DPRINT("Detected chip %x Rev %u \n", ((value >> 16) & 0xFFFF), (value & 0xFFFF));
             
-            // If requested, enable interrupt generation 
-            if ((sync == DC_SYNC) || (sync == SM_SYNC))
-            {
-               if (sync == DC_SYNC)
-               {
-                  // enable interrupt from SYNC0
-                  value = 0x00000004;
-                  ESC_write_csr(ESC_AL_EVENT_MASK,&value,4);
-                  DPRINT("DC_SYNC\n");
-               }
-               else
-               {
-                  // enable interrupt from SM0 event
-                  value = 0x00000100;
-                  ESC_write_csr(ESC_AL_EVENT_MASK,&value,4);
-                  DPRINT("SM_SYNC\n");
-               }
-               
-               // set LAN9252 interrupt pin driver as push-pull active high
-               bcm2835_spi_write_32(ESC_CMD_IRQ_CFG, 0x00000111);
-               
-               // enable LAN9252 interrupt
-               bcm2835_spi_write_32(ESC_CMD_INT_EN, 0x00000001);
-            }
+            // Disable device simulation to let application set AL status
+            ESC_emulation_disable ();
+   
+            // Set AL event mask
+            value = (ESCREG_ALEVENT_CONTROL | 
+                     ESCREG_ALEVENT_SMCHANGE | 
+                     ESCREG_ALEVENT_EEP |
+                     ESCREG_ALEVENT_WD  |
+                     ESCREG_ALEVENT_SM0 |
+                     ESCREG_ALEVENT_SM1 |
+                     ESCREG_ALEVENT_SM2);
+            ESC_write_csr(ESCREG_ALEVENTMASK,(void *)&value,sizeof(value));
+            
          }
          else
          {
@@ -595,4 +564,59 @@ void ESC_init (const esc_cfg_t * config)
    { 
       DPRINT("bcm2835_init failed. Are you running as root?\n");
    }
+}
+
+void ESC_interrupt_enable (uint32_t mask)
+{
+   uint32_t event_mask;
+   ESC_read_csr(ESCREG_ALEVENTMASK,(void *)&event_mask,sizeof(event_mask));
+    
+   if (ESCREG_ALEVENT_DC_SYNC0 & mask)
+   {
+      // enable interrupt from SYNC0
+      event_mask |= ESCREG_ALEVENT_DC_SYNC0;
+      ESC_write_csr(ESCREG_ALEVENTMASK,(void *)&event_mask,sizeof(event_mask));
+   }
+   
+   // set LAN9252 interrupt pin driver as push-pull active high
+   bcm2835_spi_write_32(ESC_CMD_IRQ_CFG, 0x00000111);
+   
+   // enable LAN9252 interrupt
+   bcm2835_spi_write_32(ESC_CMD_INT_EN, 0x00000001);
+}
+
+void ESC_interrupt_disable (uint32_t mask)
+{
+   uint32_t event_mask;
+   ESC_read_csr(ESCREG_ALEVENTMASK,(void *)&event_mask,sizeof(event_mask));
+   
+   if (ESCREG_ALEVENT_DC_SYNC0 & mask)
+   {
+      // disable interrupt from SYNC0
+      event_mask &= ~(ESCREG_ALEVENT_DC_SYNC0);
+      ESC_write_csr(ESCREG_ALEVENTMASK,(void *)&event_mask,sizeof(event_mask));
+   }
+   
+   // disable LAN9252 interrupt
+   bcm2835_spi_write_32(ESC_CMD_INT_EN, 0x00000000);
+}
+
+void ESC_emulation_enable (void)
+{
+   uint32_t config;
+   ESC_read_csr(ESCREG_ALCONFIG,(void *)&config,sizeof(config));
+   
+   // enable device emulation (AL status register will be set to value written to AL control register)
+   config |= 0x00000001; //
+   ESC_write_csr(ESCREG_ALCONFIG,(void *)&config,sizeof(config));
+}
+
+void ESC_emulation_disable (void)
+{
+   uint32_t config;
+   ESC_read_csr(ESCREG_ALCONFIG,(void *)&config,sizeof(config));
+   
+   // disable device emulation (AL status register has to be set by PDI)
+   config &= ~(0x00000001);
+   ESC_write_csr(ESCREG_ALCONFIG,(void *)&config,sizeof(config));
 }

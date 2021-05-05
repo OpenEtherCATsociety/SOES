@@ -21,6 +21,7 @@
 #define ESCREG_ALCONTROL            0x0120
 #define ESCREG_ALSTATUS             0x0130
 #define ESCREG_ALERROR              0x0134
+#define ESCREG_ALCONFIG             0x0141
 #define ESCREG_ALEVENTMASK          0x0204
 #define ESCREG_ALEVENT              0x0220
 #define ESCREG_ALEVENT_SM_MASK      0x0310

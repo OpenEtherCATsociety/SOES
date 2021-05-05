@@ -205,7 +205,10 @@ void DIG_process (uint8_t flags)
       }
       else // Use HW watchdog
       {
-         CC_ATOMIC_SET(watchdog, (ESC_WDstatus() & 0x01));
+         if (ESCvar.ALevent & ESCREG_ALEVENT_WD)
+         {
+            CC_ATOMIC_SET(watchdog, (ESC_WDstatus() & 0x01));
+         }
       }
 
       if ((CC_ATOMIC_GET(watchdog) <= 0) &&
@@ -319,11 +322,6 @@ void ecat_slv_poll (void)
    /* Read local time from ESC*/
    ESC_read (ESCREG_LOCALTIME, (void *) &ESCvar.Time, sizeof (ESCvar.Time));
    ESCvar.Time = etohl (ESCvar.Time);
-   
-   DPRINT("ALevent1 = %x /n",ESCvar.ALevent);
-   CC_ATOMIC_SET(ESCvar.ALevent, ESC_ALeventread());
-   DPRINT("ALevent2 = %x /n",ESCvar.ALevent);
-   DPRINT("ALstatus = %x /n",ESCvar.ALstatus);
 
    /* Check the state machine */
    ESC_state();
@@ -373,7 +371,14 @@ void ecat_slv_init (esc_cfg_t * config)
    DPRINT ("Slave stack init started\n");
 
    /* Init watchdog */
-   watchdog = config->watchdog_cnt;
+   if (config->watchdog_cnt)
+   {
+      watchdog = config->watchdog_cnt;
+   }
+   else /* Init HW watchdog */
+   {
+      watchdog = 1;
+   }
 
    /* Call stack configuration */
    ESC_config (config);
@@ -387,7 +392,7 @@ void ecat_slv_init (esc_cfg_t * config)
                 sizeof (ESCvar.DLstatus));
       ESCvar.DLstatus = etohs (ESCvar.DLstatus);
    }
-
+   
 #if USE_FOE
    /* Init FoE */
    FOE_init ();
@@ -397,8 +402,8 @@ void ecat_slv_init (esc_cfg_t * config)
    /* Init EoE */
    EOE_init ();
 #endif
-
-   /* reset ESC to init state */
+   
+   /* Reset ESC to init state */
    ESC_ALstatus (ESCinit);
    ESC_ALerror (ALERR_NONE);
 #if USE_MBX
