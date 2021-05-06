@@ -196,19 +196,9 @@ void DIG_process (uint8_t flags)
    /* Handle watchdog */
    if((flags & DIG_PROCESS_WD_FLAG) > 0)
    {
-      if (ESCvar.watchdogcnt)
+      if (CC_ATOMIC_GET(watchdog) > 0)
       {
-         if (CC_ATOMIC_GET(watchdog) > 0)
-         {
-            CC_ATOMIC_SUB(watchdog, 1);
-         }
-      }
-      else // Use HW watchdog
-      {
-         if (ESCvar.ALevent & ESCREG_ALEVENT_WD)
-         {
-            CC_ATOMIC_SET(watchdog, (ESC_WDstatus() & 0x01));
-         }
+         CC_ATOMIC_SUB(watchdog, 1);
       }
 
       if ((CC_ATOMIC_GET(watchdog) <= 0) &&
@@ -219,10 +209,7 @@ void DIG_process (uint8_t flags)
       }
       else if(((CC_ATOMIC_GET(ESCvar.App.state) & APPSTATE_OUTPUT) == 0))
       {
-         if (ESCvar.watchdogcnt)
-         {
-            CC_ATOMIC_SET(watchdog, ESCvar.watchdogcnt);
-         }
+         CC_ATOMIC_SET(watchdog, ESCvar.watchdogcnt);
       }
    }
 
@@ -233,10 +220,7 @@ void DIG_process (uint8_t flags)
          (ESCvar.ALevent & ESCREG_ALEVENT_SM2))
       {
          RXPDO_update();
-         if (ESCvar.watchdogcnt)
-         {
-            CC_ATOMIC_SET(watchdog, ESCvar.watchdogcnt);
-         }
+         CC_ATOMIC_SET(watchdog, ESCvar.watchdogcnt);
          /* Set outputs */
          cb_set_outputs();
       }
@@ -371,14 +355,7 @@ void ecat_slv_init (esc_cfg_t * config)
    DPRINT ("Slave stack init started\n");
 
    /* Init watchdog */
-   if (config->watchdog_cnt)
-   {
-      watchdog = config->watchdog_cnt;
-   }
-   else /* Init HW watchdog */
-   {
-      watchdog = 1;
-   }
+   watchdog = config->watchdog_cnt;
 
    /* Call stack configuration */
    ESC_config (config);
