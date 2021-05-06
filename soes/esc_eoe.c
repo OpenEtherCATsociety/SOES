@@ -217,7 +217,7 @@ static void EOE_ip_byte_to_uint32 (uint8_t * byte_ip, eoe_ip4_addr_t * ip)
  * @param[out] mac   = variable to store mac in, should fit EOE_ETHADDR_LENGTH
  * @return 0= if we succeed, -1 if not set
  */
-int EOE_get_mac(uint8_t port, uint8_t mac[])
+int EOE_ecat_get_mac(uint8_t port, uint8_t mac[])
 {
    int ret = -1;
    int port_ix;
