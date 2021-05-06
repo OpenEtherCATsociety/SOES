@@ -18,9 +18,9 @@ void cb_state_change (uint8_t * as, uint8_t * an)
 {
    if (*as == SAFEOP_TO_OP)
    {
-      /* Enable watchdog interrupt */
+      /* Enable HW watchdog event */
       ESC_ALeventmaskwrite (ESC_ALeventmaskread() | ESCREG_ALEVENT_WD);
-      /* Enable SM2 interrupt */
+      /* Enable SM2 sync manager event */
       ESC_ALeventmaskwrite (ESC_ALeventmaskread() | ESCREG_ALEVENT_SM2);
    }
 }
@@ -67,7 +67,7 @@ int soes (void * arg)
 {
    static esc_cfg_t config =
    {
-      .user_arg = "rpi3,cs0", /* Change rpi3 to rpi4 if raspberry pi 4 or later */
+      .user_arg = "rpi3,cs0", /* Change rpi3 to rpi4 for raspberry pi 4 or later */
       .use_interrupt = 0,
       .watchdog_cnt = UINT32_T, /* Use HW SM watchdog instead */
       .set_defaults_hook = NULL,
