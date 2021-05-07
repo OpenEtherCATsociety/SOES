@@ -69,7 +69,7 @@ int soes (void * arg)
    {
       .user_arg = "rpi3,cs0", /* Change rpi3 to rpi4 for raspberry pi 4 or later */
       .use_interrupt = 0,
-      .watchdog_cnt = UINT32_T, /* Use HW SM watchdog instead */
+      .watchdog_cnt = INT32_MAX, /* Use HW SM watchdog instead */
       .set_defaults_hook = NULL,
       .pre_state_change_hook = NULL,
       .post_state_change_hook = cb_state_change,
