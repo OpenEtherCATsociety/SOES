@@ -369,6 +369,11 @@ void ecat_slv_init (esc_cfg_t * config)
                 sizeof (ESCvar.DLstatus));
       ESCvar.DLstatus = etohs (ESCvar.DLstatus);
    }
+   DPRINT("DLstatus = %x\n",ESCvar.DLstatus);
+   DPRINT("ALevent = %x\n",ESCvar.ALevent);
+   
+   uint32_t value = ESC_ALeventmaskread();
+   DPRINT("ALeventmask = %x\n",value);
    
 #if USE_FOE
    /* Init FoE */
