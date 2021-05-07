@@ -9,6 +9,11 @@
 /* User-defined options, Options defined here will override default values */
 #include "ecat_options.h"
 
+/* Device emulation support */
+#ifndef USE_EMU
+#define USE_EMU          0
+#endif
+
 /* Mailbox support */
 /* If disabled SM2 --> SM0, and SM3 --> SM1 */
 #ifndef USE_MBX

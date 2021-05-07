@@ -524,9 +524,6 @@ void ESC_init (const esc_cfg_t * config)
             // Read the chip identification and revision
             value = bcm2835_spi_read_32(ESC_CMD_ID_REV);
             DPRINT("Detected chip %x Rev %u \n", ((value >> 16) & 0xFFFF), (value & 0xFFFF));
-            
-            // Disable device simulation to let application set AL status
-            ESC_emulation_disable ();
    
             // Set AL event mask
             value = (ESCREG_ALEVENT_CONTROL | 
@@ -534,7 +531,6 @@ void ESC_init (const esc_cfg_t * config)
                      ESCREG_ALEVENT_SM0 |
                      ESCREG_ALEVENT_SM1 );
             ESC_ALeventmaskwrite(value);
-            
          }
          else
          {
@@ -590,36 +586,4 @@ void ESC_interrupt_disable (uint32_t mask)
    
    // Disable LAN9252 interrupt
    bcm2835_spi_write_32(ESC_CMD_INT_EN, 0x00000000);
-}
-
-void ESC_emulation_enable (void)
-{
-   uint32_t config;
-   
-   // Read current register configuration
-   ESC_read_csr(ESCREG_ALCONFIG,&config,sizeof(config));
-   config = htoel(config);
-   
-   // Enable device emulation (AL status register will be set to value written to AL control register)
-   config |= 0x00000001; 
-   
-   // Write updated register configuration
-   config = htoel(config);
-   ESC_write_csr(ESCREG_ALCONFIG,&config,sizeof(config));
-}
-
-void ESC_emulation_disable (void)
-{
-   uint32_t config;
-   
-   // Read current register configuration
-   ESC_read_csr(ESCREG_ALCONFIG,&config,sizeof(config));
-   config = htoel(config);
-   
-   // Disable device emulation (AL status register has to be set by PDI)
-   config &= ~(0x00000001);
-   
-   // Write updated register configuration
-   config = htoel(config);
-   ESC_write_csr(ESCREG_ALCONFIG,&config,sizeof(config));
 }

@@ -13,8 +13,6 @@
 
 void ESC_interrupt_enable (uint32_t mask);
 void ESC_interrupt_disable (uint32_t mask);
-void ESC_emulation_denable (void);
-void ESC_emulation_disable (void);
 
 #endif
 

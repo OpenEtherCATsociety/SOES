@@ -35,10 +35,12 @@ void ESC_ALerror (uint16_t errornumber)
  */
 void ESC_ALstatus (uint8_t status)
 {
+   #if !(USE_EMU)
    uint16_t dummy;
    ESCvar.ALstatus = status;
    dummy = htoes ((uint16_t) status);
    ESC_write (ESCREG_ALSTATUS, &dummy, sizeof (dummy));
+   #endif
 }
 
 /** Write AL Status and AL Status code to the ESC.
@@ -940,6 +942,13 @@ void ESC_state (void)
    uint8_t ac, an, as;
 
    /* Do we have a state change request pending */
+   #if USE_EMU
+   uint16_t ALstate;
+   ESC_read (ESCREG_ALCONTROL, (void *) &ALstate,
+             sizeof (ALstate));
+   ALstate = etohs (ALstate);
+   if (ALstate == ESCvar.ALcontrol)
+   #else
    if (ESCvar.ALevent & ESCREG_ALEVENT_CONTROL)
    {
       ESC_read (ESCREG_ALCONTROL, (void *) &ESCvar.ALcontrol,
@@ -947,6 +956,7 @@ void ESC_state (void)
       ESCvar.ALcontrol = etohs (ESCvar.ALcontrol);
    }
    else
+   #endif
    {
       /* nothing to do */
       return;
@@ -1163,6 +1173,9 @@ void ESC_state (void)
    }
 
    ESC_ALstatus (an);
+   #if USE_EMU
+   ESCvar.ALcontrol = ALstate;
+   #endif
    DPRINT ("state %x\n", an);
 }
 /** Function copying the application configuration variable

@@ -5,6 +5,7 @@
 
 #define DYN_PDO_MAPPING  0
 
+#define USE_EMU          1
 #define USE_MBX          0
 #define USE_FOE          0
 #define USE_EOE          0
