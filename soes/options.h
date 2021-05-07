@@ -10,6 +10,8 @@
 #include "ecat_options.h"
 
 /* Device emulation support */
+/* If enabled, AL status register will be set to value written to AL control register by EEPROM */
+/* If disabled, AL status register has to be set by SOES */
 #ifndef USE_EMU
 #define USE_EMU          0
 #endif
