@@ -22,12 +22,10 @@
  */
 void ESC_ALerror (uint16_t errornumber)
 {
-   #if !(USE_EMU)
    uint16_t dummy;
    ESCvar.ALerror = errornumber;
    dummy = htoes (errornumber);
    ESC_write (ESCREG_ALERROR, &dummy, sizeof (dummy));
-   #endif
 }
 
 /** Write AL Status to the ESC.
@@ -963,6 +961,7 @@ void ESC_state (void)
       /* nothing to do */
       return;
    }
+   
    /* Mask state request bits + Error ACK */
    ac = ESCvar.ALcontrol & ESCREG_AL_STATEMASK;
    as = ESCvar.ALstatus & ESCREG_AL_STATEMASK;
@@ -1162,6 +1161,11 @@ void ESC_state (void)
       }
    }
 
+   #if USE_EMU
+   /* with device emulation ALcontrol is always copied to ALstatus */
+   an = ac; 
+   #endif
+
    /* Call post state change hook case it have been configured  */
    if (ESCvar.post_state_change_hook != NULL)
    {
@@ -1174,11 +1178,12 @@ void ESC_state (void)
       ESC_ALerror (ALERR_NONE);
    }
 
-   ESC_ALstatus (an);
    #if USE_EMU
-   ESCvar.ALstatus = ac;
+   ESCvar.ALstatus = an;
+   #else
+   ESC_ALstatus (an);
    #endif
-   DPRINT ("state %x\n", ESCvar.ALstatus);
+   DPRINT ("state %x\n", an);
 }
 /** Function copying the application configuration variable
  * data to the stack local variable.
