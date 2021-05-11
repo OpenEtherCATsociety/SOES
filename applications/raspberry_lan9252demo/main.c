@@ -53,6 +53,22 @@ void cb_set_outputs (void)
 {
 }
 
+#if !(DYN_PDO_MAPPING)
+/** Write local process data to Sync Manager 3, Master Inputs.
+ */
+void cb_txpdo_update (void)
+{
+   ESC_write (ESC_SM3_sma, txpdo, BYTE_NUM);
+}
+
+/** Read Sync Manager 2 to local process data, Master Outputs.
+ */
+void cb_rxpdo_update (void)
+{
+   ESC_read (ESC_SM2_sma, rxpdo, BYTE_NUM);
+}
+#endif
+
 void cb_safeoutput (void)
 {
    /* Set all outputs to zero */
@@ -77,8 +93,13 @@ int soes (void * arg)
       .safeoutput_override = cb_safeoutput,
       .pre_object_download_hook = NULL,
       .post_object_download_hook = NULL,
+      #if DYN_PDO_MAPPING
       .rxpdo_override = NULL,
       .txpdo_override = NULL,
+      #else
+      .rxpdo_override = cb_rxpdo_update,
+      .txpdo_override = cb_txpdo_update,
+      #endif
       .esc_hw_interrupt_enable = NULL,
       .esc_hw_interrupt_disable = NULL,
       .esc_hw_eep_handler = NULL,
