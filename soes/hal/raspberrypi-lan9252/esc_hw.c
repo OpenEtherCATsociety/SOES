@@ -180,32 +180,30 @@ static void ESC_read_pram (uint16_t address, void *buf, uint16_t len)
       buffer[0] = ESC_CMD_SERIAL_READ;
       buffer[1] = ((ESC_PRAM_RD_FIFO_REG >>8) & 0xFF);
       buffer[2] = ( ESC_PRAM_RD_FIFO_REG & 0xFF);
-
+      
       /* Transfer batch of data */
       bcm2835_spi_transfern((char *)buffer, size);
-
-      byte_offset = 0;
+      
+      i = 3;
       while (fifo_cnt > 0 && len > 0)
       {
-         for (i=3; i<size; i=i+4) 
+         value = buffer[i] | (buffer[i+1] << 8) | (buffer[i+2] << 16) | (buffer[i+3] << 24);
+         
+         if (byte_offset > 0)
          {
-            value = buffer[i] | (buffer[i+1] << 8) | (buffer[i+2] << 16) | (buffer[i+3] << 24);
-            
-            if ((i==3) && (fifo_cnt == fifo_size))
-            {
-               temp_len = ((4 - first_byte_position) > len) ? len : (4 - first_byte_position);
-               memcpy(temp_buf ,((uint8_t *)&value + first_byte_position), temp_len);
-            }
-            else
-            {
-               temp_len = (len > 4) ? 4: len;
-               memcpy(temp_buf + byte_offset ,&value, temp_len);
-            }
-            
-            fifo_cnt--;
-            len -= temp_len;
-            byte_offset += temp_len;
+            temp_len = (len > 4) ? 4: len;
+            memcpy(temp_buf + byte_offset ,&value, temp_len);
          }
+         else
+         {
+            temp_len = (len > (4 - first_byte_position)) ? (4 - first_byte_position) : len;
+            memcpy(temp_buf ,((uint8_t *)&value + first_byte_position), temp_len);
+         }
+         
+         i = i + 4;
+         fifo_cnt--;
+         len -= temp_len;
+         byte_offset += temp_len;
       }
    }
    free(buffer);
@@ -266,31 +264,29 @@ static void ESC_write_pram (uint16_t address, void *buf, uint16_t len)
       buffer[1] = ((ESC_PRAM_WR_FIFO_REG >> 8) & 0xFF);
       buffer[2] = (ESC_PRAM_WR_FIFO_REG & 0xFF);
 
-      byte_offset = 0;
+      i = 3;
       while (fifo_cnt > 0 && len > 0)
       {
-         for (i=3; i<size; i=i+4) 
+         if (byte_offset > 0)
          {
-            if ((i==3) && (fifo_cnt == fifo_size))
-            {
-               temp_len = ((4 - first_byte_position) > len) ? len : (4 - first_byte_position);
-               memcpy(((uint8_t *)&value + first_byte_position), temp_buf, temp_len);
-            }
-            else
-            {
-               temp_len = (len > 4) ? 4: len;
-               memcpy(&value, (temp_buf + byte_offset), temp_len);
-            }
-            
-            buffer[i] = (value & 0xFF);
-            buffer[i+1] = ((value >> 8) & 0xFF);
-            buffer[i+2] = ((value >> 16) & 0xFF);
-            buffer[i+3] = ((value >> 24) & 0xFF);
-
-            fifo_cnt--;
-            len -= temp_len;
-            byte_offset += temp_len;
+            temp_len = (len > 4) ? 4: len;
+            memcpy(&value, (temp_buf + byte_offset), temp_len);
          }
+         else
+         {
+            temp_len = (len > (4 - first_byte_position)) ? (4 - first_byte_position) : len;
+            memcpy(((uint8_t *)&value + first_byte_position), temp_buf, temp_len);
+         }
+         
+         buffer[i] = (value & 0xFF);
+         buffer[i+1] = ((value >> 8) & 0xFF);
+         buffer[i+2] = ((value >> 16) & 0xFF);
+         buffer[i+3] = ((value >> 24) & 0xFF);
+         
+         i = i + 4;
+         fifo_cnt--;
+         len -= temp_len;
+         byte_offset += temp_len;
       }
       
       /* Transfer batch of data */
@@ -298,7 +294,6 @@ static void ESC_write_pram (uint16_t address, void *buf, uint16_t len)
    }
    free(buffer);
 }
-
 
 /** ESC read function used by the Slave stack.
  *
