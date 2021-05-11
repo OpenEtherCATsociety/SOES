@@ -132,7 +132,7 @@ static void ESC_read_pram (uint16_t address, void *buf, uint16_t len)
    uint32_t value;
    uint8_t * temp_buf = buf;
    uint16_t byte_offset = 0;
-   uint8_t fifo_cnt, first_byte_position, temp_len;
+   uint8_t fifo_cnt, fifo_size, first_byte_position, temp_len;
    uint8_t *buffer;
    int i, size;
 
