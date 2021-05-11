@@ -134,9 +134,7 @@ static void ESC_read_pram (uint16_t address, void *buf, uint16_t len)
    uint16_t byte_offset = 0;
    uint8_t fifo_cnt, first_byte_position, temp_len;
    uint8_t *buffer;
-   int i, array_size, size;
-   float quotient,remainder;
-   uint32_t temp;
+   int i, size;
 
    value = ESC_PRAM_CMD_ABORT;
    bcm2835_spi_write_32(ESC_PRAM_RD_CMD_REG, value);
@@ -156,63 +154,61 @@ static void ESC_read_pram (uint16_t address, void *buf, uint16_t len)
    {
       value = bcm2835_spi_read_32(ESC_PRAM_RD_CMD_REG);
    }while((value & ESC_PRAM_CMD_AVAIL) == 0);
-
-   /* Fifo count */
-   fifo_cnt = ESC_PRAM_CMD_CNT(value);
-
-   /* Read first value from FIFO */
-   value = bcm2835_spi_read_32(ESC_PRAM_RD_FIFO_REG);
-   fifo_cnt--;
-
+   
+   /* Fifo size */
+   fifo_size = ESC_PRAM_CMD_CNT(value);
+   
    /* Find out first byte position and adjust the copy from that
     * according to LAN9252 datasheet and MicroChip SDK code
     */
    first_byte_position = (address & 0x03);
-   temp_len = ((4 - first_byte_position) > len) ? len : (4 - first_byte_position);
-
-   memcpy(temp_buf ,((uint8_t *)&value + first_byte_position), temp_len);
-   len -= temp_len;
-   byte_offset += temp_len;
-
-   /* Continue reading until we have read len */
-    if (len > 0){
-
-        quotient = len/4;
-        remainder = len%4;
-        
-        if (remainder == 0)
-            array_size = quotient;
-        else
-            array_size = quotient+1;
-
-        size = 3+4*array_size;
-
-        buffer = (uint8_t *)malloc(size);
-        buffer[0] = size;
-        memset(buffer,0,size);
-
-        buffer[0] = ESC_CMD_SERIAL_READ;
-        buffer[1] = ((ESC_PRAM_RD_FIFO_REG >>8) & 0xFF);
-        buffer[2] = ( ESC_PRAM_RD_FIFO_REG & 0xFF);
    
-         /* Read data */
-        bcm2835_spi_transfern((char *)buffer, size);
-                   
-        while(len > 0)
-        {
-        
-            for (i=3; i<size; i=i+4) {
-                temp_len = (len > 4) ? 4: len;
+   /* Transfer data size */
+   size = 3+4*fifo_size;
+   
+   /* Allocate buffer */
+   buffer = (uint8_t *)malloc(size);
+   
+   /* Transfer data */
+   while (len > 0)
+   {
+      /* Reset fifo count */
+      fifo_cnt = fifo_size;
+      
+      /* Reset buffer */
+      memset(buffer,0,size);
+      buffer[0] = ESC_CMD_SERIAL_READ;
+      buffer[1] = ((ESC_PRAM_RD_FIFO_REG >>8) & 0xFF);
+      buffer[2] = ( ESC_PRAM_RD_FIFO_REG & 0xFF);
 
-                temp = buffer[i] | (buffer[i+1] << 8) | (buffer[i+2] << 16) | (buffer[i+3] << 24);
-                memcpy(temp_buf + byte_offset ,&temp, temp_len);
-                fifo_cnt--;
-                len -= temp_len;
-                byte_offset += temp_len;
+      /* Transfer batch of data */
+      bcm2835_spi_transfern((char *)buffer, size);
+
+      byte_offset = 0;
+      while (fifo_cnt > 0 && len > 0)
+      {
+         for (i=3; i<size; i=i+4) 
+         {
+            value = buffer[i] | (buffer[i+1] << 8) | (buffer[i+2] << 16) | (buffer[i+3] << 24);
+            
+            if ((i==3) && (fifo_cnt == fifo_size))
+            {
+               temp_len = ((4 - first_byte_position) > len) ? len : (4 - first_byte_position);
+               memcpy(temp_buf ,((uint8_t *)&value + first_byte_position), temp_len);
             }
-        }
-        free(buffer);
-    }
+            else
+            {
+               temp_len = (len > 4) ? 4: len;
+               memcpy(temp_buf + byte_offset ,&value, temp_len);
+            }
+            
+            fifo_cnt--;
+            len -= temp_len;
+            byte_offset += temp_len;
+         }
+      }
+   }
+   free(buffer);
 }
 
 /* ESC write process data ram function */
@@ -221,10 +217,9 @@ static void ESC_write_pram (uint16_t address, void *buf, uint16_t len)
    uint32_t value;
    uint8_t * temp_buf = buf;
    uint16_t byte_offset = 0;
-   uint8_t fifo_cnt, first_byte_position, temp_len;
+   uint8_t fifo_cnt, fifo_size, first_byte_position, temp_len;
    uint8_t *buffer;
-   int i, array_size, size;
-   float quotient,remainder;
+   int i, size;
 
    value = ESC_PRAM_CMD_ABORT;
    bcm2835_spi_write_32(ESC_PRAM_WR_CMD_REG, value);
@@ -244,65 +239,64 @@ static void ESC_write_pram (uint16_t address, void *buf, uint16_t len)
    {
       value = bcm2835_spi_read_32(ESC_PRAM_WR_CMD_REG);
    }while((value & ESC_PRAM_CMD_AVAIL) == 0);
-
-   /* Fifo count */
-   fifo_cnt = ESC_PRAM_CMD_CNT(value);
-
+   
+   /* Fifo size */
+   fifo_size = ESC_PRAM_CMD_CNT(value); 
+   
    /* Find out first byte position and adjust the copy from that
-    * according to LAN9252 datasheet
+    * according to LAN9252 datasheet and MicroChip SDK code
     */
    first_byte_position = (address & 0x03);
-   temp_len = ((4 - first_byte_position) > len) ? len : (4 - first_byte_position);
+   
+   /* Transfer data size */
+   size = 3+4*fifo_size;
+   
+   /* Allocate buffer */
+   buffer = (uint8_t *)malloc(size);
+   
+   /* Transfer data */
+   while (len > 0)
+   {
+      /* Reset fifo count */
+      fifo_cnt = fifo_size;
+      
+      /* Reset buffer */
+      memset(buffer,0,size);
+      buffer[0] = ESC_CMD_SERIAL_WRITE;
+      buffer[1] = ((ESC_PRAM_WR_FIFO_REG >> 8) & 0xFF);
+      buffer[2] = (ESC_PRAM_WR_FIFO_REG & 0xFF);
 
-   memcpy(((uint8_t *)&value + first_byte_position), temp_buf, temp_len);
-
-   /* Write first value from FIFO */
-   bcm2835_spi_write_32(ESC_PRAM_WR_FIFO_REG, value);
-
-   len -= temp_len;
-   byte_offset += temp_len;
-   fifo_cnt--;
-
-    if (len > 0){
-
-        quotient = len/4;
-        remainder = len%4;
-        
-        if (remainder == 0)
-            array_size = quotient;
-        else
-            array_size = quotient+1;
-
-        size = 3+4*array_size;
-
-        buffer = (uint8_t *)malloc(size);
-        buffer[0] = size;
-        memset(buffer,0,size);
-        
-        buffer[0] = ESC_CMD_SERIAL_WRITE;
-        buffer[1] = ((ESC_PRAM_WR_FIFO_REG >> 8) & 0xFF);
-        buffer[2] = (ESC_PRAM_WR_FIFO_REG & 0xFF);
-
-        while(len > 0)
-        {
-            for (i=3; i<size; i=i+4) {
-                temp_len = (len > 4) ? 4 : len;
-
-                memcpy((uint8_t *)&value, (temp_buf + byte_offset), temp_len);
-                buffer[i] = (value & 0xFF);
-                buffer[i+1] = ((value >> 8) & 0xFF);
-                buffer[i+2] = ((value >> 16) & 0xFF);
-                buffer[i+3] = ((value >> 24) & 0xFF);
-
-                fifo_cnt--;
-                len -= temp_len;
-                byte_offset += temp_len;
+      byte_offset = 0;
+      while (fifo_cnt > 0 && len > 0)
+      {
+         for (i=3; i<size; i=i+4) 
+         {
+            if ((i==3) && (fifo_cnt == fifo_size))
+            {
+               temp_len = ((4 - first_byte_position) > len) ? len : (4 - first_byte_position);
+               memcpy(((uint8_t *)&value + first_byte_position), temp_buf, temp_len);
             }
-        }
+            else
+            {
+               temp_len = (len > 4) ? 4: len;
+               memcpy(&value, (temp_buf + byte_offset), temp_len);
+            }
+            
+            buffer[i] = (value & 0xFF);
+            buffer[i+1] = ((value >> 8) & 0xFF);
+            buffer[i+2] = ((value >> 16) & 0xFF);
+            buffer[i+3] = ((value >> 24) & 0xFF);
 
-        bcm2835_spi_transfern((char *)buffer, size);
-        free(buffer);
-    }
+            fifo_cnt--;
+            len -= temp_len;
+            byte_offset += temp_len;
+         }
+      }
+      
+      /* Transfer batch of data */
+      bcm2835_spi_transfern((char *)buffer, size);
+   }
+   free(buffer);
 }
 
 
