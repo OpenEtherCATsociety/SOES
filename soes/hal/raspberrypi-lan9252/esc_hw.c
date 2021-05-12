@@ -72,7 +72,7 @@ static void bcm2835_spi_write_32 (uint16_t address, uint32_t val)
     data[6] = ((val >> 24) & 0xFF);
 
     /* Write data */
-    bcm2835_spi_transfern(data, 7);
+    bcm2835_spi_transfern(data, sizeof(data));
 }
 
 /* bcm2835 spi single read */
@@ -85,7 +85,7 @@ static uint32_t bcm2835_spi_read_32 (uint16_t address)
    data[2] = (address & 0xFF);
    
    /* Read data */
-   bcm2835_spi_transfern(data, 7);
+   bcm2835_spi_transfern(data, sizeof(data));
 
    return ((data[6] << 24) |
            (data[5] << 16) |
@@ -131,47 +131,45 @@ static void ESC_read_pram (uint16_t address, void *buf, uint16_t len)
 {
    uint32_t value;
    uint8_t * temp_buf = buf;
-   uint16_t byte_offset = 0;
-   uint8_t fifo_cnt, fifo_size, first_byte_position, temp_len;
-   uint8_t *buffer;
+   uint16_t quotient, byte_offset = 0;
+   uint8_t fifo_cnt, fifo_size, fifo_range, first_byte_position, temp_len;
+   uint8_t *buffer = NULL;
    int i, size;
-
-   value = ESC_PRAM_CMD_ABORT;
-   bcm2835_spi_write_32(ESC_PRAM_RD_CMD_REG, value);
-
+   
+   bcm2835_spi_write_32(ESC_PRAM_RD_CMD_REG, ESC_PRAM_CMD_ABORT);
    do
    {
       value = bcm2835_spi_read_32(ESC_PRAM_RD_CMD_REG);
    }while(value & ESC_PRAM_CMD_BUSY);
 
-   value = ESC_PRAM_SIZE(len) | ESC_PRAM_ADDR(address);
-   bcm2835_spi_write_32(ESC_PRAM_RD_ADDR_LEN_REG, value);
+   bcm2835_spi_write_32(ESC_PRAM_RD_ADDR_LEN_REG, (ESC_PRAM_SIZE(len) | ESC_PRAM_ADDR(address)));
 
-   value = ESC_PRAM_CMD_BUSY;
-   bcm2835_spi_write_32(ESC_PRAM_RD_CMD_REG, value);
-
-   do
-   {
-      value = bcm2835_spi_read_32(ESC_PRAM_RD_CMD_REG);
-   }while((value & ESC_PRAM_CMD_AVAIL) == 0);
-   
-   /* Fifo size */
-   fifo_size = ESC_PRAM_CMD_CNT(value);
+   bcm2835_spi_write_32(ESC_PRAM_RD_CMD_REG, ESC_PRAM_CMD_BUSY);
    
    /* Find out first byte position and adjust the copy from that
     * according to LAN9252 datasheet and MicroChip SDK code
     */
    first_byte_position = (address & 0x03);
    
-   /* Transfer data size */
-   size = 3+4*fifo_size;
-   
-   /* Allocate buffer */
-   buffer = (uint8_t *)malloc(size);
-   
    /* Transfer data */
    while (len > 0)
    {
+      /* Wait for read availabiliy */
+      fifo_range = MIN(len/4,16);
+      do
+      {
+         value = bcm2835_spi_read_32(ESC_PRAM_RD_CMD_REG);
+      }while(!(value & ESC_PRAM_CMD_AVAIL) || (ESC_PRAM_CMD_CNT(value) < fifo_range));
+      
+      /* Fifo size */
+      fifo_size = ESC_PRAM_CMD_CNT(value);
+      
+      /* Transfer data size */
+      size = 3+4*fifo_size;
+   
+      /* Allocate buffer */
+      buffer = (uint8_t *)realloc(buffer, size);
+
       /* Reset fifo count */
       fifo_cnt = fifo_size;
       
@@ -215,46 +213,44 @@ static void ESC_write_pram (uint16_t address, void *buf, uint16_t len)
    uint32_t value;
    uint8_t * temp_buf = buf;
    uint16_t byte_offset = 0;
-   uint8_t fifo_cnt, fifo_size, first_byte_position, temp_len;
-   uint8_t *buffer;
+   uint8_t fifo_cnt, fifo_size, fifo_range, first_byte_position, temp_len;
+   uint8_t *buffer = NULL;
    int i, size;
-
-   value = ESC_PRAM_CMD_ABORT;
-   bcm2835_spi_write_32(ESC_PRAM_WR_CMD_REG, value);
-
+   
+   bcm2835_spi_write_32(ESC_PRAM_WR_CMD_REG, ESC_PRAM_CMD_ABORT);
    do
    {
       value = bcm2835_spi_read_32(ESC_PRAM_WR_CMD_REG);
    }while(value & ESC_PRAM_CMD_BUSY);
 
-   value = ESC_PRAM_SIZE(len) | ESC_PRAM_ADDR(address);
-   bcm2835_spi_write_32(ESC_PRAM_WR_ADDR_LEN_REG, value);
+   bcm2835_spi_write_32(ESC_PRAM_WR_ADDR_LEN_REG, (ESC_PRAM_SIZE(len) | ESC_PRAM_ADDR(address)));
 
-   value = ESC_PRAM_CMD_BUSY;
-   bcm2835_spi_write_32(ESC_PRAM_WR_CMD_REG, value);
-
-   do
-   {
-      value = bcm2835_spi_read_32(ESC_PRAM_WR_CMD_REG);
-   }while((value & ESC_PRAM_CMD_AVAIL) == 0);
-   
-   /* Fifo size */
-   fifo_size = ESC_PRAM_CMD_CNT(value); 
+   bcm2835_spi_write_32(ESC_PRAM_WR_CMD_REG, ESC_PRAM_CMD_BUSY);
    
    /* Find out first byte position and adjust the copy from that
     * according to LAN9252 datasheet and MicroChip SDK code
     */
    first_byte_position = (address & 0x03);
    
-   /* Transfer data size */
-   size = 3+4*fifo_size;
-   
-   /* Allocate buffer */
-   buffer = (uint8_t *)malloc(size);
-   
    /* Transfer data */
    while (len > 0)
    {
+      /* Wait for write availabiliy */
+      fifo_range = MIN(len/4,16);
+      do
+      {
+         value = bcm2835_spi_read_32(ESC_PRAM_WR_CMD_REG);
+      }while(!(value & ESC_PRAM_CMD_AVAIL) || (ESC_PRAM_CMD_CNT(value) < fifo_range));
+      
+      /* Fifo size */
+      fifo_size = ESC_PRAM_CMD_CNT(value);
+      
+      /* Transfer data size */
+      size = 3+4*fifo_size;
+   
+      /* Allocate buffer */
+      buffer = (uint8_t *)realloc(buffer, size);
+
       /* Reset fifo count */
       fifo_cnt = fifo_size;
       
@@ -263,7 +259,7 @@ static void ESC_write_pram (uint16_t address, void *buf, uint16_t len)
       buffer[0] = ESC_CMD_SERIAL_WRITE;
       buffer[1] = ((ESC_PRAM_WR_FIFO_REG >> 8) & 0xFF);
       buffer[2] = (ESC_PRAM_WR_FIFO_REG & 0xFF);
-
+      
       i = 3;
       while (fifo_cnt > 0 && len > 0)
       {
@@ -290,7 +286,7 @@ static void ESC_write_pram (uint16_t address, void *buf, uint16_t len)
       }
       
       /* Transfer batch of data */
-      bcm2835_spi_transfern((char *)buffer, size);
+      bcm2835_spi_transfern((char *)buffer, sizeof(buffer));
    }
    free(buffer);
 }
