@@ -72,7 +72,7 @@ static void bcm2835_spi_write_32 (uint16_t address, uint32_t val)
     data[6] = ((val >> 24) & 0xFF);
 
     /* Write data */
-    bcm2835_spi_transfern(data, sizeof(data));
+    bcm2835_spi_transfern(data, 7);
 }
 
 /* bcm2835 spi single read */
@@ -85,7 +85,7 @@ static uint32_t bcm2835_spi_read_32 (uint16_t address)
    data[2] = (address & 0xFF);
    
    /* Read data */
-   bcm2835_spi_transfern(data, sizeof(data));
+   bcm2835_spi_transfern(data, 7);
 
    return ((data[6] << 24) |
            (data[5] << 16) |
@@ -131,7 +131,7 @@ static void ESC_read_pram (uint16_t address, void *buf, uint16_t len)
 {
    uint32_t value;
    uint8_t * temp_buf = buf;
-   uint16_t quotient, byte_offset = 0;
+   uint16_t quotient, remainder, byte_offset = 0;
    uint8_t fifo_cnt, fifo_size, fifo_range, first_byte_position, temp_len;
    uint8_t *buffer = NULL;
    int i, size;
@@ -155,8 +155,17 @@ static void ESC_read_pram (uint16_t address, void *buf, uint16_t len)
    while (len > 0)
    {
       /* Wait for read availabiliy */
-      quotient = len/4;
-      if ((len - quotient*4) != 0)
+      if (byte_offset > 0)
+      {
+         quotient = len/4;
+         remainder = len - quotient*4;
+      }
+      else
+      {
+         quotient = (len + first_byte_position)/4;
+         remainder = (len + first_byte_position) - quotient*4;
+      }
+      if (remainder != 0)
       {
          quotient++;
       }
@@ -217,7 +226,7 @@ static void ESC_write_pram (uint16_t address, void *buf, uint16_t len)
 {
    uint32_t value;
    uint8_t * temp_buf = buf;
-   uint16_t quotient, byte_offset = 0;
+   uint16_t quotient, remainder, byte_offset = 0;
    uint8_t fifo_cnt, fifo_size, fifo_range, first_byte_position, temp_len;
    uint8_t *buffer = NULL;
    int i, size;
@@ -241,8 +250,17 @@ static void ESC_write_pram (uint16_t address, void *buf, uint16_t len)
    while (len > 0)
    {
       /* Wait for write availabiliy */
-      quotient = len/4;
-      if ((len - quotient*4) != 0)
+      if (byte_offset > 0)
+      {
+         quotient = len/4;
+         remainder = len - quotient*4;
+      }
+      else
+      {
+         quotient = (len + first_byte_position)/4;
+         remainder = (len + first_byte_position) - quotient*4;
+      }
+      if (remainder != 0)
       {
          quotient++;
       }
