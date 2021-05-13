@@ -155,7 +155,12 @@ static void ESC_read_pram (uint16_t address, void *buf, uint16_t len)
    while (len > 0)
    {
       /* Wait for read availabiliy */
-      fifo_range = MIN(len/4,16);
+      quotient = len/4;
+      if ((len - quotient*4) != 0)
+      {
+         quotient++;
+      }
+      fifo_range = MIN(quotient,16);
       do
       {
          value = bcm2835_spi_read_32(ESC_PRAM_RD_CMD_REG);
@@ -198,7 +203,7 @@ static void ESC_read_pram (uint16_t address, void *buf, uint16_t len)
             memcpy(temp_buf ,((uint8_t *)&value + first_byte_position), temp_len);
          }
          
-         i = i + 4;
+         i += 4;
          fifo_cnt--;
          len -= temp_len;
          byte_offset += temp_len;
@@ -212,7 +217,7 @@ static void ESC_write_pram (uint16_t address, void *buf, uint16_t len)
 {
    uint32_t value;
    uint8_t * temp_buf = buf;
-   uint16_t byte_offset = 0;
+   uint16_t quotient, byte_offset = 0;
    uint8_t fifo_cnt, fifo_size, fifo_range, first_byte_position, temp_len;
    uint8_t *buffer = NULL;
    int i, size;
@@ -236,7 +241,12 @@ static void ESC_write_pram (uint16_t address, void *buf, uint16_t len)
    while (len > 0)
    {
       /* Wait for write availabiliy */
-      fifo_range = MIN(len/4,16);
+      quotient = len/4;
+      if ((len - quotient*4) != 0)
+      {
+         quotient++;
+      }
+      fifo_range = MIN(quotient,16);
       do
       {
          value = bcm2835_spi_read_32(ESC_PRAM_WR_CMD_REG);
@@ -263,6 +273,7 @@ static void ESC_write_pram (uint16_t address, void *buf, uint16_t len)
       i = 3;
       while (fifo_cnt > 0 && len > 0)
       {
+         value = 0;
          if (byte_offset > 0)
          {
             temp_len = (len > 4) ? 4: len;
@@ -279,14 +290,14 @@ static void ESC_write_pram (uint16_t address, void *buf, uint16_t len)
          buffer[i+2] = ((value >> 16) & 0xFF);
          buffer[i+3] = ((value >> 24) & 0xFF);
          
-         i = i + 4;
+         i += 4;
          fifo_cnt--;
          len -= temp_len;
          byte_offset += temp_len;
       }
       
       /* Transfer batch of data */
-      bcm2835_spi_transfern((char *)buffer, sizeof(buffer));
+      bcm2835_spi_transfern((char *)buffer, size);
    }
    free(buffer);
 }
