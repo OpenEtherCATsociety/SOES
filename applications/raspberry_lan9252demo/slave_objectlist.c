@@ -318,8 +318,6 @@ static const char acName7000[] = "Outputs";
 static const char acName7000_00[] = "Max SubIndex";
 
 
-
-
 const _objd SDO1000[] =
 {
   {0x0, DTYPE_UNSIGNED32, 32, ATYPE_RO, acName1000, 0x00000000, NULL},
