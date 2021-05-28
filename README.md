@@ -30,6 +30,10 @@ Feature list:
    "stack"_init
  - EoE
 
-TODO
- - Update documentation
- - Add EoE sample application
+Building
+----
+
+   * `mkdir build`
+   * `cd build`
+   * `cmake ..`
+   * `make`
