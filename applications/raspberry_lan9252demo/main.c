@@ -6,61 +6,65 @@
 /* Application variables */
 _Objects    Obj;
 
-#define LED0 RPI_BPLUS_GPIO_J8_40 // GPIO21
-#define LED1 RPI_BPLUS_GPIO_J8_38 // GPIO20
-#define LED2 RPI_BPLUS_GPIO_J8_36 // GPIO16
-#define LED3 RPI_BPLUS_GPIO_J8_32 // GPIO12
-#define LED4 RPI_BPLUS_GPIO_J8_18 // GPIO24
-#define LED5 RPI_BPLUS_GPIO_J8_16 // GPIO23
-#define B0 RPI_BPLUS_GPIO_J8_37 // GPIO26
-#define B1 RPI_BPLUS_GPIO_J8_35 // GPIO19
-#define B2 RPI_BPLUS_GPIO_J8_33 // GPIO13
-#define B3 RPI_BPLUS_GPIO_J8_31 // GPIO06
-#define B4 RPI_BPLUS_GPIO_J8_29 // GPIO05
-#define B5 RPI_BPLUS_GPIO_J8_15 // GPIO22
+#define GPIO21 RPI_BPLUS_GPIO_J8_40
+#define GPIO20 RPI_BPLUS_GPIO_J8_38
+#define GPIO16 RPI_BPLUS_GPIO_J8_36
+#define GPIO12 RPI_BPLUS_GPIO_J8_32
+#define GPIO24 RPI_BPLUS_GPIO_J8_18
+#define GPIO23 RPI_BPLUS_GPIO_J8_16
+#define GPIO26 RPI_BPLUS_GPIO_J8_37
+#define GPIO19 RPI_BPLUS_GPIO_J8_35
+#define GPIO13 RPI_BPLUS_GPIO_J8_33
+#define GPIO06 RPI_BPLUS_GPIO_J8_31
+#define GPIO05 RPI_BPLUS_GPIO_J8_29
+#define GPIO22 RPI_BPLUS_GPIO_J8_15
 
 void cb_get_inputs (void)
 {
    // Assume LEDs connected to 3.3v
-   bcm2835_gpio_write(LED0, !Obj.LEDs.LED0);
-   bcm2835_gpio_write(LED1, !Obj.LEDs.LED1);
-   bcm2835_gpio_write(LED2, !Obj.LEDs.LED2);
-   bcm2835_gpio_write(LED3, !Obj.LEDs.LED3);
-   bcm2835_gpio_write(LED4, !Obj.LEDs.LED4);
-   bcm2835_gpio_write(LED5, !Obj.LEDs.LED5);
+   bcm2835_gpio_write(GPIO21, (Obj.LEDs.LED0 ? LOW : HIGH));
+   bcm2835_gpio_write(GPIO20, (Obj.LEDs.LED1 ? LOW : HIGH));
+   bcm2835_gpio_write(GPIO16, (Obj.LEDs.LED2 ? LOW : HIGH));
+   bcm2835_gpio_write(GPIO12, (Obj.LEDs.LED3 ? LOW : HIGH));
+   bcm2835_gpio_write(GPIO24, (Obj.LEDs.LED4 ? LOW : HIGH));
+   bcm2835_gpio_write(GPIO23, (Obj.LEDs.LED5 ? LOW : HIGH));
 }
 
 void cb_set_outputs (void)
 {
    // Assume Buttons connected to 3.3v
-   Obj.Buttons.Button0 = bcm2835_gpio_lev(B0);
-   Obj.Buttons.Button0 = bcm2835_gpio_lev(B1);
-   Obj.Buttons.Button0 = bcm2835_gpio_lev(B2);
-   Obj.Buttons.Button0 = bcm2835_gpio_lev(B3);
-   Obj.Buttons.Button0 = bcm2835_gpio_lev(B4);
-   Obj.Buttons.Button0 = bcm2835_gpio_lev(B5);
+   Obj.Buttons.Button0 = bcm2835_gpio_lev(GPIO26);
+   Obj.Buttons.Button0 = bcm2835_gpio_lev(GPIO19);
+   Obj.Buttons.Button0 = bcm2835_gpio_lev(GPIO13);
+   Obj.Buttons.Button0 = bcm2835_gpio_lev(GPIO06);
+   Obj.Buttons.Button0 = bcm2835_gpio_lev(GPIO05);
+   Obj.Buttons.Button0 = bcm2835_gpio_lev(GPIO22);
 }
 
 void GPIO_init (void)
 {
-   bcm2835_gpio_fsel(LED0, BCM2835_GPIO_FSEL_OUTP);
-   bcm2835_gpio_fsel(LED1, BCM2835_GPIO_FSEL_OUTP);
-   bcm2835_gpio_fsel(LED2, BCM2835_GPIO_FSEL_OUTP);
-   bcm2835_gpio_fsel(LED3, BCM2835_GPIO_FSEL_OUTP);
-   bcm2835_gpio_fsel(LED4, BCM2835_GPIO_FSEL_OUTP);
-   bcm2835_gpio_fsel(LED5, BCM2835_GPIO_FSEL_OUTP);
-   bcm2835_gpio_fsel(B0, BCM2835_GPIO_FSEL_INPT);
-   bcm2835_gpio_fsel(B1, BCM2835_GPIO_FSEL_INPT);
-   bcm2835_gpio_fsel(B2, BCM2835_GPIO_FSEL_INPT);
-   bcm2835_gpio_fsel(B3, BCM2835_GPIO_FSEL_INPT);
-   bcm2835_gpio_fsel(B4, BCM2835_GPIO_FSEL_INPT);
-   bcm2835_gpio_fsel(B5, BCM2835_GPIO_FSEL_INPT);
-   bcm2835_gpio_set_pud(B0, BCM2835_GPIO_PUD_DOWN);
-   bcm2835_gpio_set_pud(B1, BCM2835_GPIO_PUD_DOWN);
-   bcm2835_gpio_set_pud(B2, BCM2835_GPIO_PUD_DOWN);
-   bcm2835_gpio_set_pud(B3, BCM2835_GPIO_PUD_DOWN);
-   bcm2835_gpio_set_pud(B4, BCM2835_GPIO_PUD_DOWN);
-   bcm2835_gpio_set_pud(B5, BCM2835_GPIO_PUD_DOWN);
+   bcm2835_init();
+   // Assume LEDs connected to 3.3v side of header
+   bcm2835_gpio_fsel(GPIO21, BCM2835_GPIO_FSEL_OUTP);
+   bcm2835_gpio_fsel(GPIO20, BCM2835_GPIO_FSEL_OUTP);
+   bcm2835_gpio_fsel(GPIO16, BCM2835_GPIO_FSEL_OUTP);
+   bcm2835_gpio_fsel(GPIO12, BCM2835_GPIO_FSEL_OUTP);
+   bcm2835_gpio_fsel(GPIO24, BCM2835_GPIO_FSEL_OUTP);
+   bcm2835_gpio_fsel(GPIO23, BCM2835_GPIO_FSEL_OUTP);
+   // Assume buttons connected to 5v side of header
+   // Do not bridge to 5v, the ports might burn
+   bcm2835_gpio_fsel(GPIO26, BCM2835_GPIO_FSEL_INPT);
+   bcm2835_gpio_fsel(GPIO19, BCM2835_GPIO_FSEL_INPT);
+   bcm2835_gpio_fsel(GPIO13, BCM2835_GPIO_FSEL_INPT);
+   bcm2835_gpio_fsel(GPIO06, BCM2835_GPIO_FSEL_INPT);
+   bcm2835_gpio_fsel(GPIO05, BCM2835_GPIO_FSEL_INPT);
+   bcm2835_gpio_fsel(GPIO22, BCM2835_GPIO_FSEL_INPT);
+   bcm2835_gpio_set_pud(GPIO26, BCM2835_GPIO_PUD_DOWN);
+   bcm2835_gpio_set_pud(GPIO19, BCM2835_GPIO_PUD_DOWN);
+   bcm2835_gpio_set_pud(GPIO13, BCM2835_GPIO_PUD_DOWN);
+   bcm2835_gpio_set_pud(GPIO06, BCM2835_GPIO_PUD_DOWN);
+   bcm2835_gpio_set_pud(GPIO05, BCM2835_GPIO_PUD_DOWN);
+   bcm2835_gpio_set_pud(GPIO22, BCM2835_GPIO_PUD_DOWN);
 }
 
 int main_run (void * arg)
@@ -86,8 +90,8 @@ int main_run (void * arg)
    };
 
    printf ("Hello Main\n");
+   GPIO_init();
    ecat_slv_init (&config);
-
    while (1)
    {
       ecat_slv();

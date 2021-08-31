@@ -21,8 +21,12 @@ include_directories(
   ${SOES_SOURCE_DIR}/soes
   )
 
-# Platform flags and sources
-include(${CMAKE_SYSTEM_NAME} OPTIONAL)
+# Platform flags and sourcse
+if(RPI_VARIANT)
+  include(RPIdemo OPTIONAL)
+else()
+  include(${CMAKE_SYSTEM_NAME} OPTIONAL)
+endif()
 
 # Source paths
 add_subdirectory (soes)
