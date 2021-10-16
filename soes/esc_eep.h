@@ -18,7 +18,7 @@
 #define EEP_CMD_IDLE        0x0
 #define EEP_CMD_READ        0x1
 #define EEP_CMD_WRITE       0x2
-#define EEP_CMD_RELOAD      0x3
+#define EEP_CMD_RELOAD      0x4
 
 /* read/write size */
 #define EEP_READ_SIZE       8
