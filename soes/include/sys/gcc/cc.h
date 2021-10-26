@@ -32,6 +32,7 @@ extern "C"
 #define CC_PACKED_BEGIN
 #define CC_PACKED_END
 #define CC_PACKED       __attribute__((packed))
+#define CC_ALIGNED(n)   __attribute__((aligned (n)))
 
 #ifdef __rtk__
 #define CC_ASSERT(exp) ASSERT (exp)

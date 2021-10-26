@@ -1022,8 +1022,8 @@ static void SDO_downloadsegment (void)
             (coesdo->command & COE_TOGGLEBIT);  /* copy toggle bit */
       init_coesdo(coeres, COE_SDORESPONSE, command, 0, 0);
 
-      uint32_t *mbxdata = (uint32_t *)&(coesdo->index);  /* data pointer */
-      copy2mbx (mbxdata, (uint8_t *)ESCvar.data, size);
+      void *mbxdata = &(coesdo->index);  /* data pointer */
+      copy2mbx (mbxdata, ESCvar.data, size);
 
       if (coesdo->command & COE_COMMAND_LASTSEGMENTBIT)
       {

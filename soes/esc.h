@@ -573,7 +573,7 @@ typedef struct CC_PACKED
 CC_PACKED_END
 
 CC_PACKED_BEGIN
-typedef struct CC_PACKED
+typedef struct CC_PACKED CC_ALIGNED(4)
 {
    _MBXh mbxheader;
    _COEh coeheader;
@@ -585,7 +585,7 @@ typedef struct CC_PACKED
 CC_PACKED_END
 
 CC_PACKED_BEGIN
-typedef struct CC_PACKED
+typedef struct CC_PACKED CC_ALIGNED(4)
 {
    _MBXh mbxheader;
    _COEh coeheader;
