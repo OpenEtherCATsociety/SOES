@@ -3,7 +3,7 @@
  * LICENSE file in the project root for full license information
  */
 
-#include <kern.h>
+#include <kern/kern.h>
 #include "esc.h"
 #include "esc_hw.h"
 #include "ecat_slv.h"
