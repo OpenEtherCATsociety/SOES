@@ -1841,3 +1841,35 @@ uint8_t COE_maxSub (uint16_t index)
    maxsub = OBJ_VALUE_FETCH (maxsub, SDOobjects[nidx].objdesc[0]);
    return maxsub;
 }
+
+/** Throw an emergency message
+ *
+ * @param[in] errorcode = error code
+ * @param[in] errorregister = error register
+ * @param[in] data = payload
+ * @return 0= if we succeed, -1 if mailbox was in use
+ */
+int COE_throwEmergency (uint16_t errorcode, uint8_t errorregister, uint8_t data[5])
+{
+  uint8_t MBXout;
+  _COEemc *coeemc;
+
+  MBXout = ESC_claimbuffer ();
+  if (MBXout)
+  {
+     coeemc = (_COEemc *) &MBX[MBXout * ESC_MBXSIZE];
+     coeemc->mbxheader.length = htoes (COE_DEFAULTLENGTH);
+     coeemc->mbxheader.mbxtype = MBXCOE;
+     coeemc->coeheader.numberservice =
+           htoes ((0 & 0x01f) | (COE_EMERGENCY << 12));
+     coeemc->errorcode = htoes (errorcode);
+     coeemc->errorregister = errorregister;
+     copy2mbx (data, coeemc->data, 5);
+     MBXcontrol[MBXout].state = MBXstate_outreq;
+     return 0;
+  }
+  else
+  {
+    return -1;
+  }
+}

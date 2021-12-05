@@ -116,6 +116,7 @@ void COE_initDefaultValues (void);
 void COE_pdoPack (uint8_t * buffer, int nmappings, _SMmap * sm);
 void COE_pdoUnpack (uint8_t * buffer, int nmappings, _SMmap * sm);
 uint8_t COE_maxSub (uint16_t index);
+int COE_throwEmergency (uint16_t errorcode, uint8_t errorregister, uint8_t data[5]);
 
 extern uint32_t ESC_download_post_objecthandler (uint16_t index, uint8_t subindex, uint16_t flags);
 extern uint32_t ESC_download_pre_objecthandler (uint16_t index,

@@ -209,6 +209,7 @@
 #define COE_DEFAULTLENGTH               0x0a
 #define COE_HEADERSIZE                  0x0a
 #define COE_SEGMENTHEADERSIZE           0x03
+#define COE_EMERGENCY                   0x01
 #define COE_SDOREQUEST                  0x02
 #define COE_SDORESPONSE                 0x03
 #define COE_SDOINFORMATION              0x08
@@ -570,6 +571,17 @@ typedef struct CC_PACKED
    uint16_t type;
    uint16_t detail;
 } _MBXerr;
+CC_PACKED_END
+
+CC_PACKED_BEGIN
+typedef struct CC_PACKED CC_ALIGNED(4)
+{
+   _MBXh mbxheader;
+   _COEh coeheader;
+   uint16_t errorcode;
+   uint8_t errorregister;
+   uint8_t data[5];
+} _COEemc;
 CC_PACKED_END
 
 CC_PACKED_BEGIN
