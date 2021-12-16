@@ -1027,32 +1027,42 @@ static void SDO_downloadsegment (void)
 
       if (coesdo->command & COE_COMMAND_LASTSEGMENTBIT)
       {
-         /* last segment */
-         ESCvar.segmented = 0;
-
          if(ESCvar.flags == COMPLETE_ACCESS_FLAG)
          {
-            int16_t nidx;
+            int16_t nidx, nsub;
+
+            if(ESCvar.frags > ESCvar.fragsleft + size)
+            {
+               set_state_idle (0, ESCvar.index, ESCvar.subindex, ABORT_TYPEMISMATCH);
+               return;
+            }
 
             nidx = SDO_findobject(ESCvar.index);
-            if (nidx < 0)
+            nsub = SDO_findsubindex (nidx, ESCvar.subindex);
+
+            if ((nidx < 0) || (nsub < 0))
             {
                set_state_idle (0, ESCvar.index, ESCvar.subindex, ABORT_NOOBJECT);
                return;
             }
+
             /* copy download data to subindexes */
             const _objd *objd = SDOobjects[nidx].objdesc;
             complete_access_subindex_loop(objd,
-                  ESCvar.index,
-                  ESCvar.subindex,
-                  (uint8_t *)ESCvar.data,
+                  nidx,
+                  nsub,
+                  (uint8_t *)ESCvar.mbxdata,
                   DOWNLOAD,
                   ESCvar.frags);
 
          }
-        /* external object write handler */
-        uint32_t abort = ESC_download_post_objecthandler
-              (ESCvar.index, ESCvar.subindex, ESCvar.flags);
+         /* last segment */
+         ESCvar.segmented = 0;
+         ESCvar.frags = 0;
+         ESCvar.fragsleft = 0;
+         /* external object write handler */
+         uint32_t abort = ESC_download_post_objecthandler
+               (ESCvar.index, ESCvar.subindex, ESCvar.flags);
          if (abort != 0)
          {
             set_state_idle (MBXout, ESCvar.index, ESCvar.subindex, abort);
@@ -1063,6 +1073,8 @@ static void SDO_downloadsegment (void)
       {
          /* more segmented transfer needed: increase offset */
          ESCvar.data += size;
+         /* number of bytes done */
+         ESCvar.fragsleft += size;
       }
 
       MBXcontrol[MBXout].state = MBXstate_outreq;
