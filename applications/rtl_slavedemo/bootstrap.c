@@ -100,6 +100,7 @@ void bootstrap_foe_init  (void)
          .dest_start_address = FLASH_BLOCK_SIZE + 0, /* + (uint32_t)&flash_start,*/
          .address_offset     = 0,
          .filepass           = 0,
+         .write_only_in_boot = 1,
          .write_function     = flash_foe_buffer   /* NULL if not used */
       },
       {
@@ -109,6 +110,7 @@ void bootstrap_foe_init  (void)
                                (FLASH_EEPROM_SECTIONS * FLASH_SECTOR_SIZE),
          .address_offset     = 0,
          .filepass           = 0,
+         .write_only_in_boot = 1,
          .write_function     = flash_foe_buffer  /* NULL if not used */
       },
    };
