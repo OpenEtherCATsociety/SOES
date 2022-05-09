@@ -10,7 +10,7 @@
  * Function to read and write commands to the ESC. Used to read/write ESC
  * registers and memory.
  */
-#include <kern.h>
+#include <kern/kern.h>
 #include <bsp.h>
 #include <xmc4.h>
 #include <eru.h>

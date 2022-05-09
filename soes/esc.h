@@ -17,9 +17,12 @@
 #include "options.h"
 
 #define ESCREG_ADDRESS              0x0010
+#define ESCREG_CONF_STATION_ALIAS   0x0012
 #define ESCREG_DLSTATUS             0x0110
 #define ESCREG_ALCONTROL            0x0120
+#define ESCREG_ALCONTROL_ERROR_ACK  0x0010
 #define ESCREG_ALSTATUS             0x0130
+#define ESCREG_ALSTATUS_ERROR_IND   0x0010
 #define ESCREG_ALERROR              0x0134
 #define ESCREG_ALEVENTMASK          0x0204
 #define ESCREG_ALEVENT              0x0220
@@ -58,6 +61,7 @@
 #define ESCREG_AL_STATEMASK         0x001f
 #define ESCREG_AL_ALLBUTINITMASK    0x0e
 #define ESCREG_AL_ERRACKMASK        0x0f
+#define ESCREG_AL_ID_REQUEST        0x0020
 
 #define SYNCTYPE_SUPPORT_FREERUN    0x01
 #define SYNCTYPE_SUPPORT_SYNCHRON   0x02
@@ -336,6 +340,7 @@ typedef struct esc_cfg
    void (*esc_hw_interrupt_disable) (uint32_t mask);
    void (*esc_hw_eep_handler) (void);
    uint16_t (*esc_check_dc_handler) (void);
+   int (*get_device_id) (uint16_t * device_id);
 } esc_cfg_t;
 
 typedef struct
@@ -460,6 +465,7 @@ typedef struct
    void (*esc_hw_interrupt_disable) (uint32_t mask);
    void (*esc_hw_eep_handler) (void);
    uint16_t (*esc_check_dc_handler) (void);
+   int (*get_device_id) (uint16_t * device_id);
    uint8_t MBXrun;
    size_t activembxsize;
    sm_cfg_t * activemb0;

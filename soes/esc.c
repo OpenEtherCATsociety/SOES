@@ -920,6 +920,75 @@ void ESC_sm_act_event (void)
       ESC_SMack (7);
    }
 }
+
+static bool ESC_check_id_request (uint16_t ALcontrol, uint8_t * an)
+{
+   if ((ALcontrol & ESCREG_AL_ID_REQUEST) != 0)
+   {
+      uint8_t state = ALcontrol & ESCREG_AL_ERRACKMASK;
+
+      if ((state != ESCboot) &&
+          ((state < ESCsafeop) || (*an == ESCsafeop) || (*an == ESCop)))
+      {
+         uint16_t ALstatuscode;
+
+         ESC_read (ESCREG_ALERROR,
+                   (void *)&ALstatuscode,
+                   sizeof (ALstatuscode));
+
+         return (ALstatuscode == ALERR_NONE);
+      }
+   }
+
+   return false;
+}
+
+static uint8_t ESC_load_device_id (void)
+{
+   uint16_t device_id;
+
+   if (ESCvar.get_device_id != NULL)
+   {
+      if (ESCvar.get_device_id (&device_id) != 0)
+      {
+         device_id = 0;
+      }
+   }
+   else
+   {
+      ESC_read (ESCREG_CONF_STATION_ALIAS,
+                (void *)&device_id,
+                sizeof (device_id));
+   }
+
+   if (device_id != 0)
+   {
+      /* Load the Device Identification Value to the AL Status Code register */
+      ESC_ALerror (device_id);
+
+      return ESCREG_AL_ID_REQUEST;
+   }
+
+   return 0;
+}
+
+#ifdef ESC_DEBUG
+static char * ESC_state_to_string (uint8_t ESC_state)
+{
+   switch (ESC_state)
+   {
+      case ESCinit:   return "Init";
+      case ESCpreop:  return "Pre-Operational";
+      case ESCboot:   return "Bootstrap";
+      case ESCsafeop: return "Safe-Operational";
+      case ESCop:     return "Operational";
+      case ESCerror:  return "Error";
+   }
+
+   return "Unknown";
+}
+#endif
+
 /** The state handler acting on ALControl Bit(0)
  * events in the Al Event Request register 0x220.
  *
@@ -1135,8 +1204,16 @@ void ESC_state (void)
       ESC_ALerror (ALERR_NONE);
    }
 
+   if (ESC_check_id_request (ESCvar.ALcontrol, &an))
+   {
+      an |= ESC_load_device_id ();
+   }
+
    ESC_ALstatus (an);
-   DPRINT ("state %x\n", an);
+
+#ifdef ESC_DEBUG
+   DPRINT ("state %s\n", ESC_state_to_string (an & 0xF));
+#endif
 }
 /** Function copying the application configuration variable
  * data to the stack local variable.
@@ -1176,4 +1253,5 @@ void ESC_config (esc_cfg_t * cfg)
    ESCvar.esc_hw_interrupt_disable = cfg->esc_hw_interrupt_disable;
    ESCvar.esc_hw_eep_handler = cfg->esc_hw_eep_handler;
    ESCvar.esc_check_dc_handler = cfg->esc_check_dc_handler;
+   ESCvar.get_device_id = cfg->get_device_id;
 }
