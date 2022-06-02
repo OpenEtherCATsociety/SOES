@@ -25,13 +25,13 @@ static volatile int watchdog;
 #if MAX_MAPPINGS_SM2 > 0
 static uint8_t rxpdo[MAX_RXPDO_SIZE] __attribute__((aligned (8)));
 #else
-extern uint8_t * rxpdo;
+extern uint8_t rxpdo[];
 #endif
 
 #if MAX_MAPPINGS_SM3 > 0
 static uint8_t txpdo[MAX_TXPDO_SIZE] __attribute__((aligned (8)));
 #else
-extern uint8_t * txpdo;
+extern uint8_t txpdo[];
 #endif
 
 /** Function to pre-qualify the incoming SDO download.
