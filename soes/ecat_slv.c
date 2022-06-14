@@ -202,7 +202,8 @@ void DIG_process (uint8_t flags)
       }
 
       if ((CC_ATOMIC_GET(watchdog) <= 0) &&
-          ((CC_ATOMIC_GET(ESCvar.App.state) & APPSTATE_OUTPUT) > 0))
+          ((CC_ATOMIC_GET(ESCvar.App.state) & APPSTATE_OUTPUT) > 0) &&
+           (ESCvar.ESC_SM2_sml > 0))
       {
          DPRINT("DIG_process watchdog expired\n");
          ESC_ALstatusgotoerror((ESCsafeop | ESCerror), ALERR_WATCHDOG);
