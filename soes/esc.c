@@ -688,8 +688,19 @@ uint8_t ESC_checkSM23 (uint8_t state)
    _ESCsm2 *SM;
    ESC_read (ESCREG_SM2, (void *) &ESCvar.SM[2], sizeof (ESCvar.SM[2]));
    SM = (_ESCsm2 *) & ESCvar.SM[2];
-   if ((etohs (SM->PSA) != ESC_SM2_sma) || (etohs (SM->Length) != ESCvar.ESC_SM2_sml)
-       || (SM->Command != ESC_SM2_smc) || !(SM->ActESC & ESC_SM2_act))
+   
+   /* Check SM settings */
+   if ((etohs (SM->PSA) != ESC_SM2_sma) ||
+       (SM->Command != ESC_SM2_smc))
+   {
+      ESCvar.SMtestresult = SMRESULT_ERRSM2;
+      /* fail state change */
+      return (ESCpreop | ESCerror);
+   }
+   /* If length > 0 check run-time settings */
+   else if ((ESCvar.ESC_SM2_sml > 0) &&
+            ((etohs (SM->Length) != ESCvar.ESC_SM2_sml) ||
+            !(SM->ActESC & ESC_SM2_act)))
    {
       ESCvar.SMtestresult = SMRESULT_ERRSM2;
       /* fail state change */
@@ -701,10 +712,21 @@ uint8_t ESC_checkSM23 (uint8_t state)
       /* SM2 overlaps SM3, fail state change */
       return (ESCpreop | ESCerror);
    }
+
    ESC_read (ESCREG_SM3, (void *) &ESCvar.SM[3], sizeof (ESCvar.SM[3]));
    SM = (_ESCsm2 *) & ESCvar.SM[3];
-   if ((etohs (SM->PSA) != ESC_SM3_sma) || (etohs (SM->Length) != ESCvar.ESC_SM3_sml)
-       || (SM->Command != ESC_SM3_smc) || !(SM->ActESC & ESC_SM3_act))
+   /* Check SM settings */
+   if ((etohs (SM->PSA) != ESC_SM3_sma) ||
+       (SM->Command != ESC_SM3_smc))
+   {
+      ESCvar.SMtestresult = SMRESULT_ERRSM3;
+      /* fail state change */
+      return (ESCpreop | ESCerror);
+   }
+   /* If length > 0 check run-time settings */
+   else if ((ESCvar.ESC_SM3_sml > 0) &&
+            ((etohs (SM->Length) != ESCvar.ESC_SM3_sml) ||
+            !(SM->ActESC & ESC_SM3_act)))
    {
       ESCvar.SMtestresult = SMRESULT_ERRSM3;
       /* fail state change */
@@ -727,7 +749,12 @@ uint8_t ESC_startinput (uint8_t state)
 
    if (state != (ESCpreop | ESCerror))
    {
-      ESC_SMenable (3);
+   	  /* If inputs > 0 , enable SM3 */
+      if (ESCvar.ESC_SM3_sml > 0)
+      {
+         ESC_SMenable (3);
+      }
+      /* Go to state input regardless of any inputs present */
       CC_ATOMIC_SET(ESCvar.App.state, APPSTATE_INPUT);
    }
    else
@@ -812,8 +839,13 @@ void ESC_stopinput (void)
  */
 uint8_t ESC_startoutput (uint8_t state)
 {
-
-   ESC_SMenable (2);
+	
+   /* If outputs > 0 , enable SM2 */
+   if (ESCvar.ESC_SM2_sml > 0)
+   {
+      ESC_SMenable (2);
+   }
+   /* Go to state output regardless of any outputs present */
    CC_ATOMIC_OR(ESCvar.App.state, APPSTATE_OUTPUT);
    return state;
 
@@ -1167,6 +1199,11 @@ void ESC_state (void)
          an = ESCsafeop | ESCerror;
          ESC_ALerror (ALERR_INVALIDSTATECHANGE);
          ESC_stopoutput ();
+         /* If no outputs present, we need to flag error using SM3 */
+         if (ESCvar.ESC_SM2_sml == 0 && ESCvar.ESC_SM3_sml > 0)
+         {
+            ESC_SMdisable (3);
+         }
          break;
       }
       case OP_TO_SAFEOP:
@@ -1180,6 +1217,11 @@ void ESC_state (void)
          if (an == ESCop)
          {
             ESC_stopoutput ();
+            /* If no outputs present, we need to flag error using SM3 */
+            if (ESCvar.ESC_SM2_sml == 0 && ESCvar.ESC_SM3_sml > 0)
+            {
+               ESC_SMdisable (3);
+            }
             an = ESCsafeop;
          }
          if (as == ESCsafeop)
