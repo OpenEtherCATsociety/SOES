@@ -697,15 +697,32 @@ uint8_t ESC_checkSM23 (uint8_t state)
       /* fail state change */
       return (ESCpreop | ESCerror);
    }
-   /* If length > 0 check run-time settings */
-   else if ((ESCvar.ESC_SM2_sml > 0) &&
-            ((etohs (SM->Length) != ESCvar.ESC_SM2_sml) ||
-            !(SM->ActESC & ESC_SM2_act)))
+   /* Check run-time settings */
+   /* Check length */
+   else if (etohs (SM->Length) != ESCvar.ESC_SM2_sml)
    {
       ESCvar.SMtestresult = SMRESULT_ERRSM2;
       /* fail state change */
       return (ESCpreop | ESCerror);
    }
+   /* SM disabled and (SM activated or length > 0) set by master */
+   else if (((ESC_SM2_act & ESCREG_SYNC_ACT_ACTIVATED) == 0) &&
+            ((SM->ActESC & ESCREG_SYNC_ACT_ACTIVATED) || (etohs (SM->Length) > 0)))
+   {
+      ESCvar.SMtestresult = SMRESULT_ERRSM2;
+      /* fail state change */
+      return (ESCpreop | ESCerror);
+   }
+   /* SM enabled and (length > 0 but SM disabled) set by master */
+   else if (((ESC_SM2_act & ESCREG_SYNC_ACT_ACTIVATED) > 0) &&
+            ((SM->ActESC & ESCREG_SYNC_ACT_ACTIVATED) == 0) &&
+            (etohs (SM->Length) > 0))
+   {
+      ESCvar.SMtestresult = SMRESULT_ERRSM2;
+      /* fail state change */
+      return (ESCpreop | ESCerror);
+   }
+
    if ((ESC_SM2_sma + (etohs (SM->Length) * 3)) > ESC_SM3_sma)
    {
       ESCvar.SMtestresult = SMRESULT_ERRSM2;
@@ -723,10 +740,26 @@ uint8_t ESC_checkSM23 (uint8_t state)
       /* fail state change */
       return (ESCpreop | ESCerror);
    }
-   /* If length > 0 check run-time settings */
-   else if ((ESCvar.ESC_SM3_sml > 0) &&
-            ((etohs (SM->Length) != ESCvar.ESC_SM3_sml) ||
-            !(SM->ActESC & ESC_SM3_act)))
+   /* Check run-time settings */
+   /* Check length */
+   else if (etohs (SM->Length) != ESCvar.ESC_SM3_sml)
+   {
+      ESCvar.SMtestresult = SMRESULT_ERRSM3;
+      /* fail state change */
+      return (ESCpreop | ESCerror);
+   }
+   /* SM disabled and (SM activated or length > 0) set by master */
+   else if (((ESC_SM3_act & ESCREG_SYNC_ACT_ACTIVATED) == 0) &&
+            ((SM->ActESC & ESCREG_SYNC_ACT_ACTIVATED)  || (etohs (SM->Length) > 0)))
+   {
+      ESCvar.SMtestresult = SMRESULT_ERRSM3;
+      /* fail state change */
+      return (ESCpreop | ESCerror);
+   }
+   /* SM enabled and (length > 0 but SM disabled) set by master */
+   else if (((ESC_SM3_act & ESCREG_SYNC_ACT_ACTIVATED) > 0) &&
+            ((SM->ActESC & ESCREG_SYNC_ACT_ACTIVATED) == 0) &&
+            (etohs (SM->Length) > 0))
    {
       ESCvar.SMtestresult = SMRESULT_ERRSM3;
       /* fail state change */
