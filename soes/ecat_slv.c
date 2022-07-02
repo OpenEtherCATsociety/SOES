@@ -227,7 +227,7 @@ void DIG_process (uint8_t flags)
       }
       else if (ESCvar.ALevent & ESCREG_ALEVENT_SM2)
       {
-         RXPDO_update();
+         ESC_read (ESC_SM2_sma, rxpdo, ESCvar.ESC_SM2_sml);
       }
    }
 
