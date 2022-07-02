@@ -567,15 +567,13 @@ void ESC_init (const esc_cfg_t * config)
 
 void ESC_interrupt_enable (uint32_t mask)
 {
-   if (ESCREG_ALEVENT_DC_SYNC0 & mask)
+   // Enable interrupt for SYNC0 or SM2 or SM3
+   uint32_t user_int_mask = ESCREG_ALEVENT_DC_SYNC0 |
+                            ESCREG_ALEVENT_SM2 |
+                            ESCREG_ALEVENT_SM3;
+   if (mask & user_int_mask)
    {
-      // Enable interrupt from SYNC0
-      ESC_ALeventmaskwrite(ESC_ALeventmaskread() | ESCREG_ALEVENT_DC_SYNC0);
-   }
-   if (ESCREG_ALEVENT_SM2 & mask)
-   {
-      // Enable interrupt from SYNC0
-      ESC_ALeventmaskwrite(ESC_ALeventmaskread() | ESCREG_ALEVENT_SM2);
+      ESC_ALeventmaskwrite(ESC_ALeventmaskread() | (mask & user_int_mask));
    }
 
    // Set LAN9252 interrupt pin driver as push-pull active high
@@ -587,16 +585,17 @@ void ESC_interrupt_enable (uint32_t mask)
 
 void ESC_interrupt_disable (uint32_t mask)
 {
-   if (ESCREG_ALEVENT_DC_SYNC0 & mask)
+   // Enable interrupt for SYNC0 or SM2 or SM3
+   uint32_t user_int_mask = ESCREG_ALEVENT_DC_SYNC0 |
+                            ESCREG_ALEVENT_SM2 |
+                            ESCREG_ALEVENT_SM3;
+
+   if (mask & user_int_mask)
    {
       // Disable interrupt from SYNC0
-      ESC_ALeventmaskwrite(ESC_ALeventmaskread() & ~(ESCREG_ALEVENT_DC_SYNC0));
+      ESC_ALeventmaskwrite(ESC_ALeventmaskread() & ~(mask & user_int_mask));
    }
-   if (ESCREG_ALEVENT_SM2 & mask)
-   {
-      // Disable interrupt from SM2
-      ESC_ALeventmaskwrite(ESC_ALeventmaskread() & ~(ESCREG_ALEVENT_SM2));
-   }
+
 
    // Disable LAN9252 interrupt
    bcm2835_spi_write_32(ESC_CMD_INT_EN, 0x00000000);

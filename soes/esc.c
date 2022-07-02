@@ -707,7 +707,7 @@ uint8_t ESC_checkSM23 (uint8_t state)
    }
    /* SM disabled and (SM activated or length > 0) set by master */
    else if (((ESC_SM2_act & ESCREG_SYNC_ACT_ACTIVATED) == 0) &&
-            ((SM->ActESC & ESCREG_SYNC_ACT_ACTIVATED) || (etohs (SM->Length) > 0)))
+            ((SM->ActESC & ESCREG_SYNC_ACT_ACTIVATED) || (ESCvar.ESC_SM2_sml > 0)))
    {
       ESCvar.SMtestresult = SMRESULT_ERRSM2;
       /* fail state change */
@@ -716,7 +716,7 @@ uint8_t ESC_checkSM23 (uint8_t state)
    /* SM enabled and (length > 0 but SM disabled) set by master */
    else if (((ESC_SM2_act & ESCREG_SYNC_ACT_ACTIVATED) > 0) &&
             ((SM->ActESC & ESCREG_SYNC_ACT_ACTIVATED) == 0) &&
-            (etohs (SM->Length) > 0))
+            (ESCvar.ESC_SM2_sml > 0))
    {
       ESCvar.SMtestresult = SMRESULT_ERRSM2;
       /* fail state change */
@@ -750,7 +750,7 @@ uint8_t ESC_checkSM23 (uint8_t state)
    }
    /* SM disabled and (SM activated or length > 0) set by master */
    else if (((ESC_SM3_act & ESCREG_SYNC_ACT_ACTIVATED) == 0) &&
-            ((SM->ActESC & ESCREG_SYNC_ACT_ACTIVATED)  || (etohs (SM->Length) > 0)))
+            ((SM->ActESC & ESCREG_SYNC_ACT_ACTIVATED) || (ESCvar.ESC_SM3_sml > 0)))
    {
       ESCvar.SMtestresult = SMRESULT_ERRSM3;
       /* fail state change */
@@ -759,7 +759,7 @@ uint8_t ESC_checkSM23 (uint8_t state)
    /* SM enabled and (length > 0 but SM disabled) set by master */
    else if (((ESC_SM3_act & ESCREG_SYNC_ACT_ACTIVATED) > 0) &&
             ((SM->ActESC & ESCREG_SYNC_ACT_ACTIVATED) == 0) &&
-            (etohs (SM->Length) > 0))
+            (ESCvar.ESC_SM3_sml > 0))
    {
       ESCvar.SMtestresult = SMRESULT_ERRSM3;
       /* fail state change */
@@ -827,15 +827,22 @@ uint8_t ESC_startinput (uint8_t state)
       {
          if (ESCvar.esc_hw_interrupt_enable != NULL)
          {
-            if(ESCvar.dcsync > 0)
+            uint32_t int_mask;
+
+            if (ESCvar.ESC_SM2_sml == 0)
             {
-               ESCvar.esc_hw_interrupt_enable(ESCREG_ALEVENT_DC_SYNC0 |
-                     ESCREG_ALEVENT_SM2);
+               int_mask = ESCREG_ALEVENT_SM3;
             }
             else
             {
-               ESCvar.esc_hw_interrupt_enable(ESCREG_ALEVENT_SM2);
+               int_mask = ESCREG_ALEVENT_SM2;
             }
+
+            if (ESCvar.dcsync > 0)
+            {
+               int_mask |= ESCREG_ALEVENT_DC_SYNC0;
+            }
+            ESCvar.esc_hw_interrupt_enable (int_mask);
          }
       }
    }
@@ -858,7 +865,8 @@ void ESC_stopinput (void)
          (ESCvar.esc_hw_interrupt_disable != NULL))
    {
       ESCvar.esc_hw_interrupt_disable (ESCREG_ALEVENT_DC_SYNC0 |
-            ESCREG_ALEVENT_SM2);
+            ESCREG_ALEVENT_SM2 |
+            ESCREG_ALEVENT_SM3);
    }
 }
 
