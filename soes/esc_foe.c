@@ -162,7 +162,14 @@ static uint16_t FOE_fwrite (uint8_t *data, uint16_t length)
           foe_file->address_offset += foe_cfg->buffer_size;
        }
        FOEvar.fposition++;
-       ncopied++;
+       if(failed)
+       {
+          DPRINT("Failed FOE_fwrite ncopied=%d\n", ncopied);
+       }
+       else
+       {
+          ncopied++;
+       }
     }
 
     foe_file->total_size += ncopied;
