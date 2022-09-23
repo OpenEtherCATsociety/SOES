@@ -763,6 +763,12 @@ static void EOE_receive_fragment (void)
          EOEvar.rxframeoffset = 0;
          EOEvar.rxframeno = EOE_HDR_FRAME_NO_GET(frameinfo2);
       }
+      else
+      {
+         DPRINT("Receive buffer is invalid\n");
+         EOE_init_rx ();
+         return;
+      }
    }
    /* In frame fragment received */
    else
