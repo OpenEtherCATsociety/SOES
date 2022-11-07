@@ -202,6 +202,15 @@ uint16_t sizeOfPDO (uint16_t index, int * nmappings, _SMmap * mappings,
                   }
 
                   mappings[mapIx].obj = mapping;
+                  /* Save object list reference */
+                  if(mapping != NULL)
+                  {
+                     mappings[mapIx].objectlistitem = &SDOobjects[nidx];
+                  }
+                  else
+                  {
+                     mappings[mapIx].objectlistitem = NULL;
+                  }
                   mappings[mapIx++].offset = offset;
                }
 

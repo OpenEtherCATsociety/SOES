@@ -41,6 +41,7 @@ CC_PACKED_END
 typedef struct
 {
    const _objd * obj;
+   const _objectlist * objectlistitem;
    uint16_t offset;
 } _SMmap;
 
