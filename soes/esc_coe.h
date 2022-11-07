@@ -40,6 +40,7 @@ typedef struct
 typedef struct
 {
    const _objd * obj;
+   const _objectlist * objectlistitem;
    uint16_t offset;
 } _SMmap;
 
