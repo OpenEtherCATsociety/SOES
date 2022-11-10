@@ -41,6 +41,13 @@
 
 typedef enum { UPLOAD, DOWNLOAD } load_t;
 
+/* may be used on packed uint32_t members */
+CC_STATIC_ASSERT((sizeof(_COEsdo) % 4) == 0);
+CC_STATIC_ASSERT((offsetof(_COEsdo, size) % 4) == 0);
+/* may be used on packed uint16_t members */
+CC_STATIC_ASSERT((offsetof(_COEobjdesc, datatype) % 2) == 0);
+CC_STATIC_ASSERT((offsetof(_COEobjdesc, maxsub) % 2) == 0);
+
 /** Search for an object sub-index.
  *
  * @param[in] nidx   = local array index of object we want to find sub-index to
@@ -756,7 +763,7 @@ static void SDO_download (void)
    uint8_t MBXout;
    uint16_t size, actsize;
    const _objd *objd;
-   uint32_t *mbxdata;
+   uint8_t *mbxdata;
    uint32_t abort;
 
    coesdo = (_COEsdo *) &MBX[0];
@@ -777,13 +784,13 @@ static void SDO_download (void)
             if (coesdo->command & COE_EXPEDITED_INDICATOR)
             {
                size = 4 - ((coesdo->command & 0x0c) >> 2);
-               mbxdata = &(coesdo->size);
+               mbxdata = &MBX[offsetof(_COEsdo, size)];
             }
             else
             {
                /* normal download */
                size = (etohl (coesdo->size) & 0xffff);
-               mbxdata = (&(coesdo->size)) + 1;
+               mbxdata = &MBX[sizeof(_COEsdo)];
             }
             actsize = BITS2BYTES((objd + nsub)->bitlength);
             if (actsize != size)
@@ -907,18 +914,19 @@ static void SDO_download_complete_access (void)
    }
 
    uint32_t bytes;
-   uint32_t *mbxdata = &(coesdo->size);
+   uint8_t *mbxdata;
 
    if (coesdo->command & COE_EXPEDITED_INDICATOR)
    {
       /* expedited download */
       bytes = 4 - ((coesdo->command & 0x0c) >> 2);
+      mbxdata = &MBX[offsetof(_COEsdo, size)];
    }
    else
    {
       /* normal download */
       bytes = (etohl (coesdo->size) & 0xffff);
-      mbxdata++;
+      mbxdata = &MBX[sizeof(_COEsdo)];
    }
 
    const _objd *objd = SDOobjects[nidx].objdesc;
@@ -1123,7 +1131,7 @@ static void SDO_getodlist (void)
    uint8_t MBXout = 0;
    uint16_t entries = 0;
    uint16_t i, n;
-   uint16_t *p;
+   uint8_t *p;
    _COEobjdesc *coel, *coer;
 
    while (SDOobjects[entries].index != 0xffff)
@@ -1161,16 +1169,9 @@ static void SDO_getodlist (void)
          ESCvar.xoe = 0;
          ESCvar.frags = frags;
          ESCvar.fragsleft = frags - 1;
-         p = &(coel->datatype);
-         *p = htoes (entries);
-         p++;
-         *p = 0;
-         p++;
-         *p = 0;
-         p++;
-         *p = 0;
-         p++;
-         *p = 0;
+         coel->datatype = htoes (entries);
+         p = &MBX[MBXout * ESC_MBXSIZE + offsetof(_COEobjdesc, maxsub)];
+         memset(p, 0, sizeof(uint16_t) * 4);
          coel->mbxheader.length = htoes (0x08 + (5 << 1));
       }
       /* only return all objects */
@@ -1195,11 +1196,12 @@ static void SDO_getodlist (void)
          coel->infoheader.fragmentsleft = htoes (ESCvar.fragsleft);
          coel->index = htoes ((uint16_t) 0x01);
 
-         p = &(coel->datatype);
+         p = &MBX[MBXout * ESC_MBXSIZE + offsetof(_COEobjdesc, datatype)];
          for (i = 0; i < n; i++)
          {
-            *p = htoes (SDOobjects[i].index);
-            p++;
+            uint16_t p_value = htoes (SDOobjects[i].index);
+            memcpy(p, &p_value, sizeof(p_value));
+            p += 2;
          }
 
          coel->mbxheader.length = htoes (0x08 + (n << 1));
