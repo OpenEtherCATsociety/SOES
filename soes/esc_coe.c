@@ -19,6 +19,7 @@
 #include "esc_coe.h"
 
 #define BITS2BYTES(b) ((b + 7) >> 3)
+#define BITSPOS2BYTESOFFSET(b) (b >> 3)
 
 /* Fetch value from object dictionary */
 #define OBJ_VALUE_FETCH(v, o) \
@@ -474,6 +475,12 @@ static uint32_t complete_access_subindex_loop(const _objd *objd,
 
    uint32_t size = 0;
 
+   /* Clear padded mbxdata byte [1] on upload */
+   if ((load_type == UPLOAD) && (mbxdata != NULL))
+   {
+      mbxdata[1] = 0;
+   }
+
    while (nsub <= SDOobjects[nidx].maxsub)
    {
       uint16_t bitlen = (objd + nsub)->bitlength;
@@ -522,14 +529,14 @@ static uint32_t complete_access_subindex_loop(const _objd *objd,
          {
             if (bitoffset == 0)
             {
-               mbxdata[BITS2BYTES(size)] = 0;
+               mbxdata[BITSPOS2BYTESOFFSET(size)] = 0;
             }
-            mbxdata[BITS2BYTES(size)] |=
+            mbxdata[BITSPOS2BYTESOFFSET(size)] |=
                   (*(uint8_t *)ul_source & bitmask) << bitoffset;
          }
          else
          {
-            mbxdata[BITS2BYTES(size)] &= ~(bitmask << bitoffset);
+            mbxdata[BITSPOS2BYTESOFFSET(size)] &= ~(bitmask << bitoffset);
          }
       }
 
@@ -1768,7 +1775,7 @@ void COE_pdoPack (uint8_t * buffer, int nmappings, _SMmap * mappings)
          if (obj->bitlength > 64)
          {
             memcpy (
-               &buffer[BITS2BYTES (offset)],
+               &buffer[BITSPOS2BYTESOFFSET (offset)],
                obj->data,
                BITS2BYTES (obj->bitlength)
             );
@@ -1816,7 +1823,7 @@ void COE_pdoUnpack (uint8_t * buffer, int nmappings, _SMmap * mappings)
          {
             memcpy (
                obj->data,
-               &buffer[BITS2BYTES (offset)],
+               &buffer[BITSPOS2BYTESOFFSET (offset)],
                BITS2BYTES (obj->bitlength)
             );
          }
