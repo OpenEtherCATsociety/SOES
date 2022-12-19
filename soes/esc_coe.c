@@ -1733,7 +1733,7 @@ void COE_initDefaultValues (void)
       i = 0;
       do
       {
-         if (objd[i].data != NULL)
+         if ((objd[i].data != NULL) && (!(objd[i].flags & ATYPE_NODEFAULT)))
          {
             COE_setValue (&objd[i], objd[i].value);
             DPRINT ("%04x:%02x = %x\n", SDOobjects[n].index, objd[i].subindex, objd[i].value);

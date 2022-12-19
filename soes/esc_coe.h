@@ -96,6 +96,7 @@ typedef struct
 #define ATYPE_Wop               0x20
 #define ATYPE_RXPDO             0x40
 #define ATYPE_TXPDO             0x80
+#define ATYPE_NODEFAULT       0x8000
 
 #define ATYPE_RO                (ATYPE_Rpre | ATYPE_Rsafe | ATYPE_Rop)
 #define ATYPE_WO                (ATYPE_Wpre | ATYPE_Wsafe | ATYPE_Wop)
