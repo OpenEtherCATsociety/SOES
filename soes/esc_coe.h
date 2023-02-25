@@ -96,11 +96,15 @@ typedef struct
 #define ATYPE_Wop               0x20
 #define ATYPE_RXPDO             0x40
 #define ATYPE_TXPDO             0x80
+#define ATYPE_BACKUP            0x100
+#define ATYPE_SETTING           0x200
 
 #define ATYPE_RO                (ATYPE_Rpre | ATYPE_Rsafe | ATYPE_Rop)
 #define ATYPE_WO                (ATYPE_Wpre | ATYPE_Wsafe | ATYPE_Wop)
 #define ATYPE_RW                (ATYPE_RO | ATYPE_WO)
 #define ATYPE_RWpre             (ATYPE_Wpre | ATYPE_RO)
+#define ATYPE_RWop              (ATYPE_Wop | ATYPE_RO)
+#define ATYPE_RWpre_safe        (ATYPE_Wpre | ATYPE_Wsafe | ATYPE_RO)
 
 #define TX_PDO_OBJIDX           0x1c13
 #define RX_PDO_OBJIDX           0x1c12
