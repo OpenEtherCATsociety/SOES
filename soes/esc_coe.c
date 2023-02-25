@@ -872,13 +872,14 @@ static void SDO_download (void)
          }
          else
          {
-            if (access == ATYPE_RWpre)
+            if (access == ATYPE_RO)
             {
-               SDO_abort (0, index, subindex, ABORT_NOTINTHISSTATE);
+               SDO_abort (0, index, subindex, ABORT_READONLY);
+
             }
             else
             {
-               SDO_abort (0, index, subindex, ABORT_READONLY);
+               SDO_abort (0, index, subindex, ABORT_NOTINTHISSTATE);
             }
          }
       }
