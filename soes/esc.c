@@ -62,7 +62,7 @@ void ESC_ALstatusgotoerror (uint8_t status, uint16_t errornumber)
    as = ESCvar.ALstatus & ESCREG_AL_ERRACKMASK;
    an = as;
    /* Set the state transition, new state in high bits and old in bits  */
-   as = ((status & ESCREG_AL_ERRACKMASK) << 4) | (as & 0x0f);
+   as = (uint8_t)(((status & ESCREG_AL_ERRACKMASK) << 4) | (as & 0x0f));
    /* Call post state change hook case it have been configured  */
    if (ESCvar.pre_state_change_hook != NULL)
    {
@@ -170,7 +170,7 @@ void ESC_SMenable (uint8_t n)
 {
    _ESCsm2 *sm;
    sm = (_ESCsm2 *)&ESCvar.SM[n];
-   sm->ActPDI &= ~ESCREG_SMENABLE_BIT;
+   sm->ActPDI &= (uint8_t)~ESCREG_SMENABLE_BIT;
    ESC_SMwritepdi (n);
 }
 /** Write 1 to Bit0 in SM PDI control register 0x807(+ offset to SyncManager n) to De-activte the Sync Manager n.
@@ -487,7 +487,7 @@ uint8_t ESC_claimbuffer (void)
       MBh->address = htoes (0x0000);      // destination is master
       MBh->channel = 0;
       MBh->priority = 0;
-      MBh->mbxcnt = ESCvar.mbxcnt;
+      MBh->mbxcnt = ESCvar.mbxcnt & 0xFU;
       ESCvar.txcue++;
    }
    return n;
@@ -601,7 +601,7 @@ uint8_t ESC_mbxprocess (void)
             ESC_writembx (ESCvar.mbxbackup);
          }
          ESCvar.toggle = ESCvar.SM[1].ECrep;
-         ESCvar.SM[1].PDIrep = ESCvar.toggle;
+         ESCvar.SM[1].PDIrep = ESCvar.toggle & 0x1U;
          ESC_SMwritepdi (1);
       }
       return 0;
@@ -1100,7 +1100,7 @@ void ESC_state (void)
    }
 
    /* Mask high bits ALcommand, low bits ALstatus */
-   as = (ac << 4) | (as & 0x0f);
+   as = (uint8_t)((ac << 4) | (as & 0x0f));
 
    /* Call post state change hook case it have been configured  */
    if (ESCvar.pre_state_change_hook != NULL)
