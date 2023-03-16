@@ -54,11 +54,11 @@ extern "C"
 #define CC_ATOMIC_OR(var,val)    __atomic_or_fetch(&var,val,__ATOMIC_SEQ_CST)
 
 #if BYTE_ORDER == BIG_ENDIAN
-#define htoes(x) CC_SWAP16 (x)
-#define htoel(x) CC_SWAP32 (x)
+#define htoes(x) CC_SWAP16 ((uint16_t)(x))
+#define htoel(x) CC_SWAP32 ((uint32_t)(x))
 #else
-#define htoes(x) (x)
-#define htoel(x) (x)
+#define htoes(x) ((uint16_t)(x))
+#define htoel(x) ((uint32_t)(x))
 #endif
 
 #define etohs(x) htoes (x)

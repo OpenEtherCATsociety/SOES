@@ -210,9 +210,9 @@
 #define MBXstate_backup                 0x05
 #define MBXstate_again                  0x06
 
-#define COE_DEFAULTLENGTH               0x0a
-#define COE_HEADERSIZE                  0x0a
-#define COE_SEGMENTHEADERSIZE           0x03
+#define COE_DEFAULTLENGTH               0x0AU
+#define COE_HEADERSIZE                  0x0AU
+#define COE_SEGMENTHEADERSIZE           0x03U
 #define COE_SDOREQUEST                  0x02
 #define COE_SDORESPONSE                 0x03
 #define COE_SDOINFORMATION              0x08
@@ -467,7 +467,7 @@ typedef struct
    uint16_t (*esc_check_dc_handler) (void);
    int (*get_device_id) (uint16_t * device_id);
    uint8_t MBXrun;
-   size_t activembxsize;
+   uint32_t activembxsize;
    sm_cfg_t * activemb0;
    sm_cfg_t * activemb1;
    uint16_t ESC_SM2_sml;
@@ -701,11 +701,11 @@ typedef struct
 #define ESC_SM3_smc         (SM3_smc)
 #define ESC_SM3_act         (SM3_act)
 
-#define ESC_MBXHSIZE        sizeof(_MBXh)
+#define ESC_MBXHSIZE        ((uint32_t)sizeof(_MBXh))
 #define ESC_MBXDSIZE        (ESC_MBXSIZE - ESC_MBXHSIZE)
-#define ESC_FOEHSIZE        sizeof(_FOEh)
+#define ESC_FOEHSIZE        (uint32_t)sizeof(_FOEh)
 #define ESC_FOE_DATA_SIZE   (ESC_MBXSIZE - (ESC_MBXHSIZE +ESC_FOEHSIZE))
-#define ESC_EOEHSIZE        sizeof(_EOEh)
+#define ESC_EOEHSIZE        ((uint32_t)sizeof(_EOEh))
 #define ESC_EOE_DATA_SIZE   (ESC_MBXSIZE - (ESC_MBXHSIZE +ESC_EOEHSIZE))
 
 void ESC_config (esc_cfg_t * cfg);
