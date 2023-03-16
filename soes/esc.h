@@ -489,8 +489,8 @@ typedef struct
    uint8_t segmented;
    void *data;
    uint16_t entries;
-   uint16_t frags;
-   uint16_t fragsleft;
+   uint32_t frags;
+   uint32_t fragsleft;
    uint16_t index;
    uint8_t subindex;
    uint16_t flags;
@@ -506,7 +506,7 @@ typedef struct
    /* Volatile since it may be read from ISR */
    volatile int watchdogcnt;
    volatile uint32_t Time;
-   volatile uint16_t ALevent;
+   volatile uint32_t ALevent;
    volatile int8_t synccounter;
    volatile _App App;
    uint8_t mbxdata[PREALLOC_BUFFER_SIZE];
