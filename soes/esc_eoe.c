@@ -109,7 +109,7 @@
 /** Ethernet address length not including VLAN */
 #define EOE_ETHADDR_LENGTH    6
 /** IPv4 address length */
-#define EOE_IP4_LENGTH        sizeof(uint32_t)
+#define EOE_IP4_LENGTH        4U /* sizeof(uint32_t) */
 
 /** EOE ip4 address in network order */
 struct eoe_ip4_addr {

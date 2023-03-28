@@ -17,4 +17,4 @@ include_directories(
   )
 
 # Common compile flags
-add_compile_options(-Wall -Wextra -Wno-unused-parameter -Werror)
+add_compile_options(-Wall -Wextra -Wconversion -Wno-unused-parameter -Werror)
