@@ -41,7 +41,7 @@ typedef struct
 {
    const _objd * obj;
    const _objectlist * objectlistitem;
-   uint16_t offset;
+   uint32_t offset;
 } _SMmap;
 
 #define OBJH_READ               0
@@ -112,7 +112,7 @@ typedef struct
 #define COMPLETE_ACCESS_FLAG    (1 << 15)
 
 void ESC_coeprocess (void);
-int16_t SDO_findsubindex (int16_t nidx, uint8_t subindex);
+int16_t SDO_findsubindex (int32_t nidx, uint8_t subindex);
 int32_t SDO_findobject (uint16_t index);
 uint16_t sizeOfPDO (uint16_t index, int * nmappings, _SMmap * sm, int max_mappings);
 void COE_initDefaultValues (void);

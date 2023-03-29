@@ -62,7 +62,7 @@ void ESC_ALstatusgotoerror (uint8_t status, uint16_t errornumber)
    as = ESCvar.ALstatus & ESCREG_AL_ERRACKMASK;
    an = as;
    /* Set the state transition, new state in high bits and old in bits  */
-   as = ((status & ESCREG_AL_ERRACKMASK) << 4) | (as & 0x0f);
+   as = (uint8_t)(((status & ESCREG_AL_ERRACKMASK) << 4) | (as & 0x0f));
    /* Call post state change hook case it have been configured  */
    if (ESCvar.pre_state_change_hook != NULL)
    {
@@ -136,7 +136,7 @@ uint32_t ESC_ALeventread (void)
 void ESC_SMack (uint8_t n)
 {
    uint8_t dummy;
-   ESC_read (ESCREG_SM0ACTIVATE + (n << 3), &dummy, 1);
+   ESC_read ((uint16_t)(ESCREG_SM0ACTIVATE + (n << 3)), &dummy, 1);
 }
 
 /** Read SM Status register 0x805(+ offset to SyncManager n) and save the
@@ -148,7 +148,7 @@ void ESC_SMstatus (uint8_t n)
 {
    _ESCsm2 *sm;
    sm = (_ESCsm2 *)&ESCvar.SM[n];
-   ESC_read (ESCREG_SM0STATUS + (n << 3), &(sm->Status), 1);
+   ESC_read ((uint16_t)(ESCREG_SM0STATUS + (n << 3)), &(sm->Status), 1);
 }
 
 /** Write ESCvar.SM[n] data to ESC PDI control register 0x807(+ offset to SyncManager n).
@@ -159,7 +159,7 @@ void ESC_SMwritepdi (uint8_t n)
 {
    _ESCsm2 *sm;
    sm = (_ESCsm2 *)&ESCvar.SM[n];
-   ESC_write (ESCREG_SM0PDI + (n << 3), &(sm->ActPDI), 1);
+   ESC_write ((uint16_t)(ESCREG_SM0PDI + (n << 3)), &(sm->ActPDI), 1);
 }
 
 /** Write 0 to Bit0 in SM PDI control register 0x807(+ offset to SyncManager n) to Activate the Sync Manager n.
@@ -170,7 +170,7 @@ void ESC_SMenable (uint8_t n)
 {
    _ESCsm2 *sm;
    sm = (_ESCsm2 *)&ESCvar.SM[n];
-   sm->ActPDI &= ~ESCREG_SMENABLE_BIT;
+   sm->ActPDI &= (uint8_t)~ESCREG_SMENABLE_BIT;
    ESC_SMwritepdi (n);
 }
 /** Write 1 to Bit0 in SM PDI control register 0x807(+ offset to SyncManager n) to De-activte the Sync Manager n.
@@ -414,9 +414,9 @@ void ESC_readmbx (void)
 
    if (length > (ESC_MBX0_sml - ESC_MBXHSIZE))
    {
-      length = ESC_MBX0_sml - ESC_MBXHSIZE;
+      length = (uint16_t)(ESC_MBX0_sml - ESC_MBXHSIZE);
    }
-   ESC_read (ESC_MBX0_sma + ESC_MBXHSIZE, MB->b, length);
+   ESC_read ((uint16_t)(ESC_MBX0_sma + ESC_MBXHSIZE), MB->b, length);
    if (length + ESC_MBXHSIZE < ESC_MBX0_sml)
    {
       ESC_read (ESC_MBX0_sme, &length, 1);
@@ -439,9 +439,9 @@ void ESC_writembx (uint8_t n)
 
    if (length > (ESC_MBX1_sml - ESC_MBXHSIZE))
    {
-      length = ESC_MBX1_sml - ESC_MBXHSIZE;
+      length = (uint16_t)(ESC_MBX1_sml - ESC_MBXHSIZE);
    }
-   ESC_write (ESC_MBX1_sma, MBh, ESC_MBXHSIZE + length);
+   ESC_write (ESC_MBX1_sma, MBh, (uint16_t)(ESC_MBXHSIZE + length));
    if (length + ESC_MBXHSIZE < ESC_MBX1_sml)
    {
       ESC_write (ESC_MBX1_sme, &dummy, 1);
@@ -487,7 +487,7 @@ uint8_t ESC_claimbuffer (void)
       MBh->address = htoes (0x0000);      // destination is master
       MBh->channel = 0;
       MBh->priority = 0;
-      MBh->mbxcnt = ESCvar.mbxcnt;
+      MBh->mbxcnt = ESCvar.mbxcnt & 0xFU;
       ESCvar.txcue++;
    }
    return n;
@@ -601,7 +601,7 @@ uint8_t ESC_mbxprocess (void)
             ESC_writembx (ESCvar.mbxbackup);
          }
          ESCvar.toggle = ESCvar.SM[1].ECrep;
-         ESCvar.SM[1].PDIrep = ESCvar.toggle;
+         ESCvar.SM[1].PDIrep = ESCvar.toggle & 0x1U;
          ESC_SMwritepdi (1);
       }
       return 0;
@@ -1100,7 +1100,7 @@ void ESC_state (void)
    }
 
    /* Mask high bits ALcommand, low bits ALstatus */
-   as = (ac << 4) | (as & 0x0f);
+   as = (uint8_t)((ac << 4) | (as & 0x0f));
 
    /* Call post state change hook case it have been configured  */
    if (ESCvar.pre_state_change_hook != NULL)

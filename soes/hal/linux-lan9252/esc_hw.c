@@ -16,7 +16,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 
-#define BIT(x)	1 << (x)
+#define BIT(x)                   (1U << (x))
 
 #define ESC_CMD_SERIAL_WRITE     0x02
 #define ESC_CMD_SERIAL_READ      0x03
@@ -59,15 +59,15 @@ static int lan9252 = -1;
 static void lan9252_write_32 (uint16_t address, uint32_t val)
 {
     uint8_t data[7];
-    int n;
+    ssize_t n;
 
     data[0] = ESC_CMD_SERIAL_WRITE;
-    data[1] = ((address >> 8) & 0xFF);
-    data[2] = (address & 0xFF);
-    data[3] = (val & 0xFF);
-    data[4] = ((val >> 8) & 0xFF);
-    data[5] = ((val >> 16) & 0xFF);
-    data[6] = ((val >> 24) & 0xFF);
+    data[1] = (uint8_t)((address >> 8) & 0xFF);
+    data[2] = (uint8_t)(address & 0xFF);
+    data[3] = (uint8_t)(val & 0xFF);
+    data[4] = (uint8_t)((val >> 8) & 0xFF);
+    data[5] = (uint8_t)((val >> 16) & 0xFF);
+    data[6] = (uint8_t)((val >> 24) & 0xFF);
 
     /* Write data */
     n = write (lan9252, data, sizeof(data));
@@ -80,17 +80,17 @@ static uint32_t lan9252_read_32 (uint32_t address)
    uint8_t data[2];
    uint8_t result[4];
    uint16_t lseek_addr;
-   int n;
+   ssize_t n;
 
    data[0] = ((address >>8) & 0xFF);
    data[1] = (address & 0xFF);
 
-	lseek_addr=((uint16_t)data[0] << 8) | data[1];
-	lseek (lan9252, lseek_addr, SEEK_SET);
+   lseek_addr=(uint16_t)((data[0] << 8) | data[1]);
+   lseek (lan9252, lseek_addr, SEEK_SET);
    n = read (lan9252, result, sizeof(result));
    (void)n;
 
-   return ((result[3] << 24) |
+   return (uint32_t)((result[3] << 24) |
            (result[2] << 16) |
            (result[1] << 8) |
             result[0]);
@@ -101,7 +101,9 @@ static void ESC_read_csr (uint16_t address, void *buf, uint16_t len)
 {
    uint32_t value;
 
-   value = (ESC_CSR_CMD_READ | ESC_CSR_CMD_SIZE(len) | address);
+   value = ESC_CSR_CMD_READ;
+   value |= (uint32_t)ESC_CSR_CMD_SIZE(len);
+   value |= address;
    lan9252_write_32(ESC_CSR_CMD_REG, value);
 
    do
@@ -120,7 +122,9 @@ static void ESC_write_csr (uint16_t address, void *buf, uint16_t len)
 
    memcpy((uint8_t*)&value, buf,len);
    lan9252_write_32(ESC_CSR_DATA_REG, value);
-   value = (ESC_CSR_CMD_WRITE | ESC_CSR_CMD_SIZE(len) | address);
+   value = ESC_CSR_CMD_WRITE;
+   value |= (uint32_t)ESC_CSR_CMD_SIZE(len);
+   value |= address;
    lan9252_write_32(ESC_CSR_CMD_REG, value);
 
    do
@@ -137,10 +141,10 @@ static void ESC_read_pram (uint16_t address, void *buf, uint16_t len)
    uint16_t byte_offset = 0;
    uint8_t fifo_cnt, first_byte_position, temp_len;
    uint8_t *buffer;
-   int i, array_size, size;
+   size_t i, array_size, size;
    float quotient,remainder;
    uint32_t temp;
-   int n;
+   ssize_t n;
 
    value = ESC_PRAM_CMD_ABORT;
    lan9252_write_32(ESC_PRAM_RD_CMD_REG, value);
@@ -150,7 +154,7 @@ static void ESC_read_pram (uint16_t address, void *buf, uint16_t len)
       value = lan9252_read_32(ESC_PRAM_RD_CMD_REG);
    }while(value & ESC_PRAM_CMD_BUSY);
 
-   value = ESC_PRAM_SIZE(len) | ESC_PRAM_ADDR(address);
+   value = (uint32_t)(ESC_PRAM_SIZE(len) | ESC_PRAM_ADDR(address));
    lan9252_write_32(ESC_PRAM_RD_ADDR_LEN_REG, value);
 
    value = ESC_PRAM_CMD_BUSY;
@@ -162,7 +166,7 @@ static void ESC_read_pram (uint16_t address, void *buf, uint16_t len)
    }while((value & ESC_PRAM_CMD_AVAIL) == 0);
 
    /* Fifo count */
-   fifo_cnt = ESC_PRAM_CMD_CNT(value);
+   fifo_cnt = (uint8_t)ESC_PRAM_CMD_CNT(value);
 
    /* Read first value from FIFO */
    value = lan9252_read_32(ESC_PRAM_RD_FIFO_REG);
@@ -172,27 +176,27 @@ static void ESC_read_pram (uint16_t address, void *buf, uint16_t len)
     * according to LAN9252 datasheet and MicroChip SDK code
     */
    first_byte_position = (address & 0x03);
-   temp_len = ((4 - first_byte_position) > len) ? len : (4 - first_byte_position);
+   temp_len = ((4 - first_byte_position) > len) ? (uint8_t)len : (uint8_t)(4 - first_byte_position);
 
    memcpy(temp_buf ,((uint8_t *)&value + first_byte_position), temp_len);
-   len -= temp_len;
-   byte_offset += temp_len;
+   len = (uint16_t)(len - temp_len);
+   byte_offset = (uint16_t)(byte_offset + temp_len);
 
    /* Continue reading until we have read len */
     if (len > 0){
 
-        quotient = len/4;
-        remainder = len%4;
+        quotient = (float)(len/4);
+        remainder = (float)(len%4);
         
         if (remainder == 0)
-            array_size = quotient;
+            array_size = (size_t)quotient;
         else
-            array_size = quotient+1;            
+            array_size = (size_t)quotient+1;
 
         size = 4*array_size;        
 
         buffer = (uint8_t *)malloc(size);
-        buffer[0] = size;
+        buffer[0] = (uint8_t)size;
         memset(buffer,0,size);    
 
         lseek (lan9252, ESC_PRAM_RD_FIFO_REG, SEEK_SET);        
@@ -203,13 +207,13 @@ static void ESC_read_pram (uint16_t address, void *buf, uint16_t len)
         {
         
             for (i=0; i<size; i=i+4) {
-                temp_len = (len > 4) ? 4: len;
+                temp_len = (len > 4) ? 4: (uint8_t)len;
 
-                temp = buffer[i] | (buffer[i+1] << 8) | (buffer[i+2] << 16) | (buffer[i+3] << 24);
+                temp = (uint32_t)(buffer[i] | (buffer[i+1] << 8) | (buffer[i+2] << 16) | (buffer[i+3] << 24));
                 memcpy(temp_buf + byte_offset ,&temp, temp_len);
                 fifo_cnt--;
-                len -= temp_len;
-                byte_offset += temp_len;
+                len = (uint16_t)(len - temp_len);
+                byte_offset = (uint16_t)(byte_offset + temp_len);
             }
         }
         free(buffer);
@@ -224,9 +228,9 @@ static void ESC_write_pram (uint16_t address, void *buf, uint16_t len)
    uint16_t byte_offset = 0;
    uint8_t fifo_cnt, first_byte_position, temp_len;
    uint8_t *buffer;
-   int i, array_size, size;
+   size_t i, array_size, size;
    float quotient,remainder;   
-   int n;
+   ssize_t n;
 
    value = ESC_PRAM_CMD_ABORT;
    lan9252_write_32(ESC_PRAM_WR_CMD_REG, value);
@@ -236,7 +240,7 @@ static void ESC_write_pram (uint16_t address, void *buf, uint16_t len)
       value = lan9252_read_32(ESC_PRAM_WR_CMD_REG);
    }while(value & ESC_PRAM_CMD_BUSY);
 
-   value = ESC_PRAM_SIZE(len) | ESC_PRAM_ADDR(address);
+   value = (uint32_t)(ESC_PRAM_SIZE(len) | ESC_PRAM_ADDR(address));
    lan9252_write_32(ESC_PRAM_WR_ADDR_LEN_REG, value);
 
    value = ESC_PRAM_CMD_BUSY;
@@ -248,37 +252,37 @@ static void ESC_write_pram (uint16_t address, void *buf, uint16_t len)
    }while((value & ESC_PRAM_CMD_AVAIL) == 0);
 
    /* Fifo count */
-   fifo_cnt = ESC_PRAM_CMD_CNT(value);
+   fifo_cnt = (uint8_t)ESC_PRAM_CMD_CNT(value);
 
    /* Find out first byte position and adjust the copy from that
     * according to LAN9252 datasheet
     */
    first_byte_position = (address & 0x03);
-   temp_len = ((4 - first_byte_position) > len) ? len : (4 - first_byte_position);
+   temp_len = ((4 - first_byte_position) > len) ? (uint8_t)len : (uint8_t)(4 - first_byte_position);
 
    memcpy(((uint8_t *)&value + first_byte_position), temp_buf, temp_len);
 
    /* Write first value from FIFO */
    lan9252_write_32(ESC_PRAM_WR_FIFO_REG, value);
 
-   len -= temp_len;
-   byte_offset += temp_len;
+   len = (uint16_t)(len - temp_len);
+   byte_offset = (uint16_t)(byte_offset + temp_len);
    fifo_cnt--;
 
     if (len > 0){
 
         quotient = len/4;
-        remainder = len%4;
+        remainder = (float)(len%4);
         
         if (remainder == 0)
-            array_size = quotient;
+            array_size = (size_t)quotient;
         else
-            array_size = quotient+1;            
+            array_size = (size_t)quotient+1;
 
         size = 3+4*array_size;        
 
         buffer = (uint8_t *)malloc(size);
-        buffer[0] = size;
+        buffer[0] = (uint8_t)size;
         memset(buffer,0,size);
         
         buffer[0] = ESC_CMD_SERIAL_WRITE;
@@ -287,17 +291,17 @@ static void ESC_write_pram (uint16_t address, void *buf, uint16_t len)
         while(len > 0)
         {                        
             for (i=3; i<size; i=i+4) {           
-                temp_len = (len > 4) ? 4 : len;
+                temp_len = (len > 4) ? 4 : (uint8_t)len;
 
                 memcpy((uint8_t *)&value, (temp_buf + byte_offset), temp_len);
-                buffer[i] = (value & 0xFF);
-                buffer[i+1] = ((value >> 8) & 0xFF);
-                buffer[i+2] = ((value >> 16) & 0xFF);
-                buffer[i+3] = ((value >> 24) & 0xFF);                              
+                buffer[i] = (uint8_t)(value & 0xFF);
+                buffer[i+1] = (uint8_t)((value >> 8) & 0xFF);
+                buffer[i+2] = (uint8_t)((value >> 16) & 0xFF);
+                buffer[i+3] = (uint8_t)((value >> 24) & 0xFF);
 
                 fifo_cnt--;
-                len -= temp_len;
-                byte_offset += temp_len;               
+                len = (uint16_t)(len - temp_len);
+                byte_offset= (uint16_t)(byte_offset + temp_len);
             }
         }        
         n = write (lan9252, buffer, size);
@@ -351,9 +355,9 @@ void ESC_read (uint16_t address, void *buf, uint16_t len)
          ESC_read_csr(address, temp_buf, size);
 
          /* next address */
-         len -= size;
-         temp_buf += size;
-         address += size;
+         len = (uint16_t)(len - size);
+         temp_buf = (uint8_t *)(temp_buf + size);
+         address = (uint16_t)(address + size);
       }
    }
    /* To mimic the ET1100 always providing AlEvent on every read or write */
@@ -406,9 +410,9 @@ void ESC_write (uint16_t address, void *buf, uint16_t len)
          ESC_write_csr(address, temp_buf, size);
 
          /* next address */
-         len -= size;
-         temp_buf += size;
-         address += size;
+         len = (uint16_t)(len - size);
+         temp_buf = (uint8_t *)(temp_buf + size);
+         address = (uint16_t)(address + size);
       }
    }
 

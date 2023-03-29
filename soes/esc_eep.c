@@ -53,7 +53,7 @@ void EEP_process (void)
          case EEP_CMD_READ:
          case EEP_CMD_RELOAD:
             /* handle read request */
-            if (EEP_read (stat.addr * sizeof(uint16_t), eep_buf, EEP_READ_SIZE) != 0) {
+            if (EEP_read (stat.addr * 2U /* sizeof(uint16_t) */, eep_buf, EEP_READ_SIZE) != 0) {
                stat.contstat.bits.ackErr = 1;
             } else {
                ESC_write (ESCREG_EEDATA, eep_buf, EEP_READ_SIZE);
@@ -63,7 +63,7 @@ void EEP_process (void)
          case EEP_CMD_WRITE:
             /* handle write request */
             ESC_read (ESCREG_EEDATA, eep_buf, EEP_WRITE_SIZE);
-            if (EEP_write (stat.addr * sizeof(uint16_t), eep_buf, EEP_WRITE_SIZE) != 0) {
+            if (EEP_write (stat.addr * 2U /* sizeof(uint16_t) */, eep_buf, EEP_WRITE_SIZE) != 0) {
                stat.contstat.bits.ackErr = 1;
             }
             break;
