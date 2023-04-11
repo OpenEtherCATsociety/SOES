@@ -299,7 +299,7 @@ static void SDO_upload (void)
    uint16_t index;
    uint8_t subindex;
    int32_t nidx;
-   int32_t nsub;
+   int16_t nsub;
    uint8_t MBXout;
    uint32_t size;
    uint8_t dss;
