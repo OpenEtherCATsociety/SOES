@@ -14,6 +14,7 @@ extern "C"
 #include <assert.h>
 #include <stdint.h>
 #include <stddef.h>
+#include <inttypes.h>
 #include <sys/param.h>
 #ifdef __linux__
    #include <endian.h>
@@ -35,6 +36,7 @@ extern "C"
 #define CC_ALIGNED(n)   __attribute__((aligned (n)))
 
 #ifdef __rtk__
+#include <kern/assert.h>
 #define CC_ASSERT(exp) ASSERT (exp)
 #else
 #define CC_ASSERT(exp) assert (exp)
@@ -70,9 +72,10 @@ extern "C"
 #define EC_BIG_ENDIAN
 #endif
 
+#define ESC_DEBUG
 #ifdef ESC_DEBUG
 #ifdef __rtk__
-#include <rprint.h>
+#include <kern/rprint.h>
 #define DPRINT(...) rprintp ("soes: "__VA_ARGS__)
 #else
 #include <stdio.h>

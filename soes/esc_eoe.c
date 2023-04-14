@@ -738,7 +738,7 @@ static void EOE_receive_fragment (void)
    /* Capture error case */
    if(EOEvar.rxfragmentno != EOE_HDR_FRAG_NO_GET(frameinfo2))
    {
-      DPRINT("Unexpected fragment number %u, expected: %u\n",
+      DPRINT("Unexpected fragment number %"PRIu32", expected: %"PRIu32"\n",
             EOE_HDR_FRAG_NO_GET(frameinfo2), EOEvar.rxfragmentno);
       /* Clean up existing saved data */
       if(EOEvar.rxfragmentno != 0)
@@ -777,14 +777,14 @@ static void EOE_receive_fragment (void)
       /* Validate received fragment */
       if(EOEvar.rxframeno != EOE_HDR_FRAME_NO_GET(frameinfo2))
       {
-         DPRINT("Unexpected frame number %u, expected: %u\n",
+         DPRINT("Unexpected frame number %"PRIu32", expected: %"PRIu32"\n",
                EOE_HDR_FRAME_NO_GET(frameinfo2), EOEvar.rxframeno);
          EOE_init_rx ();
          return;
       }
       else if(EOEvar.rxframeoffset != offset)
       {
-         DPRINT("Unexpected frame offset %u, expected: %u\n",
+         DPRINT("Unexpected frame offset %"PRIu32", expected: %"PRIu32"\n",
                offset, EOEvar.rxframeoffset);
          EOE_init_rx ();
          return;
