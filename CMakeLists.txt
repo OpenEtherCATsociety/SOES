@@ -2,7 +2,9 @@
 # refer to the root source directory of the project as ${SOES_SOURCE_DIR} and
 # to the root binary directory of the project as ${SOES_BINARY_DIR}.
 cmake_minimum_required (VERSION 2.8.12)
-set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake")
+list(APPEND CMAKE_MODULE_PATH "${RTK}/cmake")
+list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
+list(APPEND CMAKE_PREFIX_PATH "${RTK}")
 project (SOES)
 
 set (SOES_VERSION_MAJOR 3)
