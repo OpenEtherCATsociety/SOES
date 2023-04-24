@@ -72,7 +72,6 @@ extern "C"
 #define EC_BIG_ENDIAN
 #endif
 
-#define ESC_DEBUG
 #ifdef ESC_DEBUG
 #ifdef __rtk__
 #include <kern/rprint.h>
