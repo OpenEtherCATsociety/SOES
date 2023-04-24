@@ -47,37 +47,37 @@
 /** Header frame info 1 */
 #define EOE_HDR_FRAME_TYPE_OFFSET      0
 #define EOE_HDR_FRAME_TYPE             (0xF << 0)
-#define EOE_HDR_FRAME_TYPE_SET(x)      (((x) & 0xF) << 0)
+#define EOE_HDR_FRAME_TYPE_SET(x)      ((uint16_t)(((x) & 0xF) << 0))
 #define EOE_HDR_FRAME_TYPE_GET(x)      (((x) >> 0) & 0xF)
 #define EOE_HDR_FRAME_PORT_OFFSET      4
 #define EOE_HDR_FRAME_PORT             (0xF << 4)
-#define EOE_HDR_FRAME_PORT_SET(x)      (((x) & 0xF) << 4)
+#define EOE_HDR_FRAME_PORT_SET(x)      ((uint16_t)(((x) & 0xF) << 4))
 #define EOE_HDR_FRAME_PORT_GET(x)      (((x) >> 4) & 0xF)
 #define EOE_HDR_LAST_FRAGMENT_OFFSET   8
 #define EOE_HDR_LAST_FRAGMENT          (0x1 << 8)
-#define EOE_HDR_LAST_FRAGMENT_SET(x)   (((x) & 0x1) << 8)
+#define EOE_HDR_LAST_FRAGMENT_SET(x)   ((uint16_t)(((x) & 0x1) << 8))
 #define EOE_HDR_LAST_FRAGMENT_GET(x)   (((x) >> 8) & 0x1)
 #define EOE_HDR_TIME_APPEND_OFFSET     9
 #define EOE_HDR_TIME_APPEND            (0x1 << 9)
-#define EOE_HDR_TIME_APPEND_SET(x)     (((x) & 0x1) << 9)
+#define EOE_HDR_TIME_APPEND_SET(x)     ((uint16_t)(((x) & 0x1) << 9))
 #define EOE_HDR_TIME_APPEND_GET(x)     (((x) >> 9) & 0x1)
 #define EOE_HDR_TIME_REQUEST_OFFSET    10
 #define EOE_HDR_TIME_REQUEST           (0x1 << 10)
-#define EOE_HDR_TIME_REQUEST_SET(x)    (((x) & 0x1) << 10)
+#define EOE_HDR_TIME_REQUEST_SET(x)    ((uint16_t)(((x) & 0x1) << 10))
 #define EOE_HDR_TIME_REQUEST_GET(x)    (((x) >> 10) & 0x1)
 
 /** Header frame info 2 */
 #define EOE_HDR_FRAG_NO_OFFSET         0
 #define EOE_HDR_FRAG_NO                (0x3F << 0)
-#define EOE_HDR_FRAG_NO_SET(x)         (((x) & 0x3F) << 0)
+#define EOE_HDR_FRAG_NO_SET(x)         ((uint16_t)(((x) & 0x3F) << 0))
 #define EOE_HDR_FRAG_NO_GET(x)         (((x) >> 0) & 0x3F)
 #define EOE_HDR_FRAME_OFFSET_OFFSET    6
 #define EOE_HDR_FRAME_OFFSET           (0x3F << 6)
-#define EOE_HDR_FRAME_OFFSET_SET(x)    (((x) & 0x3F) << 6)
+#define EOE_HDR_FRAME_OFFSET_SET(x)    ((uint16_t)(((x) & 0x3F) << 6))
 #define EOE_HDR_FRAME_OFFSET_GET(x)    (((x) >> 6) & 0x3F)
 #define EOE_HDR_FRAME_NO_OFFSET        12
 #define EOE_HDR_FRAME_NO               (0xF << 12)
-#define EOE_HDR_FRAME_NO_SET(x)        (((x) & 0xF) << 12)
+#define EOE_HDR_FRAME_NO_SET(x)        ((uint16_t)(((x) & 0xF) << 12))
 #define EOE_HDR_FRAME_NO_GET(x)        (((x) >> 12) & 0xF)
 
 /** EOE param */
@@ -738,7 +738,7 @@ static void EOE_receive_fragment (void)
    /* Capture error case */
    if(EOEvar.rxfragmentno != EOE_HDR_FRAG_NO_GET(frameinfo2))
    {
-      DPRINT("Unexpected fragment number %d, expected: %d\n",
+      DPRINT("Unexpected fragment number %"PRIu32", expected: %"PRIu32"\n",
             EOE_HDR_FRAG_NO_GET(frameinfo2), EOEvar.rxfragmentno);
       /* Clean up existing saved data */
       if(EOEvar.rxfragmentno != 0)
@@ -773,18 +773,18 @@ static void EOE_receive_fragment (void)
    /* In frame fragment received */
    else
    {
-      uint16_t offset = (EOE_HDR_FRAME_OFFSET_GET(frameinfo2) << 5);
+      uint32_t offset = (EOE_HDR_FRAME_OFFSET_GET(frameinfo2) << 5);
       /* Validate received fragment */
       if(EOEvar.rxframeno != EOE_HDR_FRAME_NO_GET(frameinfo2))
       {
-         DPRINT("Unexpected frame number %d, expected: %d\n",
+         DPRINT("Unexpected frame number %"PRIu32", expected: %"PRIu32"\n",
                EOE_HDR_FRAME_NO_GET(frameinfo2), EOEvar.rxframeno);
          EOE_init_rx ();
          return;
       }
       else if(EOEvar.rxframeoffset != offset)
       {
-         DPRINT("Unexpected frame offset %d, expected: %d\n",
+         DPRINT("Unexpected frame offset %"PRIu32", expected: %"PRIu32"\n",
                offset, EOEvar.rxframeoffset);
          EOE_init_rx ();
          return;
@@ -890,7 +890,7 @@ static void EOE_send_fragment ()
       }
 
       /* Set frame number */
-      tempframe2 = (uint16_t)EOE_HDR_FRAME_NO_SET(frameno);
+      tempframe2 = EOE_HDR_FRAME_NO_SET(frameno);
       frameinfo2 |= tempframe2;
 
       eoembx = (_EOE *) &MBX[mbxhandle * ESC_MBXSIZE];

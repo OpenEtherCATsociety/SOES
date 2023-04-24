@@ -164,7 +164,7 @@ static uint32_t FOE_fwrite (uint8_t *data, uint32_t length)
        FOEvar.fposition++;
        if(failed)
        {
-          DPRINT("Failed FOE_fwrite ncopied=%d\n", ncopied);
+          DPRINT("Failed FOE_fwrite ncopied=%"PRIu32"\n", ncopied);
        }
        else
        {
@@ -174,7 +174,7 @@ static uint32_t FOE_fwrite (uint8_t *data, uint32_t length)
 
     foe_file->total_size += ncopied;
 
-    DPRINT("FOE_fwrite END with : %d\n",ncopied);
+    DPRINT("FOE_fwrite END with : %"PRIu32"\n",ncopied);
     return ncopied;
 }
 
@@ -234,7 +234,7 @@ static void FOE_abort (uint32_t code)
       }
       /* Nothing we can do if we can't get an outbound mailbox. */
    }
-   DPRINT("FOE_abort: 0x%X\n", code);
+   DPRINT("FOE_abort: 0x%"PRIX32"\n", code);
    FOE_init ();
 }
 
@@ -451,7 +451,9 @@ static void FOE_data ()
 
    if (packet != FOEvar.foepacket)
    {
-      DPRINT("FOE_data packet error, packet: %d, foeheader.packet: %d\n",packet,FOEvar.foepacket);
+      DPRINT("FOE_data packet error, packet: %"PRIu32", foeheader.packet: %"PRIu32"\n",
+            packet,
+            FOEvar.foepacket);
       FOE_abort (FOE_ERR_PACKETNO);
    }
    else if (data_len == 0)
@@ -479,7 +481,7 @@ static void FOE_data ()
          DPRINT("FOE_data data_len == FOE_DATA_SIZE\n");
          if (ncopied != data_len)
          {
-            DPRINT("FOE_data only %d of %d copied\n",ncopied, data_len);
+            DPRINT("FOE_data only %"PRIu32" of %"PRIu32" copied\n",ncopied, data_len);
             FOE_abort (FOE_ERR_PROGERROR);
          }
          res = FOE_send_ack ();
