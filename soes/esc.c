@@ -64,7 +64,7 @@ void ESC_ALstatusgotoerror (uint8_t status, uint16_t errornumber)
    as = ESCvar.ALstatus & ESCREG_AL_ERRACKMASK;
    an = as;
    /* Set the state transition, new state in high bits and old in bits  */
-   as = ((status & ESCREG_AL_ERRACKMASK) << 4) | (as & 0x0f);
+   as = (uint8_t)(((status & ESCREG_AL_ERRACKMASK) << 4) | (as & 0x0f));
    /* Call post state change hook case it have been configured  */
    if (ESCvar.pre_state_change_hook != NULL)
    {
@@ -138,7 +138,7 @@ uint32_t ESC_ALeventread (void)
 void ESC_SMack (uint8_t n)
 {
    uint8_t dummy;
-   ESC_read (ESCREG_SM0ACTIVATE + (n << 3), &dummy, 1);
+   ESC_read ((uint16_t)(ESCREG_SM0ACTIVATE + (n << 3)), &dummy, 1);
 }
 
 /** Read SM Status register 0x805(+ offset to SyncManager n) and save the
@@ -150,7 +150,7 @@ void ESC_SMstatus (uint8_t n)
 {
    _ESCsm2 *sm;
    sm = (_ESCsm2 *)&ESCvar.SM[n];
-   ESC_read (ESCREG_SM0STATUS + (n << 3), &(sm->Status), 1);
+   ESC_read ((uint16_t)(ESCREG_SM0STATUS + (n << 3)), &(sm->Status), 1);
 }
 
 /** Write ESCvar.SM[n] data to ESC PDI control register 0x807(+ offset to SyncManager n).
@@ -161,7 +161,7 @@ void ESC_SMwritepdi (uint8_t n)
 {
    _ESCsm2 *sm;
    sm = (_ESCsm2 *)&ESCvar.SM[n];
-   ESC_write (ESCREG_SM0PDI + (n << 3), &(sm->ActPDI), 1);
+   ESC_write ((uint16_t)(ESCREG_SM0PDI + (n << 3)), &(sm->ActPDI), 1);
 }
 
 /** Write 0 to Bit0 in SM PDI control register 0x807(+ offset to SyncManager n) to Activate the Sync Manager n.
@@ -172,7 +172,7 @@ void ESC_SMenable (uint8_t n)
 {
    _ESCsm2 *sm;
    sm = (_ESCsm2 *)&ESCvar.SM[n];
-   sm->ActPDI &= ~ESCREG_SMENABLE_BIT;
+   sm->ActPDI &= (uint8_t)~ESCREG_SMENABLE_BIT;
    ESC_SMwritepdi (n);
 }
 /** Write 1 to Bit0 in SM PDI control register 0x807(+ offset to SyncManager n) to De-activte the Sync Manager n.
@@ -416,9 +416,9 @@ void ESC_readmbx (void)
 
    if (length > (ESC_MBX0_sml - ESC_MBXHSIZE))
    {
-      length = ESC_MBX0_sml - ESC_MBXHSIZE;
+      length = (uint16_t)(ESC_MBX0_sml - ESC_MBXHSIZE);
    }
-   ESC_read (ESC_MBX0_sma + ESC_MBXHSIZE, MB->b, length);
+   ESC_read ((uint16_t)(ESC_MBX0_sma + ESC_MBXHSIZE), MB->b, length);
    if (length + ESC_MBXHSIZE < ESC_MBX0_sml)
    {
       ESC_read (ESC_MBX0_sme, &length, 1);
@@ -441,9 +441,9 @@ void ESC_writembx (uint8_t n)
 
    if (length > (ESC_MBX1_sml - ESC_MBXHSIZE))
    {
-      length = ESC_MBX1_sml - ESC_MBXHSIZE;
+      length = (uint16_t)(ESC_MBX1_sml - ESC_MBXHSIZE);
    }
-   ESC_write (ESC_MBX1_sma, MBh, ESC_MBXHSIZE + length);
+   ESC_write (ESC_MBX1_sma, MBh, (uint16_t)(ESC_MBXHSIZE + length));
    if (length + ESC_MBXHSIZE < ESC_MBX1_sml)
    {
       ESC_write (ESC_MBX1_sme, &dummy, 1);
@@ -489,7 +489,7 @@ uint8_t ESC_claimbuffer (void)
       MBh->address = htoes (0x0000);      // destination is master
       MBh->channel = 0;
       MBh->priority = 0;
-      MBh->mbxcnt = ESCvar.mbxcnt;
+      MBh->mbxcnt = ESCvar.mbxcnt & 0xFU;
       ESCvar.txcue++;
    }
    return n;
@@ -603,7 +603,7 @@ uint8_t ESC_mbxprocess (void)
             ESC_writembx (ESCvar.mbxbackup);
          }
          ESCvar.toggle = ESCvar.SM[1].ECrep;
-         ESCvar.SM[1].PDIrep = ESCvar.toggle;
+         ESCvar.SM[1].PDIrep = ESCvar.toggle & 0x1U;
          ESC_SMwritepdi (1);
       }
       return 0;
@@ -690,13 +690,41 @@ uint8_t ESC_checkSM23 (uint8_t state)
    _ESCsm2 *SM;
    ESC_read (ESCREG_SM2, (void *) &ESCvar.SM[SM2_IDX], sizeof (ESCvar.SM[SM2_IDX]));
    SM = (_ESCsm2 *) & ESCvar.SM[SM2_IDX];
-   if ((etohs (SM->PSA) != ESC_SM2_sma) || (etohs (SM->Length) != ESCvar.ESC_SM2_sml)
-       || (SM->Command != ESC_SM2_smc) || !(SM->ActESC & ESC_SM2_act))
+   
+   /* Check SM settings */
+   if ((etohs (SM->PSA) != ESC_SM2_sma) ||
+       (SM->Command != ESC_SM2_smc))
    {
       ESCvar.SMtestresult = SMRESULT_ERRSM2;
       /* fail state change */
       return (ESCpreop | ESCerror);
    }
+   /* Check run-time settings */
+   /* Check length */
+   else if (etohs (SM->Length) != ESCvar.ESC_SM2_sml)
+   {
+      ESCvar.SMtestresult = SMRESULT_ERRSM2;
+      /* fail state change */
+      return (ESCpreop | ESCerror);
+   }
+   /* SM disabled and (SM activated or length > 0) set by master */
+   else if (((ESC_SM2_act & ESCREG_SYNC_ACT_ACTIVATED) == 0) &&
+            ((SM->ActESC & ESCREG_SYNC_ACT_ACTIVATED) || (ESCvar.ESC_SM2_sml > 0)))
+   {
+      ESCvar.SMtestresult = SMRESULT_ERRSM2;
+      /* fail state change */
+      return (ESCpreop | ESCerror);
+   }
+   /* SM enabled and (length > 0 but SM disabled) set by master */
+   else if (((ESC_SM2_act & ESCREG_SYNC_ACT_ACTIVATED) > 0) &&
+            ((SM->ActESC & ESCREG_SYNC_ACT_ACTIVATED) == 0) &&
+            (ESCvar.ESC_SM2_sml > 0))
+   {
+      ESCvar.SMtestresult = SMRESULT_ERRSM2;
+      /* fail state change */
+      return (ESCpreop | ESCerror);
+   }
+
    if ((ESC_SM2_sma + (etohs (SM->Length) * 3)) > ESC_SM3_sma)
    {
       ESCvar.SMtestresult = SMRESULT_ERRSM2;
@@ -705,8 +733,34 @@ uint8_t ESC_checkSM23 (uint8_t state)
    }
    ESC_read (ESCREG_SM3, (void *) &ESCvar.SM[SM3_IDX], sizeof (ESCvar.SM[SM3_IDX]));
    SM = (_ESCsm2 *) & ESCvar.SM[SM3_IDX];
-   if ((etohs (SM->PSA) != ESC_SM3_sma) || (etohs (SM->Length) != ESCvar.ESC_SM3_sml)
-       || (SM->Command != ESC_SM3_smc) || !(SM->ActESC & ESC_SM3_act))
+   /* Check SM settings */
+   if ((etohs (SM->PSA) != ESC_SM3_sma) ||
+       (SM->Command != ESC_SM3_smc))
+   {
+      ESCvar.SMtestresult = SMRESULT_ERRSM3;
+      /* fail state change */
+      return (ESCpreop | ESCerror);
+   }
+   /* Check run-time settings */
+   /* Check length */
+   else if (etohs (SM->Length) != ESCvar.ESC_SM3_sml)
+   {
+      ESCvar.SMtestresult = SMRESULT_ERRSM3;
+      /* fail state change */
+      return (ESCpreop | ESCerror);
+   }
+   /* SM disabled and (SM activated or length > 0) set by master */
+   else if (((ESC_SM3_act & ESCREG_SYNC_ACT_ACTIVATED) == 0) &&
+            ((SM->ActESC & ESCREG_SYNC_ACT_ACTIVATED) || (ESCvar.ESC_SM3_sml > 0)))
+   {
+      ESCvar.SMtestresult = SMRESULT_ERRSM3;
+      /* fail state change */
+      return (ESCpreop | ESCerror);
+   }
+   /* SM enabled and (length > 0 but SM disabled) set by master */
+   else if (((ESC_SM3_act & ESCREG_SYNC_ACT_ACTIVATED) > 0) &&
+            ((SM->ActESC & ESCREG_SYNC_ACT_ACTIVATED) == 0) &&
+            (ESCvar.ESC_SM3_sml > 0))
    {
       ESCvar.SMtestresult = SMRESULT_ERRSM3;
       /* fail state change */
@@ -729,7 +783,12 @@ uint8_t ESC_startinput (uint8_t state)
 
    if (state != (ESCpreop | ESCerror))
    {
-      ESC_SMenable (SM3_IDX);
+   	  /* If inputs > 0 , enable SM3 */
+      if (ESCvar.ESC_SM3_sml > 0)
+      {
+         ESC_SMenable (SM3_IDX);
+      }
+      /* Go to state input regardless of any inputs present */
       CC_ATOMIC_SET(ESCvar.App.state, APPSTATE_INPUT);
    }
    else
@@ -769,15 +828,22 @@ uint8_t ESC_startinput (uint8_t state)
       {
          if (ESCvar.esc_hw_interrupt_enable != NULL)
          {
-            if(ESCvar.dcsync > 0)
+            uint32_t int_mask;
+
+            if (ESCvar.ESC_SM2_sml == 0)
             {
-               ESCvar.esc_hw_interrupt_enable(ESCREG_ALEVENT_DC_SYNC0 |
-                     ESCREG_ALEVENT_SM2);
+               int_mask = ESCREG_ALEVENT_SM3;
             }
             else
             {
-               ESCvar.esc_hw_interrupt_enable(ESCREG_ALEVENT_SM2);
+               int_mask = ESCREG_ALEVENT_SM2;
             }
+
+            if (ESCvar.dcsync > 0)
+            {
+               int_mask |= ESCREG_ALEVENT_DC_SYNC0;
+            }
+            ESCvar.esc_hw_interrupt_enable (int_mask);
          }
       }
    }
@@ -800,7 +866,8 @@ void ESC_stopinput (void)
          (ESCvar.esc_hw_interrupt_disable != NULL))
    {
       ESCvar.esc_hw_interrupt_disable (ESCREG_ALEVENT_DC_SYNC0 |
-            ESCREG_ALEVENT_SM2);
+            ESCREG_ALEVENT_SM2 |
+            ESCREG_ALEVENT_SM3);
    }
 }
 
@@ -814,8 +881,12 @@ void ESC_stopinput (void)
  */
 uint8_t ESC_startoutput (uint8_t state)
 {
-
-   ESC_SMenable (SM2_IDX);
+   /* If outputs > 0 , enable SM2 */
+   if (ESCvar.ESC_SM2_sml > 0)
+   {
+      ESC_SMenable (SM2_IDX);
+   }
+   /* Go to state output regardless of any outputs present */
    CC_ATOMIC_OR(ESCvar.App.state, APPSTATE_OUTPUT);
    return state;
 
@@ -933,6 +1004,75 @@ void ESC_sm_act_event (void)
       ESC_SMack (7);
    }
 }
+
+static bool ESC_check_id_request (uint16_t ALcontrol, uint8_t * an)
+{
+   if ((ALcontrol & ESCREG_AL_ID_REQUEST) != 0)
+   {
+      uint8_t state = ALcontrol & ESCREG_AL_ERRACKMASK;
+
+      if ((state != ESCboot) &&
+          ((state < ESCsafeop) || (*an == ESCsafeop) || (*an == ESCop)))
+      {
+         uint16_t ALstatuscode;
+
+         ESC_read (ESCREG_ALERROR,
+                   (void *)&ALstatuscode,
+                   sizeof (ALstatuscode));
+
+         return (ALstatuscode == ALERR_NONE);
+      }
+   }
+
+   return false;
+}
+
+static uint8_t ESC_load_device_id (void)
+{
+   uint16_t device_id;
+
+   if (ESCvar.get_device_id != NULL)
+   {
+      if (ESCvar.get_device_id (&device_id) != 0)
+      {
+         device_id = 0;
+      }
+   }
+   else
+   {
+      ESC_read (ESCREG_CONF_STATION_ALIAS,
+                (void *)&device_id,
+                sizeof (device_id));
+   }
+
+   if (device_id != 0)
+   {
+      /* Load the Device Identification Value to the AL Status Code register */
+      ESC_ALerror (device_id);
+
+      return ESCREG_AL_ID_REQUEST;
+   }
+
+   return 0;
+}
+
+#ifdef ESC_DEBUG
+static char * ESC_state_to_string (uint8_t ESC_state)
+{
+   switch (ESC_state)
+   {
+      case ESCinit:   return "Init";
+      case ESCpreop:  return "Pre-Operational";
+      case ESCboot:   return "Bootstrap";
+      case ESCsafeop: return "Safe-Operational";
+      case ESCop:     return "Operational";
+      case ESCerror:  return "Error";
+   }
+
+   return "Unknown";
+}
+#endif
+
 /** The state handler acting on ALControl Bit(0)
  * events in the Al Event Request register 0x220.
  *
@@ -980,7 +1120,7 @@ void ESC_state (void)
    }
 
    /* Mask high bits ALcommand, low bits ALstatus */
-   as = (ac << 4) | (as & 0x0f);
+   as = (uint8_t)((ac << 4) | (as & 0x0f));
 
    /* Call post state change hook case it have been configured  */
    if (ESCvar.pre_state_change_hook != NULL)
@@ -1136,6 +1276,11 @@ void ESC_state (void)
          an = ESCsafeop | ESCerror;
          ESC_ALerror (ALERR_INVALIDSTATECHANGE);
          ESC_stopoutput ();
+         /* If no outputs present, we need to flag error using SM3 */
+         if (ESCvar.ESC_SM2_sml == 0 && ESCvar.ESC_SM3_sml > 0)
+         {
+            ESC_SMdisable (SM3_IDX);
+         }
          break;
       }
       case OP_TO_SAFEOP:
@@ -1149,6 +1294,11 @@ void ESC_state (void)
          if (an == ESCop)
          {
             ESC_stopoutput ();
+            /* If no outputs present, we need to flag error using SM3 */
+            if (ESCvar.ESC_SM2_sml == 0 && ESCvar.ESC_SM3_sml > 0)
+            {
+               ESC_SMdisable (SM3_IDX);
+            }
             an = ESCsafeop;
          }
          if (as == ESCsafeop)
@@ -1181,9 +1331,16 @@ void ESC_state (void)
    #if USE_EMU
    ESCvar.ALstatus = an;
    #else
+   if (ESC_check_id_request (ESCvar.ALcontrol, &an))
+   {
+      an |= ESC_load_device_id ();
+   }
    ESC_ALstatus (an);
    #endif
-   DPRINT ("state %x\n", an);
+  
+   #ifdef ESC_DEBUG
+   DPRINT ("state %s\n", ESC_state_to_string (an & 0xF));
+   #endif
 }
 /** Function copying the application configuration variable
  * data to the stack local variable.
@@ -1223,4 +1380,5 @@ void ESC_config (esc_cfg_t * cfg)
    ESCvar.esc_hw_interrupt_disable = cfg->esc_hw_interrupt_disable;
    ESCvar.esc_hw_eep_handler = cfg->esc_hw_eep_handler;
    ESCvar.esc_check_dc_handler = cfg->esc_check_dc_handler;
+   ESCvar.get_device_id = cfg->get_device_id;
 }

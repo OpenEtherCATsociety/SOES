@@ -13,8 +13,8 @@
 
 #include <cc.h>
 
-CC_PACKED_BEGIN
-typedef struct CC_PACKED
+
+typedef struct
 {
    uint16_t subindex;
    uint16_t datatype;
@@ -24,10 +24,9 @@ typedef struct CC_PACKED
    uint32_t value;
    void *data;
 } _objd;
-CC_PACKED_END
 
-CC_PACKED_BEGIN
-typedef struct CC_PACKED
+
+typedef struct
 {
    uint16_t index;
    uint16_t objtype;
@@ -36,12 +35,13 @@ typedef struct CC_PACKED
    const char *name;
    const _objd *objdesc;
 } _objectlist;
-CC_PACKED_END
+
 
 typedef struct
 {
    const _objd * obj;
-   uint16_t offset;
+   const _objectlist * objectlistitem;
+   uint32_t offset;
 } _SMmap;
 
 #define OBJH_READ               0
@@ -96,11 +96,15 @@ typedef struct
 #define ATYPE_Wop               0x20
 #define ATYPE_RXPDO             0x40
 #define ATYPE_TXPDO             0x80
+#define ATYPE_BACKUP            0x100
+#define ATYPE_SETTING           0x200
 
 #define ATYPE_RO                (ATYPE_Rpre | ATYPE_Rsafe | ATYPE_Rop)
 #define ATYPE_WO                (ATYPE_Wpre | ATYPE_Wsafe | ATYPE_Wop)
 #define ATYPE_RW                (ATYPE_RO | ATYPE_WO)
 #define ATYPE_RWpre             (ATYPE_Wpre | ATYPE_RO)
+#define ATYPE_RWop              (ATYPE_Wop | ATYPE_RO)
+#define ATYPE_RWpre_safe        (ATYPE_Wpre | ATYPE_Wsafe | ATYPE_RO)
 
 #if USE_MBX
 #define TX_PDO_OBJIDX           0x1c13
@@ -113,7 +117,7 @@ typedef struct
 #define COMPLETE_ACCESS_FLAG    (1 << 15)
 
 void ESC_coeprocess (void);
-int16_t SDO_findsubindex (int16_t nidx, uint8_t subindex);
+int16_t SDO_findsubindex (int32_t nidx, uint8_t subindex);
 int32_t SDO_findobject (uint16_t index);
 uint16_t sizeOfPDO (uint16_t index, int * nmappings, _SMmap * sm, int max_mappings);
 void COE_initDefaultValues (void);

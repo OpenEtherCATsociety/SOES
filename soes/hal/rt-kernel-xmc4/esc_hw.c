@@ -10,7 +10,7 @@
  * Function to read and write commands to the ESC. Used to read/write ESC
  * registers and memory.
  */
-#include <kern.h>
+#include <kern/kern.h>
 #include <bsp.h>
 #include <xmc4.h>
 #include <eru.h>
@@ -242,8 +242,8 @@ static void ecat_isr (void * arg)
    CC_ATOMIC_SET(ESCvar.ALevent, etohl(ecat0->AL_EVENT_REQ));
    CC_ATOMIC_SET(ESCvar.Time, etohl(ecat0->READMode_DC_SYS_TIME[0]));
 
-   /* Handle SM2 interrupt */
-   if(ESCvar.ALevent & ESCREG_ALEVENT_SM2)
+   /* Handle SM2 & SM3 interrupt */
+   if(ESCvar.ALevent & (ESCREG_ALEVENT_SM2 | ESCREG_ALEVENT_SM3))
    {
       /* Is DC active or not */
       if(ESCvar.dcsync == 0)

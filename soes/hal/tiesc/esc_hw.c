@@ -301,7 +301,7 @@ void PDI_Isr(void)
     alevent = bsp_read_word_isr(escHwPruIcssHandle,ESCREG_ALEVENT);
     CC_ATOMIC_SET(ESCvar.ALevent, etohs(alevent));
 
-    if(ESCvar.ALevent & ESCREG_ALEVENT_SM2)
+    if(ESCvar.ALevent & (ESCREG_ALEVENT_SM2 & ESCREG_ALEVENT_SM3))
     {
         DIG_process(DIG_PROCESS_OUTPUTS_FLAG |
                     DIG_PROCESS_APP_HOOK_FLAG |

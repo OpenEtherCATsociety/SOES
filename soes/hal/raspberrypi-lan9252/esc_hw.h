@@ -15,4 +15,3 @@ void ESC_interrupt_enable (uint32_t mask);
 void ESC_interrupt_disable (uint32_t mask);
 
 #endif
-
