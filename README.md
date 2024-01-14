@@ -35,5 +35,5 @@ Building
 
    * `mkdir build`
    * `cd build`
-   * `cmake ..`
+   * `cmake .. -DRPI_VARIANT`
    * `make`
