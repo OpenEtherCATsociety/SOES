@@ -556,8 +556,11 @@ static uint32_t complete_access_subindex_loop(const _objd *objd,
          }
       }
 
-      /* Subindex 0 is padded to 16 bit */
-      size += (nsub == 0) ? 16 : bitlen;
+      /* Subindex 0 is padded to 16 bit if not object type VARIABLE.
+       * For VARIABLE use true bitsize.
+       */
+      size +=
+      ((nsub == 0) && (SDOobjects[nidx].objtype != OTYPE_VAR)) ? 16 : bitlen;
       nsub++;
 
       if ((max_bytes > 0) && (BITS2BYTES(size) >= max_bytes))
