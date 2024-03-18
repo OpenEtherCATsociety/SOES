@@ -334,6 +334,8 @@ uint8_t ESC_startmbx (uint8_t state)
    else
    {
       ESCvar.toggle = ESCvar.SM[1].ECrep;       //sync repeat request toggle state
+      ESCvar.SM[1].PDIrep = ESCvar.toggle & 0x1U;
+      ESC_SMwritepdi (1);
       ESCvar.MBXrun = 1;
    }
    return state;
@@ -367,6 +369,8 @@ uint8_t ESC_startmbxboot (uint8_t state)
    else
    {
       ESCvar.toggle = ESCvar.SM[1].ECrep;       //sync repeat request toggle state
+      ESCvar.SM[1].PDIrep = ESCvar.toggle & 0x1U;
+      ESC_SMwritepdi (1);
       ESCvar.MBXrun = 1;
    }
    return state;
