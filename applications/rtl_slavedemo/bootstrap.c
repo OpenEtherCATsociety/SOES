@@ -46,7 +46,7 @@ void boot_inithook (void)
    }
 }
 
-uint32_t flash_foe_buffer (foe_writefile_cfg_t * self, uint8_t * data, size_t length)
+uint32_t flash_foe_buffer (foe_file_cfg_t * self, uint8_t * data, size_t length)
 {
    uint32_t flash_cmd_failed = 0;
    uint32_t calculated_address = self->dest_start_address + self->address_offset;
@@ -92,7 +92,7 @@ void bootstrap_foe_init  (void)
     * extern uint32_t flash_start;
     */
    /* This part is Cortex M4 Kinetis specific therefore placed in Hooks*/
-   static foe_writefile_cfg_t files[] =
+   static foe_file_cfg_t files[] =
    {
       {
          .name               = "ato.bin",
@@ -100,6 +100,7 @@ void bootstrap_foe_init  (void)
          .dest_start_address = FLASH_BLOCK_SIZE + 0, /* + (uint32_t)&flash_start,*/
          .address_offset     = 0,
          .filepass           = 0,
+         .write_only_in_boot = 1,
          .write_function     = flash_foe_buffer   /* NULL if not used */
       },
       {
@@ -109,6 +110,7 @@ void bootstrap_foe_init  (void)
                                (FLASH_EEPROM_SECTIONS * FLASH_SECTOR_SIZE),
          .address_offset     = 0,
          .filepass           = 0,
+         .write_only_in_boot = 1,
          .write_function     = flash_foe_buffer  /* NULL if not used */
       },
    };
@@ -122,7 +124,7 @@ void bootstrap_foe_init  (void)
       .files       = files
    };
 
-   FOE_config ((foe_cfg_t *)&config, (foe_writefile_cfg_t *)&files);
+   FOE_config ((foe_cfg_t *)&config);
 }
 
 void bootstrap_state (void)
