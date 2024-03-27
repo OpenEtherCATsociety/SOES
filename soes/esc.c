@@ -162,6 +162,17 @@ void ESC_SMwritepdi (uint8_t n)
    ESC_write ((uint16_t)(ESCREG_SM0PDI + (n << 3)), &(sm->ActPDI), 1);
 }
 
+/** Read ESC PDI control register 0x807(+ offset to SyncManager n) to ESCvar.SM[n] data.
+ *
+ * @param[in] n   = Read from Sync Manager no. n
+ */
+void ESC_SMreadpdi (uint8_t n)
+{
+    _ESCsm2* sm;
+    sm = (_ESCsm2*)&ESCvar.SM[n];
+    ESC_read ((uint16_t)(ESCREG_SM0PDI + (n << 3)), &(sm->ActPDI), 1);
+}
+
 /** Write 0 to Bit0 in SM PDI control register 0x807(+ offset to SyncManager n) to Activate the Sync Manager n.
  *
  * @param[in] n   = Write to Sync Manager no. n
@@ -172,6 +183,11 @@ void ESC_SMenable (uint8_t n)
    sm = (_ESCsm2 *)&ESCvar.SM[n];
    sm->ActPDI &= (uint8_t)~ESCREG_SMENABLE_BIT;
    ESC_SMwritepdi (n);
+   /* Read back wait until enabled */
+   do
+   {
+      ESC_SMreadpdi (n);
+   } while ((sm->ActPDI & ESCREG_SMENABLE_BIT) == 1);
 }
 /** Write 1 to Bit0 in SM PDI control register 0x807(+ offset to SyncManager n) to De-activte the Sync Manager n.
  *
@@ -183,6 +199,11 @@ void ESC_SMdisable (uint8_t n)
    sm = (_ESCsm2 *)&ESCvar.SM[n];
    sm->ActPDI |= ESCREG_SMENABLE_BIT;
    ESC_SMwritepdi (n);
+   /* Read back wait until disabled */
+   do
+   {
+      ESC_SMreadpdi (n);
+   } while ((sm->ActPDI & ESCREG_SMENABLE_BIT) == 0);
 }
 /** Read Configured Station Address register 0x010 assigned by the Master.
  *
@@ -320,7 +341,6 @@ uint8_t ESC_startmbx (uint8_t state)
    ESCvar.activembxsize = MBXSIZE;
    ESCvar.activemb0 = &ESCvar.mb[0];
    ESCvar.activemb1 = &ESCvar.mb[1];
-
 
    ESC_SMenable (0);
    ESC_SMenable (1);
