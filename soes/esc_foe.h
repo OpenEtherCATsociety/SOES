@@ -20,7 +20,7 @@ typedef struct foe_file_cfg foe_file_cfg_t;
 struct foe_file_cfg
 {
    /** Name of file to receive from master */
-   const char * name;
+   const char *   name;
    /** Size of file,sizeof data we can recv */
    uint32_t       max_data;
    /** Where to store the data initially */
@@ -35,7 +35,9 @@ struct foe_file_cfg
    uint8_t        write_only_in_boot;
    /** for feature use */
    uint32_t       padding:24;
-   /** Pointer to application foe write function */
+   /** Pointer to application FoE write function
+    *  At the last write for each file, the \a length value is less that the FoE \a buffer_size.
+    *  Return 0 on success, and non-zero on failure */
    uint32_t       (*write_function) (foe_file_cfg_t * self, uint8_t * data, size_t length);
 };
 
