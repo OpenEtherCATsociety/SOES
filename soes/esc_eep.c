@@ -15,6 +15,8 @@
 #include <string.h>
 
 static uint8_t eep_buf[8];
+static uint16_t eep_read_size = 8U;
+static uint16_t (*eep_reload_ptr)(void) = NULL;
 
 /** EPP periodic task of ESC side EEPROM emulation.
  *
@@ -51,12 +53,49 @@ void EEP_process (void)
             break;
 
          case EEP_CMD_READ:
-         case EEP_CMD_RELOAD:
             /* handle read request */
-            if (EEP_read (stat.addr * 2U /* sizeof(uint16_t) */, eep_buf, EEP_READ_SIZE) != 0) {
+            if (EEP_read (stat.addr * 2U /* sizeof(uint16_t) */, eep_buf, eep_read_size) != 0) {
                stat.contstat.bits.ackErr = 1;
-            } else {
-               ESC_write (ESCREG_EEDATA, eep_buf, EEP_READ_SIZE);
+            }
+            else {
+               ESC_write(ESCREG_EEDATA, eep_buf, eep_read_size);
+            }
+            break;
+
+         case EEP_CMD_RELOAD:
+            /* user defined reload if set */
+            if (eep_reload_ptr != NULL) {
+               uint16_t reload_ret = (*eep_reload_ptr)();
+               if (reload_ret != 0) {
+                  stat.contstat.bits.ackErr = 1;
+                  if (reload_ret & EEP_ERROR_CSUM) {
+                     stat.contstat.bits.csumErr = 1;
+                  }
+               }
+            }
+            else {
+                if (eep_read_size == 8U) {
+                   /* handle reload request */
+                   if (EEP_read(stat.addr * 2U /* sizeof(uint16_t) */, eep_buf, eep_read_size) != 0) {
+                      stat.contstat.bits.ackErr = 1;
+                   }
+                   else {
+                      ESC_write(ESCREG_EEDATA, eep_buf, eep_read_size);
+                   }
+                }
+                else {
+                  /* Default handler of reload request for 4 Byte read, load config alias.
+                   * To support other ESC behavior, implement user defined reload.
+                   */
+                  if (EEP_read(EEP_CONFIG_ALIAS_WORD_OFFSET * 2U /* sizeof(uint16_t) */,
+                        eep_buf,
+                        2U /* 2 Bytes config alias*/) != 0) {
+                     stat.contstat.bits.ackErr = 1;
+                  }
+                  else {
+                     ESC_write(ESCREG_EEDATA, eep_buf, 2U /* 2 Bytes config alias*/);
+                  }
+               }
             }
             break;
 
@@ -78,3 +117,23 @@ void EEP_process (void)
    }
 }
 
+/** EPP Set read size, 4 Byte or 8 Byte depending on ESC.
+ *  Default 8 Byte.
+ */
+void EEP_set_read_size (uint16_t read_size)
+{
+   if ((read_size == 8U) || (read_size == 4U))
+   {
+      eep_read_size = read_size;
+   }
+}
+
+/** EPP Set reload fucntion pointer.
+ *  Function shall return 0 on success, else return
+ *  defined error mask eg. EEP_ERROR_CSUM on CRC error
+ *  on reload.
+ */
+void EEP_set_reload_function_pointer (uint16_t (*reload_ptr)(void))
+{
+   eep_reload_ptr = reload_ptr;
+}
