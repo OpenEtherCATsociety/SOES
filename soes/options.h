@@ -9,6 +9,19 @@
 /* User-defined options, Options defined here will override default values */
 #include "ecat_options.h"
 
+/* Device emulation support */
+/* If enabled, AL status register will be set to value written to AL control register by EEPROM */
+/* If disabled, AL status register has to be set by SOES */
+#ifndef USE_EMU
+#define USE_EMU          0
+#endif
+
+/* Mailbox support */
+/* If disabled SM2 --> SM0, and SM3 --> SM1 */
+#ifndef USE_MBX
+#define USE_MBX          1
+#endif
+
 /* FoE support */
 #ifndef USE_FOE
 #define USE_FOE          1

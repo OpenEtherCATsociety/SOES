@@ -35,10 +35,12 @@ void ESC_ALerror (uint16_t errornumber)
  */
 void ESC_ALstatus (uint8_t status)
 {
+   #if !(USE_EMU)
    uint16_t dummy;
    ESCvar.ALstatus = status;
    dummy = htoes ((uint16_t) status);
    ESC_write (ESCREG_ALSTATUS, &dummy, sizeof (dummy));
+   #endif
 }
 
 /** Write AL Status and AL Status code to the ESC.
@@ -710,8 +712,8 @@ void ESC_xoeprocess (void)
 uint8_t ESC_checkSM23 (uint8_t state)
 {
    _ESCsm2 *SM;
-   ESC_read (ESCREG_SM2, (void *) &ESCvar.SM[2], sizeof (ESCvar.SM[2]));
-   SM = (_ESCsm2 *) & ESCvar.SM[2];
+   ESC_read (ESCREG_SM2, (void *) &ESCvar.SM[SM2_IDX], sizeof (ESCvar.SM[SM2_IDX]));
+   SM = (_ESCsm2 *) & ESCvar.SM[SM2_IDX];
    
    /* Check SM settings */
    if ((etohs (SM->PSA) != ESC_SM2_sma) ||
@@ -753,9 +755,8 @@ uint8_t ESC_checkSM23 (uint8_t state)
       /* SM2 overlaps SM3, fail state change */
       return (ESCpreop | ESCerror);
    }
-
-   ESC_read (ESCREG_SM3, (void *) &ESCvar.SM[3], sizeof (ESCvar.SM[3]));
-   SM = (_ESCsm2 *) & ESCvar.SM[3];
+   ESC_read (ESCREG_SM3, (void *) &ESCvar.SM[SM3_IDX], sizeof (ESCvar.SM[SM3_IDX]));
+   SM = (_ESCsm2 *) & ESCvar.SM[SM3_IDX];
    /* Check SM settings */
    if ((etohs (SM->PSA) != ESC_SM3_sma) ||
        (SM->Command != ESC_SM3_smc))
@@ -809,15 +810,15 @@ uint8_t ESC_startinput (uint8_t state)
    	  /* If inputs > 0 , enable SM3 */
       if (ESCvar.ESC_SM3_sml > 0)
       {
-         ESC_SMenable (3);
+         ESC_SMenable (SM3_IDX);
       }
       /* Go to state input regardless of any inputs present */
       CC_ATOMIC_SET(ESCvar.App.state, APPSTATE_INPUT);
    }
    else
    {
-      ESC_SMdisable (2);
-      ESC_SMdisable (3);
+      ESC_SMdisable (SM2_IDX);
+      ESC_SMdisable (SM3_IDX);
       if (ESCvar.SMtestresult & SMRESULT_ERRSM3)
       {
          ESC_ALerror (ALERR_INVALIDINPUTSM);
@@ -843,8 +844,8 @@ uint8_t ESC_startinput (uint8_t state)
          ESC_ALerror (dc_check_result);
          state = (ESCpreop | ESCerror);
 
-         ESC_SMdisable (2);
-         ESC_SMdisable (3);
+         ESC_SMdisable (SM2_IDX);
+         ESC_SMdisable (SM3_IDX);
          CC_ATOMIC_SET(ESCvar.App.state, APPSTATE_IDLE);
       }
       else
@@ -881,8 +882,8 @@ uint8_t ESC_startinput (uint8_t state)
 void ESC_stopinput (void)
 {
    CC_ATOMIC_SET(ESCvar.App.state, APPSTATE_IDLE);
-   ESC_SMdisable (3);
-   ESC_SMdisable (2);
+   ESC_SMdisable (SM3_IDX);
+   ESC_SMdisable (SM2_IDX);
 
    /* Call interrupt disable hook case it have been configured  */
    if ((ESCvar.use_interrupt != 0) &&
@@ -904,11 +905,10 @@ void ESC_stopinput (void)
  */
 uint8_t ESC_startoutput (uint8_t state)
 {
-	
    /* If outputs > 0 , enable SM2 */
    if (ESCvar.ESC_SM2_sml > 0)
    {
-      ESC_SMenable (2);
+      ESC_SMenable (SM2_IDX);
    }
    /* Go to state output regardless of any outputs present */
    CC_ATOMIC_OR(ESCvar.App.state, APPSTATE_OUTPUT);
@@ -924,7 +924,7 @@ uint8_t ESC_startoutput (uint8_t state)
 void ESC_stopoutput (void)
 {
    CC_ATOMIC_AND(ESCvar.App.state, APPSTATE_INPUT);
-   ESC_SMdisable (2);
+   ESC_SMdisable (SM2_IDX);
    APP_safeoutput ();
 }
 
@@ -934,9 +934,12 @@ void ESC_stopoutput (void)
  */
 void ESC_sm_act_event (void)
 {
-   uint8_t ac, an, as, ax, ax23;
-
-   /* Have at least on Sync Manager  changed */
+   uint8_t ac, an, as, ax23;
+   #if USE_MBX
+   uint8_t ax;
+   #endif
+      
+   /* Have at least one Sync Manager changed */
    if ((ESCvar.ALevent & ESCREG_ALEVENT_SMCHANGE) == 0)
    {
       /* nothing to do */
@@ -957,13 +960,19 @@ void ESC_sm_act_event (void)
     * is up and running
     */
    if ((as & ESCREG_AL_ALLBUTINITMASK) &&
+   #if USE_MBX
        ((as == ESCboot) == 0) && ESCvar.MBXrun)
+   #else
+       ((as == ESCboot) == 0))
+   #endif
    {
       /* Validate Sync Managers, reading the Activation register will
        * acknowledge the SyncManager Activation event making us enter
        * this execution path.
        */
+      #if USE_MBX
       ax = ESC_checkmbx (as);
+      #endif
       ax23 = ESC_checkSM23 (as);
       if ((an & ESCerror) && ((ac & ESCerror) == 0))
       {
@@ -972,6 +981,7 @@ void ESC_sm_act_event (void)
       /* Have we been forced to step down to INIT we will stop mailboxes,
        * update AL Status Code and exit ESC_state
        */
+      #if USE_MBX
       else if (ax == (ESCinit | ESCerror))
       {
          /* If we have activated Inputs and Outputs we need to disable them */
@@ -987,6 +997,7 @@ void ESC_sm_act_event (void)
          ESC_ALstatus (ax);
          return;
       }
+      #endif
       /* Have we been forced to step down to PREOP we will stop inputs
        * and outputs, update AL Status Code and exit ESC_state
        */
@@ -1095,6 +1106,13 @@ void ESC_state (void)
    uint8_t ac, an, as;
 
    /* Do we have a state change request pending */
+   #if USE_EMU
+   ESC_read (ESCREG_ALCONTROL, (void *) &ESCvar.ALcontrol,
+             sizeof (ESCvar.ALcontrol));
+   ESCvar.ALcontrol = etohs (ESCvar.ALcontrol);
+   if ((ESCvar.ALcontrol & ESCREG_AL_STATEMASK) ==
+       (ESCvar.ALstatus & ESCREG_AL_STATEMASK))
+   #else
    if (ESCvar.ALevent & ESCREG_ALEVENT_CONTROL)
    {
       ESC_read (ESCREG_ALCONTROL, (void *) &ESCvar.ALcontrol,
@@ -1102,10 +1120,12 @@ void ESC_state (void)
       ESCvar.ALcontrol = etohs (ESCvar.ALcontrol);
    }
    else
+   #endif
    {
       /* nothing to do */
       return;
    }
+   
    /* Mask state request bits + Error ACK */
    ac = ESCvar.ALcontrol & ESCREG_AL_STATEMASK;
    as = ESCvar.ALstatus & ESCREG_AL_STATEMASK;
@@ -1147,7 +1167,11 @@ void ESC_state (void)
       {
          /* get station address */
          ESC_address ();
+         #if USE_MBX
          an = ESC_startmbx (ac);
+         #else
+         an = ac;
+         #endif
          break;
       }
       case INIT_TO_BOOT:
@@ -1155,7 +1179,11 @@ void ESC_state (void)
       {
          /* get station address */
          ESC_address ();
+         #if USE_MBX
          an = ESC_startmbxboot (ac);
+         #else
+         an = ac;
+         #endif
          break;
       }
       case INIT_TO_SAFEOP:
@@ -1169,26 +1197,34 @@ void ESC_state (void)
       {
          ESC_stopoutput ();
          ESC_stopinput ();
+         #if USE_MBX
          ESC_stopmbx ();
+         #endif
          an = ESCinit;
          break;
       }
       case SAFEOP_TO_INIT:
       {
          ESC_stopinput ();
+         #if USE_MBX
          ESC_stopmbx ();
+         #endif
          an = ESCinit;
          break;
       }
       case PREOP_TO_INIT:
       {
+         #if USE_MBX
          ESC_stopmbx ();
+         #endif
          an = ESCinit;
          break;
       }
       case BOOT_TO_INIT:
       {
+         #if USE_MBX
          ESC_stopmbx ();
+         #endif
          an = ESCinit;
          break;
       }
@@ -1225,7 +1261,7 @@ void ESC_state (void)
          an = ESC_startinput (ac);
          if (an == ac)
          {
-            ESC_SMenable (2);
+            ESC_SMenable (SM2_IDX);
          }
          break;
       }
@@ -1267,7 +1303,7 @@ void ESC_state (void)
          /* If no outputs present, we need to flag error using SM3 */
          if (ESCvar.ESC_SM2_sml == 0 && ESCvar.ESC_SM3_sml > 0)
          {
-            ESC_SMdisable (3);
+            ESC_SMdisable (SM3_IDX);
          }
          break;
       }
@@ -1285,7 +1321,7 @@ void ESC_state (void)
             /* If no outputs present, we need to flag error using SM3 */
             if (ESCvar.ESC_SM2_sml == 0 && ESCvar.ESC_SM3_sml > 0)
             {
-               ESC_SMdisable (3);
+               ESC_SMdisable (SM3_IDX);
             }
             an = ESCsafeop;
          }
@@ -1299,6 +1335,11 @@ void ESC_state (void)
       }
    }
 
+   #if USE_EMU
+   /* with device emulation ALcontrol is always copied to ALstatus */
+   an = ac; 
+   #endif
+
    /* Call post state change hook case it have been configured  */
    if (ESCvar.post_state_change_hook != NULL)
    {
@@ -1311,16 +1352,19 @@ void ESC_state (void)
       ESC_ALerror (ALERR_NONE);
    }
 
+   #if USE_EMU
+   ESCvar.ALstatus = an;
+   #else
    if (ESC_check_id_request (ESCvar.ALcontrol, &an))
    {
       an |= ESC_load_device_id ();
    }
-
    ESC_ALstatus (an);
-
-#ifdef ESC_DEBUG
+   #endif
+  
+   #ifdef ESC_DEBUG
    DPRINT ("state %s\n", ESC_state_to_string (an & 0xF));
-#endif
+   #endif
 }
 /** Function copying the application configuration variable
  * data to the stack local variable.
