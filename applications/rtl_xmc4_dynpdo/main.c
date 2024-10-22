@@ -76,7 +76,7 @@ int main (void)
       .esc_hw_interrupt_enable = ESC_interrupt_enable,
       .esc_hw_interrupt_disable = ESC_interrupt_disable,
       .esc_hw_eep_handler = ESC_eep_handler,
-      .esc_check_dc_handler = dc_checker
+      .esc_check_dc_handler = dc_checker,
       .get_device_id = NULL
    };
 
