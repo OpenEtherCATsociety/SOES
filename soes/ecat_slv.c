@@ -267,6 +267,7 @@ void ecat_slv_worker (uint32_t event_mask)
       /* Check the SM activation event */
       ESC_sm_act_event();
 
+#if USE_MBX
       /* Check mailboxes */
       while ((ESC_mbxprocess() > 0) || (ESCvar.txcue > 0))
       {
@@ -281,6 +282,7 @@ void ecat_slv_worker (uint32_t event_mask)
       }
 #if USE_EOE
       ESC_eoeprocess_tx();
+#endif
 #endif
       /* Call emulated eeprom handler if set */
       if (ESCvar.esc_hw_eep_handler != NULL)
@@ -311,6 +313,7 @@ void ecat_slv_poll (void)
    /* Check the SM activation event */
    ESC_sm_act_event();
 
+#if USE_MBX
    /* Check mailboxes */
    if (ESC_mbxprocess())
    {
@@ -325,6 +328,7 @@ void ecat_slv_poll (void)
    }
 #if USE_EOE
    ESC_eoeprocess_tx();
+#endif
 #endif
 
    /* Call emulated eeprom handler if set */
@@ -366,7 +370,7 @@ void ecat_slv_init (esc_cfg_t * config)
                 sizeof (ESCvar.DLstatus));
       ESCvar.DLstatus = etohs (ESCvar.DLstatus);
    }
-
+   
 #if USE_FOE
    /* Init FoE */
    FOE_init ();
@@ -377,10 +381,16 @@ void ecat_slv_init (esc_cfg_t * config)
    EOE_init ();
 #endif
 
-   /* reset ESC to init state */
+#if USE_EMU
+   ESCvar.ALstatus = ESCinit;
+#else
+   /* Reset ESC to init state */
    ESC_ALstatus (ESCinit);
+#endif
    ESC_ALerror (ALERR_NONE);
+#if USE_MBX
    ESC_stopmbx ();
+#endif
    ESC_stopinput ();
    ESC_stopoutput ();
    /* Init Object Dictionary default values */

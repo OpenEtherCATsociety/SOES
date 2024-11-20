@@ -90,7 +90,7 @@ static uint32_t bcm2835_spi_read_32 (uint16_t address)
    return ((data[6] << 24) |
            (data[5] << 16) |
            (data[4] << 8) |
-           data[3]);
+            data[3]);
 }
 
 /* ESC read CSR function */
@@ -473,7 +473,9 @@ void ESC_init (const esc_cfg_t * config)
       {
          // Set SPI bit order
          bcm2835_spi_setBitOrder(BCM2835_SPI_BIT_ORDER_MSBFIRST);
+
          // Set SPI data mode BCM2835_SPI_MODE0 = 0, CPOL = 0, CPHA = 0,
+
          // Clock idle low, data is clocked in on rising edge, output data (change) on falling edge
          bcm2835_spi_setDataMode(BCM2835_SPI_MODE0);
          if (rpi4)
@@ -500,6 +502,7 @@ void ESC_init (const esc_cfg_t * config)
          {
             // Enable management of CS0 pin
             bcm2835_spi_chipSelect(BCM2835_SPI_CS0);
+
             // enable CS0 and set polarity
             bcm2835_spi_setChipSelectPolarity(BCM2835_SPI_CS0, LOW);
             DPRINT("bcm2835_spi_chipSelect set to CS0 \n");
@@ -595,7 +598,6 @@ void ESC_interrupt_disable (uint32_t mask)
       // Disable interrupt from SYNC0
       ESC_ALeventmaskwrite(ESC_ALeventmaskread() & ~(mask & user_int_mask));
    }
-
 
    // Disable LAN9252 interrupt
    bcm2835_spi_write_32(ESC_CMD_INT_EN, 0x00000000);

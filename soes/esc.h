@@ -24,6 +24,7 @@
 #define ESCREG_ALSTATUS             0x0130
 #define ESCREG_ALSTATUS_ERROR_IND   0x0010
 #define ESCREG_ALERROR              0x0134
+#define ESCREG_ALCONFIG             0x0141
 #define ESCREG_ALEVENTMASK          0x0204
 #define ESCREG_ALEVENT              0x0220
 #define ESCREG_ALEVENT_SM_MASK      0x0310
@@ -36,8 +37,13 @@
 #define ESCREG_ALEVENT_WD           0x0040
 #define ESCREG_ALEVENT_SM0          0x0100
 #define ESCREG_ALEVENT_SM1          0x0200
+#if USE_MBX
 #define ESCREG_ALEVENT_SM2          0x0400
 #define ESCREG_ALEVENT_SM3          0x0800
+#else
+#define ESCREG_ALEVENT_SM2          ESCREG_ALEVENT_SM0
+#define ESCREG_ALEVENT_SM3          ESCREG_ALEVENT_SM1
+#endif
 #define ESCREG_WDSTATUS             0x0440
 #define ESCREG_EECONTSTAT           0x0502
 #define ESCREG_EEDATA               0x0508
@@ -46,8 +52,13 @@
 #define ESCREG_SM0ACTIVATE          (ESCREG_SM0 + 6)
 #define ESCREG_SM0PDI               (ESCREG_SM0 + 7)
 #define ESCREG_SM1                  (ESCREG_SM0 + 0x08)
+#if USE_MBX
 #define ESCREG_SM2                  (ESCREG_SM0 + 0x10)
 #define ESCREG_SM3                  (ESCREG_SM0 + 0x18)
+#else
+#define ESCREG_SM2                  ESCREG_SM0
+#define ESCREG_SM3                  ESCREG_SM1
+#endif
 #define ESCREG_LOCALTIME            0x0910
 #define ESCREG_LOCALTIME_OFFSET     0x0920
 #define ESCREG_SYNC_ACT             0x0981
@@ -256,8 +267,23 @@
 
 #define SMRESULT_ERRSM0                0x01
 #define SMRESULT_ERRSM1                0x02
+#if USE_MBX
 #define SMRESULT_ERRSM2                0x04
 #define SMRESULT_ERRSM3                0x08
+#else
+#define SMRESULT_ERRSM2                SMRESULT_ERRSM0
+#define SMRESULT_ERRSM3                SMRESULT_ERRSM1
+#endif
+
+#define SM0_IDX   0
+#define SM1_IDX   1
+#if USE_MBX
+#define SM2_IDX   2
+#define SM3_IDX   3
+#else
+#define SM2_IDX   SM0_IDX
+#define SM3_IDX   SM1_IDX
+#endif
 
 #define FOE_ERR_NOTDEFINED             0x8000
 #define FOE_ERR_NOTFOUND               0x8001

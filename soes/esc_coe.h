@@ -106,8 +106,13 @@ typedef struct
 #define ATYPE_RWop              (ATYPE_Wop | ATYPE_RO)
 #define ATYPE_RWpre_safe        (ATYPE_Wpre | ATYPE_Wsafe | ATYPE_RO)
 
+#if USE_MBX
 #define TX_PDO_OBJIDX           0x1c13
 #define RX_PDO_OBJIDX           0x1c12
+#else
+#define TX_PDO_OBJIDX           0x1c11
+#define RX_PDO_OBJIDX           0x1c10
+#endif
 
 #define COMPLETE_ACCESS_FLAG    (1 << 15)
 
