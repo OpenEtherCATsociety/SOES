@@ -23,6 +23,10 @@ struct foe_file_cfg
    const char * name;
    /** Size of file,sizeof data we can recv */
    uint32_t       max_data;
+   /** Allocate static in caller func to fit buffer_size */
+   uint8_t * fbuffer;
+   /** Buffer size before we flush to destination */
+   uint32_t  buffer_size;
    /** Where to store the data initially */
    uint32_t       dest_start_address;
    /** Current address during write of file */
@@ -41,10 +45,6 @@ struct foe_file_cfg
 
 typedef struct foe_cfg
 {
-   /** Allocate static in caller func to fit buffer_size */
-   uint8_t * fbuffer;
-   /** Buffer size before we flush to destination */
-   uint32_t  buffer_size;
    /** Number of files used in firmware update */
    uint32_t  n_files;
    /** Pointer to files configured to be used by FoE */
