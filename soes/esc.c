@@ -3,10 +3,13 @@
  * LICENSE file in the project root for full license information
  */
 #include <string.h>
+#include <assert.h>
 #include <cc.h>
 #include "esc.h"
 #include "esc_coe.h"
 #include "esc_foe.h"
+
+static_assert((MBXSIZE > ESC_MBXHSIZE) && (MBXSIZEBOOT > ESC_MBXHSIZE), "Mailbox size too small.");
 
 /** \file
  * \brief
@@ -658,7 +661,7 @@ uint8_t ESC_mbxprocess (void)
    {
       ESC_readmbx ();
       ESCvar.SM[0].MBXstat = 0;
-      if (etohs (MBh->length) == 0)
+      if ((etohs (MBh->length) == 0) || (etohs (MBh->length) > (ESC_MBX0_sml - ESC_MBXHSIZE)))
       {
          MBX_error (MBXERR_INVALIDHEADER);
          /* drop mailbox */
@@ -712,7 +715,7 @@ uint8_t ESC_checkSM23 (uint8_t state)
    _ESCsm2 *SM;
    ESC_read (ESCREG_SM2, (void *) &ESCvar.SM[2], sizeof (ESCvar.SM[2]));
    SM = (_ESCsm2 *) & ESCvar.SM[2];
-   
+
    /* Check SM settings */
    if ((etohs (SM->PSA) != ESC_SM2_sma) ||
        (SM->Command != ESC_SM2_smc))
@@ -904,7 +907,7 @@ void ESC_stopinput (void)
  */
 uint8_t ESC_startoutput (uint8_t state)
 {
-	
+
    /* If outputs > 0 , enable SM2 */
    if (ESCvar.ESC_SM2_sml > 0)
    {
