@@ -523,14 +523,16 @@ typedef struct CC_PACKED
    uint8_t priority:2;
 
    uint8_t mbxtype:4;
-   uint8_t mbxcnt:4;
+   uint8_t mbxcnt:3;
+   uint8_t reserved:1;
 #endif
 
 #if defined(EC_BIG_ENDIAN)
    uint8_t priority:2;
    uint8_t channel:6;
 
-   uint8_t mbxcnt:4;
+   uint8_t reserved:1;
+   uint8_t mbxcnt:3;
    uint8_t mbxtype:4;
 #endif
 } _MBXh;
