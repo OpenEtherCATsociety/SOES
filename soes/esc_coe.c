@@ -472,14 +472,29 @@ static uint32_t complete_access_get_variables(_COEsdo *coesdo, uint16_t *index,
    return 0;
 }
 
-static uint32_t complete_access_subindex_loop(const _objd *objd,
-                                              int32_t nidx,
+/**
+ * Iterate through a given object to handle a complete access.
+ *
+ * @param[in] nidx = Index within 'SDOobjects' of desired object
+ * @param[in] nsub = Offset of desired subindex of the object to start iteration
+ * @param[inout] mbxdata = Referenced buffer to SDO data of a mailbox frame.\n
+ *                         If NULL, no download or upload is performed and only the size in bits is determined.\n
+ *                         For download, this buffer contains received mailbox sdo data.\n
+ *                         For upload, this buffer will be written with sdo data for mailbox sdo response message.
+ * @param[in] load_type = Indicates 'DOWNLOAD' or 'UPLOAD' to be performed.
+ * @param[in] max_bytes = Maximum number of bytes when to interrupt the iteration.\n
+ *                        If 0, iteration is performed till the end of the desired object.
+ * @return Number of bits affected to this iteration.\n
+ *         Errorcode 'ABORT_CA_NOT_SUPPORTED' if the object has an unsupported datatype.
+ */
+static uint32_t complete_access_subindex_loop(int32_t const nidx,
                                               int16_t nsub,
-                                              uint8_t *mbxdata,
-                                              load_t load_type,
-                                              uint32_t max_bytes)
+                                              uint8_t * const mbxdata,
+                                              load_t const load_type,
+                                              uint32_t const max_bytes)
 {
    /* Objects with dynamic entries cannot be accessed with Complete Access */
+   _objd const * const objd = SDOobjects[nidx].objdesc;
    if ((objd->datatype == DTYPE_VISIBLE_STRING) ||
        (objd->datatype == DTYPE_OCTET_STRING)   ||
        (objd->datatype == DTYPE_UNICODE_STRING))
@@ -619,20 +634,19 @@ static void SDO_upload_complete_access (void)
    const _objd *objd = SDOobjects[nidx].objdesc;
 
    /* loop through the subindexes to get the total size */
-   uint32_t size = complete_access_subindex_loop(objd, nidx, nsub, NULL, UPLOAD, 0);
+   uint32_t size = complete_access_subindex_loop(nidx, nsub, NULL, UPLOAD, 0);
+   if (size == (size_t)ABORT_CA_NOT_SUPPORTED)
+   {
+      /* 'size' is in this case actually an abort code */
+      set_state_idle (MBXout, index, subindex, size);
+      return;
+   }
 
    /* expedited bits used calculation */
    uint8_t dss = (size > 24) ? 0 : (uint8_t)(4U * (3U - ((size - 1U) >> 3)));
 
    /* convert bits to bytes */
    size = BITS2BYTES(size);
-
-   if (size > 0xffff)
-   {
-      /* 'size' is in this case actually an abort code */
-      set_state_idle (MBXout, index, subindex, size);
-      return;
-   }
 
    /* check that upload data fits in the preallocated buffer */
    if ((size + PREALLOC_FACTOR * COE_HEADERSIZE) > PREALLOC_BUFFER_SIZE)
@@ -649,7 +663,7 @@ static void SDO_upload_complete_access (void)
    }
 
    /* copy subindex data into the preallocated buffer */
-   complete_access_subindex_loop(objd, nidx, nsub, ESCvar.mbxdata, UPLOAD, 0);
+   complete_access_subindex_loop(nidx, nsub, ESCvar.mbxdata, UPLOAD, 0);
 
    _COEsdo *coeres = (_COEsdo *) &MBX[MBXout * ESC_MBXSIZE];
    init_coesdo(coeres, COE_SDORESPONSE,
@@ -954,21 +968,22 @@ static void SDO_download_complete_access (void)
    const _objd *objd = SDOobjects[nidx].objdesc;
 
    /* loop through the subindexes to get the total size */
-   uint32_t size = complete_access_subindex_loop(objd, nidx, nsub, NULL, DOWNLOAD, 0);
-   size = BITS2BYTES(size);
-   if (size > 0xffff)
+   uint32_t size = complete_access_subindex_loop(nidx, nsub, NULL, DOWNLOAD, 0);
+   if (size == (size_t)ABORT_CA_NOT_SUPPORTED)
    {
       /* 'size' is in this case actually an abort code */
       set_state_idle (0, index, subindex, size);
       return;
    }
+   size = BITS2BYTES(size);
+
    /* The document ETG.1020 S (R) V1.3.0, chapter 12.2, states that
     * "The SDO Download Complete Access data length shall always match
     * the full current object size (defined by SubIndex0)".
     * But EtherCAT Conformance Test Tool doesn't follow this rule for some test
     * cases, which is the reason to here only check for 'less than or equal'.
     */
-   else if (bytes <= size)
+   if (bytes <= size)
    {
       abortcode = ESC_download_pre_objecthandler(index, subindex, mbxdata,
             size, objd->flags | COMPLETE_ACCESS_FLAG);
@@ -1004,7 +1019,7 @@ static void SDO_download_complete_access (void)
       {
          ESCvar.segmented = 0;
          /* copy download data to subindexes */
-         complete_access_subindex_loop(objd, nidx, nsub, (uint8_t *)mbxdata, DOWNLOAD, bytes);
+         complete_access_subindex_loop(nidx, nsub, (uint8_t *)mbxdata, DOWNLOAD, bytes);
 
          abortcode = ESC_download_post_objecthandler(index, subindex,
                objd->flags | COMPLETE_ACCESS_FLAG);
@@ -1079,9 +1094,7 @@ static void SDO_downloadsegment (void)
             }
 
             /* copy download data to subindexes */
-            const _objd *objd = SDOobjects[nidx].objdesc;
-            complete_access_subindex_loop(objd,
-                  nidx,
+            complete_access_subindex_loop(nidx,
                   nsub,
                   (uint8_t *)ESCvar.mbxdata,
                   DOWNLOAD,
