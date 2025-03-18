@@ -524,12 +524,18 @@ static uint32_t complete_access_subindex_loop(int32_t const nidx,
 
    while (nsub <= maxsub)
    {
-      uint16_t bitlen = (objd + nsub)->bitlength;
-      void *ul_source = ((objd + nsub)->data != NULL) ?
-            (objd + nsub)->data : (void *)&((objd + nsub)->value);
-      uint8_t bitoffset = size % 8;
-      uint8_t access = (objd + nsub)->flags & 0x3f;
-      uint8_t state = ESCvar.ALstatus & 0x0f;
+      uint16_t const bitlen = (objd + nsub)->bitlength;
+      void const * const ul_source = ((objd + nsub)->data != NULL) ?
+                                     (objd + nsub)->data : (void *)&((objd + nsub)->value);
+      uint8_t const bitoffset = size % 8;
+      uint8_t const access = (objd + nsub)->flags & 0x3f;
+      uint8_t const state = ESCvar.ALstatus & 0x0f;
+
+      if ((max_bytes > 0U) && (   (((bitlen % 8U) == 0U) && ((BITS2BYTES(size) + BITS2BYTES(bitlen)) > max_bytes))
+                               || (((bitlen % 8U) != 0U) && (BITS2BYTES(size + bitlen) > max_bytes))))
+      {
+         break;
+      }
 
       if ((bitlen % 8) == 0)
       {
@@ -562,24 +568,32 @@ static uint32_t complete_access_subindex_loop(int32_t const nidx,
             }
          }
       }
-      else if ((load_type == UPLOAD) && (mbxdata != NULL))
+      else if (mbxdata != NULL)
       {
-         /* copy a bit data type into correct position */
-         uint32_t bitmask = (1U << bitlen) - 1U;
-         uint32_t tempmask;
-         if (READ_ACCESS(access, state))
+         uint32_t const bitmask = (1U << bitlen) - 1U;
+         if (load_type == UPLOAD)
          {
+            /* copy a bit data type into correct position */
             if (bitoffset == 0)
             {
                mbxdata[BITSPOS2BYTESOFFSET(size)] = 0;
             }
-            tempmask = (*(uint8_t *)ul_source & bitmask) << bitoffset;
-            mbxdata[BITSPOS2BYTESOFFSET(size)] |= (uint8_t)tempmask;
+            uint32_t tempmask;
+            if (READ_ACCESS(access, state))
+            {
+               tempmask = (*(uint8_t const *)ul_source & bitmask) << bitoffset;
+               mbxdata[BITSPOS2BYTESOFFSET(size)] |= (uint8_t)tempmask;
+            }
+            else
+            {
+               tempmask = ~(bitmask << bitoffset);
+               mbxdata[BITSPOS2BYTESOFFSET(size)] &= (uint8_t)tempmask;
+            }
          }
-         else
+         /* download of RO objects shall be ignored */
+         else if (WRITE_ACCESS(access, state))
          {
-            tempmask = ~(bitmask << bitoffset);
-            mbxdata[BITSPOS2BYTESOFFSET(size)] &= (uint8_t)tempmask;
+            *(uint8_t*)(objd + nsub)->data = (mbxdata[BITS2BYTES(size)] & (uint8_t)bitmask) >> bitoffset;
          }
       }
 
@@ -589,11 +603,6 @@ static uint32_t complete_access_subindex_loop(int32_t const nidx,
       size +=
       ((nsub == 0) && (SDOobjects[nidx].objtype != OTYPE_VAR)) ? 16 : bitlen;
       nsub++;
-
-      if ((max_bytes > 0) && (BITS2BYTES(size) >= max_bytes))
-      {
-         break;
-      }
    }
 
    return size;
