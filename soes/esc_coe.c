@@ -510,7 +510,19 @@ static uint32_t complete_access_subindex_loop(int32_t const nidx,
       mbxdata[1] = 0;
    }
 
-   while (nsub <= SDOobjects[nidx].maxsub)
+   bool const isNumberOfSubindexesChanging =   (nsub == 0U) && (load_type == DOWNLOAD)
+                                            && (SDOobjects[nidx].objtype == OTYPE_ARRAY)
+                                            && (WRITE_ACCESS(objd->flags, (ESCvar.ALstatus & 0x0FU)))
+                                            && (mbxdata != NULL)
+                                            && (((uint8_t*)mbxdata)[0] <= SDOobjects[nidx].maxsub);
+
+   uint8_t const maxsub = (SDOobjects[nidx].maxsub == 0U)
+                         ? 0U
+                         : isNumberOfSubindexesChanging
+                         ? ((uint8_t*)mbxdata)[0]
+                         : *(uint8_t*)(objd->data);
+
+   while (nsub <= maxsub)
    {
       uint16_t bitlen = (objd + nsub)->bitlength;
       void *ul_source = ((objd + nsub)->data != NULL) ?
@@ -972,73 +984,75 @@ static void SDO_download_complete_access (void)
 
    const _objd *objd = SDOobjects[nidx].objdesc;
 
-   /* loop through the subindexes to get the total size */
-   uint32_t size = complete_access_subindex_loop(nidx, nsub, NULL, DOWNLOAD, 0);
-   if (size == (size_t)ABORT_CA_NOT_SUPPORTED)
+   uint32_t size;
+   if (   (subindex == 0U) && (SDOobjects[nidx].objtype == OTYPE_ARRAY) && (SDOobjects[nidx].maxsub > 0U)
+       && (WRITE_ACCESS(objd->flags, (ESCvar.ALstatus & 0x0FU))) && (((uint8_t*)mbxdata)[0] <= SDOobjects[nidx].maxsub))
    {
-      /* 'size' is in this case actually an abort code */
-      set_state_idle (0, index, subindex, size);
+      // Number of subindexes are overwritten for an array object. This has to be considered for size calculation
+      size = ((uint8_t*)mbxdata)[0] * BITS2BYTES((objd + 1U)->bitlength);
+   }
+   else
+   {
+      /* loop through the subindexes to get the total size */
+      size = complete_access_subindex_loop(nidx, nsub, NULL, DOWNLOAD, 0);
+      if (size == (size_t)ABORT_CA_NOT_SUPPORTED)
+      {
+         /* 'size' is in this case actually an abort code */
+         set_state_idle (0, index, subindex, size);
+         return;
+      }
+      size = BITS2BYTES(size);
+   }
+
+   if (bytes != size)
+   {
+      set_state_idle (0, index, subindex, ABORT_TYPEMISMATCH);
       return;
    }
-   size = BITS2BYTES(size);
 
-   /* The document ETG.1020 S (R) V1.3.0, chapter 12.2, states that
-    * "The SDO Download Complete Access data length shall always match
-    * the full current object size (defined by SubIndex0)".
-    * But EtherCAT Conformance Test Tool doesn't follow this rule for some test
-    * cases, which is the reason to here only check for 'less than or equal'.
-    */
-   if (bytes <= size)
+   abortcode = ESC_download_pre_objecthandler(index, subindex, mbxdata,
+         size, objd->flags | COMPLETE_ACCESS_FLAG);
+   if (abortcode != 0)
    {
-      abortcode = ESC_download_pre_objecthandler(index, subindex, mbxdata,
-            size, objd->flags | COMPLETE_ACCESS_FLAG);
+      set_state_idle (0, index, subindex, abortcode);
+      return;
+   }
+
+   if ((bytes + COE_HEADERSIZE) > ESC_MBXDSIZE)
+   {
+      /* check that download data fits in the preallocated buffer */
+      if ((bytes + PREALLOC_FACTOR * COE_HEADERSIZE) > PREALLOC_BUFFER_SIZE)
+      {
+            set_state_idle(0, index, subindex, ABORT_CA_NOT_SUPPORTED);
+            return;
+      }
+      /* set total size in bytes */
+      ESCvar.frags = bytes;
+      /* limit to mailbox size */
+      size = ESC_MBXDSIZE - COE_HEADERSIZE;
+      /* number of bytes done */
+      ESCvar.fragsleft = size;
+      ESCvar.segmented = MBXSED;
+      ESCvar.data = ESCvar.mbxdata + size;
+      ESCvar.index = index;
+      ESCvar.subindex = subindex;
+      ESCvar.flags = COMPLETE_ACCESS_FLAG;
+      /* Store the data */
+      copy2mbx (mbxdata, ESCvar.mbxdata, size);
+   }
+   else
+   {
+      ESCvar.segmented = 0;
+      /* copy download data to subindexes */
+      complete_access_subindex_loop(nidx, nsub, (uint8_t *)mbxdata, DOWNLOAD, bytes);
+
+      abortcode = ESC_download_post_objecthandler(index, subindex,
+            objd->flags | COMPLETE_ACCESS_FLAG);
       if (abortcode != 0)
       {
          set_state_idle (0, index, subindex, abortcode);
          return;
       }
-
-      if ((bytes + COE_HEADERSIZE) > ESC_MBXDSIZE)
-      {
-         /* check that download data fits in the preallocated buffer */
-         if ((bytes + PREALLOC_FACTOR * COE_HEADERSIZE) > PREALLOC_BUFFER_SIZE)
-         {
-             set_state_idle(0, index, subindex, ABORT_CA_NOT_SUPPORTED);
-             return;
-         }
-         /* set total size in bytes */
-         ESCvar.frags = bytes;
-         /* limit to mailbox size */
-         size = ESC_MBXDSIZE - COE_HEADERSIZE;
-         /* number of bytes done */
-         ESCvar.fragsleft = size;
-         ESCvar.segmented = MBXSED;
-         ESCvar.data = ESCvar.mbxdata + size;
-         ESCvar.index = index;
-         ESCvar.subindex = subindex;
-         ESCvar.flags = COMPLETE_ACCESS_FLAG;
-         /* Store the data */
-         copy2mbx (mbxdata, ESCvar.mbxdata, size);
-      }
-      else
-      {
-         ESCvar.segmented = 0;
-         /* copy download data to subindexes */
-         complete_access_subindex_loop(nidx, nsub, (uint8_t *)mbxdata, DOWNLOAD, bytes);
-
-         abortcode = ESC_download_post_objecthandler(index, subindex,
-               objd->flags | COMPLETE_ACCESS_FLAG);
-         if (abortcode != 0)
-         {
-            set_state_idle (0, index, subindex, abortcode);
-            return;
-         }
-      }
-   }
-   else
-   {
-      set_state_idle (0, index, subindex, ABORT_TYPEMISMATCH);
-      return;
    }
 
    uint8_t MBXout = ESC_claimbuffer ();
