@@ -514,7 +514,9 @@ static uint32_t complete_access_subindex_loop(int32_t const nidx,
                          ? 0U
                          : isNumberOfSubindexesChanging
                          ? ((uint8_t*)mbxdata)[0]
-                         : *(uint8_t*)(objd->data);
+                         : (objd->data != NULL)
+                         ? *(uint8_t*)(objd->data)
+                         : (uint8_t)objd->value;
 
    while (nsub <= maxsub)
    {
