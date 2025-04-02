@@ -495,12 +495,6 @@ static uint32_t complete_access_subindex_loop(int32_t const nidx,
 {
    /* Objects with dynamic entries cannot be accessed with Complete Access */
    _objd const * const objd = SDOobjects[nidx].objdesc;
-   if ((objd->datatype == DTYPE_VISIBLE_STRING) ||
-       (objd->datatype == DTYPE_OCTET_STRING)   ||
-       (objd->datatype == DTYPE_UNICODE_STRING))
-   {
-      return ABORT_CA_NOT_SUPPORTED;
-   }
 
    uint32_t size = 0;
 
