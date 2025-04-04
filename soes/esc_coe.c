@@ -484,8 +484,7 @@ static uint32_t complete_access_get_variables(_COEsdo *coesdo, uint16_t *index,
  * @param[in] load_type = Indicates 'DOWNLOAD' or 'UPLOAD' to be performed.
  * @param[in] max_bytes = Maximum number of bytes when to interrupt the iteration.\n
  *                        If 0, iteration is performed till the end of the desired object.
- * @return Number of bits affected to this iteration.\n
- *         Errorcode 'ABORT_CA_NOT_SUPPORTED' if the object has an unsupported datatype.
+ * @return Number of bits affected to this iteration.
  */
 static uint32_t complete_access_subindex_loop(int32_t const nidx,
                                               int16_t nsub,
@@ -652,12 +651,6 @@ static void SDO_upload_complete_access (void)
 
    /* loop through the subindexes to get the total size */
    uint32_t size = complete_access_subindex_loop(nidx, nsub, NULL, UPLOAD, 0);
-   if (size == (size_t)ABORT_CA_NOT_SUPPORTED)
-   {
-      /* 'size' is in this case actually an abort code */
-      set_state_idle (MBXout, index, subindex, size);
-      return;
-   }
 
    /* expedited bits used calculation */
    uint8_t dss = (size > 24) ? 0 : (uint8_t)(4U * (3U - ((size - 1U) >> 3)));
@@ -1000,12 +993,6 @@ static void SDO_download_complete_access (void)
    {
       /* loop through the subindexes to get the total size */
       size = complete_access_subindex_loop(nidx, nsub, NULL, DOWNLOAD, 0);
-      if (size == (size_t)ABORT_CA_NOT_SUPPORTED)
-      {
-         /* 'size' is in this case actually an abort code */
-         set_state_idle (0, index, subindex, size);
-         return;
-      }
       size = BITS2BYTES(size);
    }
 
