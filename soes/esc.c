@@ -3,13 +3,12 @@
  * LICENSE file in the project root for full license information
  */
 #include <string.h>
-#include <assert.h>
 #include <cc.h>
 #include "esc.h"
 #include "esc_coe.h"
 #include "esc_foe.h"
 
-static_assert((MBXSIZE > ESC_MBXHSIZE) && (MBXSIZEBOOT > ESC_MBXHSIZE), "Mailbox size too small.");
+CC_STATIC_ASSERT((MBXSIZE > ESC_MBXHSIZE) && (MBXSIZEBOOT > ESC_MBXHSIZE), "Mailbox size too small.");
 
 /** \file
  * \brief

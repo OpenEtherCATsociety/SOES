@@ -19,7 +19,7 @@ extern "C"
 #ifdef __linux__
    #include <endian.h>
 #else
-   #include <machine/endian.h>   
+   #include <machine/endian.h>
 #endif
 
 #ifndef MIN
@@ -41,7 +41,7 @@ extern "C"
 #else
 #define CC_ASSERT(exp) assert (exp)
 #endif
-#define CC_STATIC_ASSERT(exp) _Static_assert (exp, "")
+#define CC_STATIC_ASSERT(exp, msg) _Static_assert (exp, msg)
 
 #define CC_DEPRECATED   __attribute__((deprecated))
 
