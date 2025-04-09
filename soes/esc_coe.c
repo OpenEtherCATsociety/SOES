@@ -400,6 +400,7 @@ static void SDO_upload (void)
                      ESCvar.fragsleft = size;
                      /* signal segmented transfer */
                      ESCvar.segmented = MBXSEU;
+                     ESCvar.segmentedToggle = 0U;
                      ESCvar.data = (objd + nsub)->data;
                      ESCvar.flags = (objd + nsub)->flags;
                   }
@@ -704,6 +705,7 @@ static void SDO_upload_complete_access (void)
          ESCvar.fragsleft = size;
          /* signal segmented transfer */
          ESCvar.segmented = MBXSEU;
+         ESCvar.segmentedToggle = 0U;
          ESCvar.data = ESCvar.mbxdata;
          ESCvar.flags = COMPLETE_ACCESS_FLAG;
       }
@@ -741,6 +743,13 @@ static void SDO_uploadsegment (void)
    MBXout = ESC_claimbuffer ();
    if (MBXout)
    {
+      if (((coesdo->command & COE_TOGGLEBIT) >> 4U) != ESCvar.segmentedToggle)
+      {
+         set_state_idle(MBXout, ESCvar.index, ESCvar.subindex, ABORT_NOTOGGLE);
+         return;
+      }
+
+      ESCvar.segmentedToggle = (ESCvar.segmentedToggle == 0U) ? 1U : 0U;
       coeres = (_COEsdo *) &MBX[MBXout * ESC_MBXSIZE];
       offset = ESCvar.fragsleft;
       size = ESCvar.frags - ESCvar.fragsleft;
@@ -881,6 +890,7 @@ static void SDO_download (void)
                   size = coesdo->mbxheader.length - COE_HEADERSIZE;
                   /* signal segmented transfer */
                   ESCvar.segmented = MBXSED;
+                  ESCvar.segmentedToggle = 0U;
                   ESCvar.data = (objd + nsub)->data + size;
                   ESCvar.index = index;
                   ESCvar.subindex = subindex;
@@ -1025,6 +1035,7 @@ static void SDO_download_complete_access (void)
       /* number of bytes done */
       ESCvar.fragsleft = size;
       ESCvar.segmented = MBXSED;
+      ESCvar.segmentedToggle = 0U;
       ESCvar.data = ESCvar.mbxdata + size;
       ESCvar.index = index;
       ESCvar.subindex = subindex;
@@ -1068,6 +1079,13 @@ static void SDO_downloadsegment (void)
    uint8_t MBXout = ESC_claimbuffer ();
    if (MBXout)
    {
+      if (((coesdo->command & COE_TOGGLEBIT) >> 4U) != ESCvar.segmentedToggle)
+      {
+         set_state_idle(MBXout, ESCvar.index, ESCvar.subindex, ABORT_NOTOGGLE);
+         return;
+      }
+
+      ESCvar.segmentedToggle = (ESCvar.segmentedToggle == 0U) ? 1U : 0U;
       _COEsdo *coeres = (_COEsdo *) &MBX[MBXout * ESC_MBXSIZE];
       uint32_t size = coesdo->mbxheader.length - 3U;
       if (size == 7)
@@ -1506,9 +1524,9 @@ void ESC_coeprocess (void)
                SDO_upload ();
             }
          }
-         else if (((coesdo->command & 0xef) == COE_COMMAND_UPLOADSEGREQ)
-               && (etohs (coesdo->mbxheader.length) == COE_HEADERSIZE)
-               && (ESCvar.segmented == MBXSEU))
+         else if (   (SDO_COMMAND(coesdo->command) == COE_COMMAND_UPLOADSEGREQ)
+                  && (etohs (coesdo->mbxheader.length) == COE_HEADERSIZE)
+                  && (ESCvar.segmented == MBXSEU))
          {
             /* SDO upload segment request */
             SDO_uploadsegment ();
@@ -1525,7 +1543,8 @@ void ESC_coeprocess (void)
                SDO_download ();
             }
          }
-         else if (SDO_COMMAND(coesdo->command) == COE_COMMAND_DOWNLOADSEGREQ)
+         else if (   (SDO_COMMAND(coesdo->command) == COE_COMMAND_DOWNLOADSEGREQ)
+                  && (ESCvar.segmented == MBXSED))
          {
             /* SDO download segment request */
             SDO_downloadsegment ();

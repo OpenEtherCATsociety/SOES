@@ -487,6 +487,7 @@ typedef struct
    uint8_t txcue;
    uint8_t mbxfree;
    uint8_t segmented;
+   uint8_t segmentedToggle;
    void *data;
    uint16_t entries;
    uint32_t frags;

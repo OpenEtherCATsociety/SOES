@@ -433,6 +433,7 @@ void ESC_stopmbx (void)
    ESCvar.toggle = 0;
    ESCvar.mbxincnt = 0;
    ESCvar.segmented = 0;
+   ESCvar.segmentedToggle = 0;
    ESCvar.frags = 0;
    ESCvar.fragsleft = 0;
    ESCvar.txcue = 0;
