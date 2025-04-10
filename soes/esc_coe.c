@@ -1359,16 +1359,15 @@ static void SDO_getod (void)
          coel->index = htoes (index);
          if (SDOobjects[nidx].objtype == OTYPE_VAR)
          {
-            int32_t nsub = SDO_findsubindex (nidx, 0);
             const _objd *objd = SDOobjects[nidx].objdesc;
-            coel->datatype = htoes ((objd + nsub)->datatype);
+            coel->datatype = htoes ((objd + 0U)->datatype);
             coel->maxsub = SDOobjects[nidx].maxsub;
          }
-         else if (SDOobjects[nidx].objtype == OTYPE_ARRAY)
+         else if (   (SDOobjects[nidx].objtype == OTYPE_ARRAY)
+                  && (SDOobjects[nidx].maxsub >= 1U))
          {
-            int32_t nsub = SDO_findsubindex (nidx, 0);
             const _objd *objd = SDOobjects[nidx].objdesc;
-            coel->datatype = htoes ((objd + nsub)->datatype);
+            coel->datatype = htoes ((objd + 1U)->datatype);
             coel->maxsub = (uint8_t)SDOobjects[nidx].objdesc->value;
          }
          else
