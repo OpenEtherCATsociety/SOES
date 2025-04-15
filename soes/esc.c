@@ -431,6 +431,7 @@ void ESC_stopmbx (void)
    ESCvar.xoe = 0;
    ESCvar.mbxfree = 1;
    ESCvar.toggle = 0;
+   ESCvar.mbxcnt = 0;
    ESCvar.mbxincnt = 0;
    ESCvar.segmented = 0;
    ESCvar.frags = 0;
