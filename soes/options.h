@@ -9,6 +9,11 @@
 /* User-defined options, Options defined here will override default values */
 #include "ecat_options.h"
 
+/* SDOobjects to be provided as const */
+#ifndef USE_CONST_OBJECTLIST
+#define USE_CONST_OBJECTLIST  1
+#endif
+
 /* FoE support */
 #ifndef USE_FOE
 #define USE_FOE          1
