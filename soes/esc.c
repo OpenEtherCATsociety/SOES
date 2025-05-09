@@ -18,6 +18,20 @@ CC_STATIC_ASSERT((MBXSIZE > ESC_MBXHSIZE) && (MBXSIZEBOOT > ESC_MBXHSIZE), "Mail
  * State machine and mailbox support.
  */
 
+/** Update and set cnt value for a desired mailbox out buffer.
+ *
+ * @param[in] n   = Index of mailbox buffer.
+ */
+static void setmbxoutcnt (uint8_t const n)
+{
+   ESCvar.mbxcnt = (ESCvar.mbxcnt + 1U) & 0x07U;
+   if (ESCvar.mbxcnt == 0U)
+   {
+      ESCvar.mbxcnt = 1U;
+   }
+   ((_MBXh*)&MBX[n * ESC_MBXSIZE])->mbxcnt = ESCvar.mbxcnt;
+}
+
 /** Write AL Status Code to the ESC.
  *
  * @param[in] errornumber   = Write an by EtherCAT specified Error number register 0x134 AL Status Code
@@ -416,6 +430,7 @@ void ESC_stopmbx (void)
    ESCvar.xoe = 0;
    ESCvar.mbxfree = 1;
    ESCvar.toggle = 0;
+   ESCvar.mbxcnt = 0;
    ESCvar.mbxincnt = 0;
    ESCvar.segmented = 0;
    ESCvar.frags = 0;
@@ -488,7 +503,7 @@ void ESC_ackmbxread (void)
 
 /** Allocate and prepare a mailbox buffer. Take the first Idle buffer from the End.
  * Set Mailbox control state to be used for outbox and fill the mailbox buffer with
- * address master and mailbox next CNT value between 1-7.
+ * address master.
  *
  * @return The index of Mailbox buffer prepared for outbox. IF no buffer is available return 0.
  */
@@ -504,16 +519,10 @@ uint8_t ESC_claimbuffer (void)
    {
       MBXcontrol[n].state = MBXstate_outclaim;
       MBh = (_MBXh *)&MBX[n * ESC_MBXSIZE];
-      ESCvar.mbxcnt++;
-      ESCvar.mbxcnt = (ESCvar.mbxcnt & 0x07);
-      if (ESCvar.mbxcnt == 0)
-      {
-         ESCvar.mbxcnt = 1;
-      }
       MBh->address = htoes (0x0000);      // destination is master
       MBh->channel = 0;
       MBh->priority = 0;
-      MBh->mbxcnt = ESCvar.mbxcnt & 0xFU;
+      MBh->reserved = 0;
       ESCvar.txcue++;
    }
    return n;
@@ -532,6 +541,7 @@ uint8_t ESC_outreqbuffer (void)
    }
    return n;
 }
+
 /** Allocate and prepare a mailbox buffer for sending an error message. Take the first Idle
  * buffer from the end. Set Mailbox control state to be used for outbox and fill the mailbox
  * buffer with error information.
@@ -641,6 +651,7 @@ uint8_t ESC_mbxprocess (void)
       /* outmbx empty and outreq mbx available */
       if (mbxhandle)
       {
+         setmbxoutcnt (mbxhandle);
          ESC_writembx (mbxhandle);
          /* Refresh SM status */
          ESC_SMstatus (1);
