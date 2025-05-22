@@ -1523,47 +1523,91 @@ void ESC_coeprocess (void)
       service = etohs (coesdo->coeheader.numberservice) >> 12;
       if (service == COE_SDOREQUEST)
       {
-         if ((SDO_COMMAND(coesdo->command) == COE_COMMAND_UPLOADREQUEST)
-               && (etohs (coesdo->mbxheader.length) == COE_HEADERSIZE)
-               && (ESCvar.segmented == 0U))
+         if (   (SDO_COMMAND(coesdo->command) == COE_COMMAND_UPLOADREQUEST)
+             && (ESCvar.segmented == 0U))
          {
-            /* initiate SDO upload request */
-            if (SDO_COMPLETE_ACCESS(coesdo->command))
+            if (etohs (coesdo->mbxheader.length) == COE_HEADERSIZE)
             {
-               SDO_upload_complete_access ();
+              /* initiate SDO upload request */
+              if (SDO_COMPLETE_ACCESS(coesdo->command))
+              {
+                 SDO_upload_complete_access ();
+              }
+              else
+              {
+                 SDO_upload ();
+              }
             }
             else
             {
-               SDO_upload ();
+               MBX_error (MBXERR_INVALIDSIZE);
+               ESCvar.segmented = 0U;
+               MBXcontrol[0].state = MBXstate_idle;
+               ESCvar.xoe = 0;
             }
          }
-         else if (   (SDO_COMMAND(coesdo->command) == COE_COMMAND_UPLOADSEGREQ)
-                  && (etohs (coesdo->mbxheader.length) == COE_HEADERSIZE)
-                  && (ESCvar.segmented == MBXSEU))
+         else if (SDO_COMMAND(coesdo->command) == COE_COMMAND_UPLOADSEGREQ)
          {
-            /* SDO upload segment request */
-            SDO_uploadsegment ();
+            if (ESCvar.segmented != MBXSEU)
+            {
+               set_state_idle (0, 0U, 0U, ABORT_UNKNOWN);
+            }
+            else if (etohs (coesdo->mbxheader.length) == COE_HEADERSIZE)
+            {
+               /* SDO upload segment request */
+               SDO_uploadsegment ();
+            }
+            else
+            {
+               MBX_error (MBXERR_INVALIDSIZE);
+               ESCvar.segmented = 0U;
+               MBXcontrol[0].state = MBXstate_idle;
+               ESCvar.xoe = 0;
+            }
          }
          else if (   (SDO_COMMAND(coesdo->command) == COE_COMMAND_DOWNLOADREQUEST)
                   && (etohs (coesdo->mbxheader.length) >= COE_HEADERSIZE)
                   && (ESCvar.segmented == 0U))
          {
-            /* initiate SDO download request */
-            if (SDO_COMPLETE_ACCESS(coesdo->command))
+            if (   (coesdo->command & COE_EXPEDITED_INDICATOR)
+                && (etohs (coesdo->mbxheader.length) != COE_HEADERSIZE))
             {
-               SDO_download_complete_access ();
+               MBX_error (MBXERR_INVALIDSIZE);
+               ESCvar.segmented = 0U;
+               MBXcontrol[0].state = MBXstate_idle;
+               ESCvar.xoe = 0;
             }
             else
             {
-               SDO_download ();
+               /* initiate SDO download request */
+               if (SDO_COMPLETE_ACCESS(coesdo->command))
+               {
+                  SDO_download_complete_access ();
+               }
+               else
+               {
+                  SDO_download ();
+               }
             }
          }
-         else if (   (SDO_COMMAND(coesdo->command) == COE_COMMAND_DOWNLOADSEGREQ)
-                  && (etohs (coesdo->mbxheader.length) >= COE_HEADERSIZE)
-                  && (ESCvar.segmented == MBXSED))
+         else if (SDO_COMMAND(coesdo->command) == COE_COMMAND_DOWNLOADSEGREQ)
          {
-            /* SDO download segment request */
-            SDO_downloadsegment ();
+            if (ESCvar.segmented != MBXSED)
+            {
+               set_state_idle (0, 0U, 0U, ABORT_UNKNOWN);
+            }
+            else if (etohs (coesdo->mbxheader.length) >= COE_HEADERSIZE)
+            {
+              /* SDO download segment request */
+               SDO_downloadsegment ();
+            }
+            else
+            {
+               MBX_error (MBXERR_INVALIDSIZE);
+               ESCvar.segmented = 0U;
+               MBXcontrol[0].state = MBXstate_idle;
+               ESCvar.xoe = 0;
+            }
          }
          else
          {
@@ -1580,8 +1624,18 @@ void ESC_coeprocess (void)
                && (coeobjdesc->infoheader.opcode == 0x01)
                && (ESCvar.segmented == 0U))
          {
-            SDO_getodlist ();
-         }
+            if (etohs (coesdo->mbxheader.length) == COE_MINIMUM_LENGTH)
+            {
+               SDO_getodlist ();
+            }
+            else
+            {
+               MBX_error (MBXERR_INVALIDSIZE);
+               ESCvar.segmented = 0U;
+               MBXcontrol[0].state = MBXstate_idle;
+               ESCvar.xoe = 0;
+            }
+       }
          /* initiate SDO get OD */
          else
          {
@@ -1589,7 +1643,17 @@ void ESC_coeprocess (void)
                   && (coeobjdesc->infoheader.opcode == 0x03)
                   && (ESCvar.segmented == 0U))
             {
-               SDO_getod ();
+               if (etohs (coesdo->mbxheader.length) == COE_MINIMUM_LENGTH)
+               {
+                  SDO_getod ();
+               }
+               else
+               {
+                  MBX_error (MBXERR_INVALIDSIZE);
+                  ESCvar.segmented = 0U;
+                  MBXcontrol[0].state = MBXstate_idle;
+                  ESCvar.xoe = 0;
+               }
             }
             /* initiate SDO get ED */
             else
@@ -1598,21 +1662,24 @@ void ESC_coeprocess (void)
                      && (coeobjdesc->infoheader.opcode == 0x05)
                      && (ESCvar.segmented == 0U))
                {
-                  SDO_geted ();
-               }
-               else
-               {
-                  if (service == 0)
+                  if (etohs (coesdo->mbxheader.length) == COE_HEADERSIZE)
                   {
-                     MBX_error (MBXERR_INVALIDHEADER);
+                     SDO_geted ();
+                  }
+                  else
+                  {
+                     MBX_error (MBXERR_INVALIDSIZE);
                      ESCvar.segmented = 0U;
                      MBXcontrol[0].state = MBXstate_idle;
                      ESCvar.xoe = 0;
                   }
-                  else
-                  {
-                     set_state_idle (0, etohs (coesdo->index), coesdo->subindex, ABORT_UNSUPPORTED);
-                  }
+               }
+               else
+               {
+                  MBX_error (MBXERR_INVALIDHEADER);
+                  ESCvar.segmented = 0U;
+                  MBXcontrol[0].state = MBXstate_idle;
+                  ESCvar.xoe = 0;
                }
             }
          }
