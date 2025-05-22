@@ -189,7 +189,7 @@ static uint32_t FOE_fclose (void)
    uint32_t failed = 0;
 
    DPRINT("FOE_fclose\n");
-   
+
    failed = foe_file->write_function (foe_file, foe_cfg->fbuffer, FOEvar.fbufposition);
    foe_file->address_offset += FOEvar.fbufposition;
    FOEvar.fbufposition = 0;
@@ -577,7 +577,8 @@ void ESC_foeprocess (void)
       /* Verify the size of the file data. */
       if (etohs (foembx->mbxheader.length) < ESC_FOEHSIZE)
       {
-         FOE_abort (MBXERR_SIZETOOSHORT);
+         MBX_error(MBXERR_INVALIDSIZE);
+         FOE_init();
       }
       else
       {
