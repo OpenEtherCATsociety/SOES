@@ -120,7 +120,7 @@ uint16_t sizeOfPDO (uint16_t index, int * nmappings, _SMmap * mappings,
 {
    uint32_t offset = 0;
    uint16_t hobj;
-   uint8_t si, sic, c;
+   uint16_t si, sic, c;
    int32_t nidx;
    const _objd *objd;
    const _objd *objd1c1x;
