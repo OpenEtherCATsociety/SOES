@@ -314,7 +314,7 @@ typedef struct esc_cfg
    int watchdog_cnt;
    bool skip_default_initialization;
    void (*set_defaults_hook) (void);
-   void (*pre_state_change_hook) (uint8_t * as, uint8_t * an);
+   void (*pre_state_change_hook) (uint8_t * as, uint8_t * an, bool * ack);
    void (*post_state_change_hook) (uint8_t * as, uint8_t * an);
    void (*application_hook) (void);
    void (*safeoutput_override) (void);
@@ -439,7 +439,7 @@ typedef struct
    sm_cfg_t  mbboot[2];
    bool skip_default_initialization;
    void (*set_defaults_hook) (void);
-   void (*pre_state_change_hook) (uint8_t * as, uint8_t * an);
+   void (*pre_state_change_hook) (uint8_t * as, uint8_t * an, bool * ack);
    void (*post_state_change_hook) (uint8_t * as, uint8_t * an);
    void (*application_hook) (void);
    void (*safeoutput_override) (void);
@@ -476,6 +476,7 @@ typedef struct
    uint16_t synccounterlimit;
    uint16_t ALstatus;
    uint16_t ALcontrol;
+   bool ALcontrol_pending;
    uint16_t ALerror;
    uint16_t DLstatus;
    uint16_t address;
