@@ -17,6 +17,9 @@
 #include <cc.h>
 #include "esc.h"
 #include "esc_coe.h"
+#ifdef USE_MDP
+#include "esc_mdp.h"
+#endif
 
 #define BITS2BYTES(b) ((b + 7U) >> 3)
 #define BITSPOS2BYTESOFFSET(b) (b >> 3)
@@ -311,6 +314,80 @@ static void SDO_upload (void)
    coesdo = (_COEsdo *) &MBX[0];
    index = etohs (coesdo->index);
    subindex = coesdo->subindex;
+#ifdef USE_MDP
+   /* Check if this is an MDP index before searching object dictionary */
+   {
+      uint16_t mdp_size = 0;
+      uint32_t mdp_abort = 0;
+      uint8_t mdp_buffer[256]; /* Temporary buffer for MDP data */
+      uint16_t *size_ptr = &mdp_size;
+      *size_ptr = sizeof(mdp_buffer);
+      
+      if (MDP_read_access(index, subindex, size_ptr, mdp_buffer, &mdp_abort))
+      {
+         /* MDP handled the request */
+         MBXout = ESC_claimbuffer ();
+         if (MBXout)
+         {
+            coeres = (_COEsdo *) &MBX[MBXout * ESC_MBXSIZE];
+            coeres->mbxheader.length = htoes (COE_DEFAULTLENGTH);
+            coeres->mbxheader.mbxtype = MBXCOE;
+            coeres->coeheader.numberservice =
+               htoes ((0 & 0x01f) | (COE_SDORESPONSE << 12));
+            coeres->index = htoes (index);
+            coeres->subindex = subindex;
+            
+            if (mdp_size <= 4)
+            {
+               /* expedited response */
+               uint8_t dss = 0x0c;
+               if (mdp_size > 1) dss = 0x08;
+               if (mdp_size > 2) dss = 0x04;
+               if (mdp_size > 3) dss = 0x00;
+               
+               coeres->command = COE_COMMAND_UPLOADRESPONSE |
+                  COE_SIZE_INDICATOR | COE_EXPEDITED_INDICATOR | dss;
+               copy2mbx (mdp_buffer, &(coeres->size), mdp_size);
+            }
+            else
+            {
+               /* normal response */
+               coeres->command = COE_COMMAND_UPLOADRESPONSE | COE_SIZE_INDICATOR;
+               coeres->size = htoel (mdp_size);
+               if ((mdp_size + COE_HEADERSIZE) > ESC_MBXDSIZE)
+               {
+                  /* segmented transfer needed */
+                  ESCvar.frags = mdp_size;
+                  ESCvar.fragsleft = ESC_MBXDSIZE - COE_HEADERSIZE;
+                  ESCvar.segmented = MBXSEU;
+                  ESCvar.data = mdp_buffer;
+                  ESCvar.flags = 0;
+                  mdp_size = ESC_MBXDSIZE - COE_HEADERSIZE;
+               }
+               else
+               {
+                  ESCvar.segmented = 0;
+               }
+               coeres->mbxheader.length = htoes (COE_HEADERSIZE + mdp_size);
+               copy2mbx (mdp_buffer, (&(coeres->size)) + 1, mdp_size);
+            }
+            MBXcontrol[MBXout].state = MBXstate_outreq;
+         }
+         MBXcontrol[0].state = MBXstate_idle;
+         ESCvar.xoe = 0;
+         return;
+      }
+      else if (mdp_abort != 0)
+      {
+         /* MDP returned an abort code */
+         SDO_abort (0, index, subindex, mdp_abort);
+         MBXcontrol[0].state = MBXstate_idle;
+         ESCvar.xoe = 0;
+         return;
+      }
+      /* MDP didn't handle it, continue with normal object dictionary lookup */
+   }
+#endif
    nidx = SDO_findobject (index);
    if (nidx >= 0)
    {
@@ -790,6 +867,57 @@ static void SDO_download (void)
    coesdo = (_COEsdo *) &MBX[0];
    index = etohs (coesdo->index);
    subindex = coesdo->subindex;
+#ifdef USE_MDP
+   /* Check if this is an MDP index before searching object dictionary */
+   {
+      uint32_t mdp_abort = 0;
+      uint32_t *mbxdata;
+      uint32_t size;
+      
+      /* Get data pointer and size */
+      if (coesdo->command & COE_EXPEDITED_INDICATOR)
+      {
+         size = 4U - ((coesdo->command & 0x0CU) >> 2);
+         mbxdata = &(coesdo->size);
+      }
+      else
+      {
+         size = (etohl (coesdo->size) & 0xffff);
+         mbxdata = (&(coesdo->size)) + 1;
+      }
+      
+      if (MDP_write_access(index, subindex, size, mbxdata, &mdp_abort))
+      {
+         /* MDP handled the request */
+         MBXout = ESC_claimbuffer ();
+         if (MBXout)
+         {
+            coeres = (_COEsdo *) &MBX[MBXout * ESC_MBXSIZE];
+            coeres->mbxheader.length = htoes (COE_DEFAULTLENGTH);
+            coeres->mbxheader.mbxtype = MBXCOE;
+            coeres->coeheader.numberservice =
+                  htoes ((0 & 0x01f) | (COE_SDORESPONSE << 12));
+            coeres->index = htoes (index);
+            coeres->subindex = subindex;
+            coeres->command = COE_COMMAND_DOWNLOADRESPONSE;
+            coeres->size = htoel (0);
+            MBXcontrol[MBXout].state = MBXstate_outreq;
+         }
+         MBXcontrol[0].state = MBXstate_idle;
+         ESCvar.xoe = 0;
+         return;
+      }
+      else if (mdp_abort != 0)
+      {
+         /* MDP returned an abort code */
+         SDO_abort (0, index, subindex, mdp_abort);
+         MBXcontrol[0].state = MBXstate_idle;
+         ESCvar.xoe = 0;
+         return;
+      }
+      /* MDP didn't handle it, continue with normal object dictionary lookup */
+   }
+#endif
    nidx = SDO_findobject (index);
    if (nidx >= 0)
    {
