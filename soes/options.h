@@ -7,7 +7,7 @@
 #define __options__
 
 /* User-defined options, Options defined here will override default values */
-#include "ecat_options.h"
+// #include "ecat_options.h"
 
 /* FoE support */
 #ifndef USE_FOE
@@ -17,6 +17,11 @@
 /* EoE support */
 #ifndef USE_EOE
 #define USE_EOE          1
+#endif
+
+/* MDP (Modular Device Profile) support */
+#ifndef USE_MDP
+#define USE_MDP          1
 #endif
 
 #ifndef MBXSIZE
@@ -147,5 +152,23 @@
 #define MAX_TXPDO_SIZE   128
 #endif
 
+#ifdef USE_MDP
+   /* MDP (Modular Device Profile) configuration
+    * ETG.5001.1: Each module can occupy several objects in the function specific areas.
+    * The standard defines 16 objects per module in a specific area, but this number
+    * may be adapted to the device requirements. Up to 255 modules available.
+    */
+   #ifndef MDP_OBJECTS_PER_MODULE
+   #define MDP_OBJECTS_PER_MODULE   16      /* Number of objects per module, may be adapted */
+   #endif
+
+   #ifndef MDP_INDEX_STEP
+   #define MDP_INDEX_STEP           MDP_OBJECTS_PER_MODULE  /* Index distance between modules */
+   #endif
+
+   #ifndef MAX_MDP_SLOTS
+   #define MAX_MDP_SLOTS            255     /* Maximum number of module slots (ETG.5001.1 allows up to 255) */
+   #endif
+#endif
 
 #endif /* __options__ */

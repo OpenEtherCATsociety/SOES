@@ -4,6 +4,8 @@ if(RPI_VARIANT)
 	${SOES_SOURCE_DIR}/soes/hal/raspberrypi-lan9252/esc_hw.c
 	${SOES_SOURCE_DIR}/soes/hal/raspberrypi-lan9252/esc_hw.h
 	)
+elseif (RPI_5)
+
 else()
   set(SOES_DEMO applications/linux_lan9252demo)
   set(HAL_SOURCES
