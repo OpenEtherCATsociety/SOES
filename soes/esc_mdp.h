@@ -161,24 +161,6 @@ typedef struct {
     uint32_t (*rxpdo_write_callback)(uint8_t slot, uint8_t pdo_number, void *data, uint16_t size);
 } obj_areas_of_the_modules;
 
-#define OBJ_AREAS_OF_DEVICE_MDP          0xF000 //Modular Device Profile
-#define OBJ_AREAS_OF_DEVICE_DETECT_CMD   0xF002 //Detect Modules Command
-#define OBJ_AREAS_OF_DEVICE_PDO_AL_NUM   0xF00E //Module PDO Group Mapping Alignment PDO Number
-#define OBJ_AREAS_OF_DEVICE_PDO_ALIGN    0xF00F //Module PDO Group Mapping Alignment
-#define OBJ_AREAS_OF_DEVICE_MOD_PROFILES 0xF010 //Module Profile List Profile information of the modules. Last index 0xF01F (16 objects)
-#define OBJ_AREAS_OF_DEVICE_CFG_ADDR     0xF020 //Address list of the configured Modules.Last index 0xF02F (16 objects)
-#define OBJ_AREAS_OF_DEVICE_CFG_IDENTS   0xF030 //Module Ident list of the configured Modules.Last index 0xF03F (16 objects)
-#define OBJ_AREAS_OF_DEVICE_DET_ADDR     0xF040 //Address list of detected Modules.Last index 0xF04F (16 objects)
-#define OBJ_AREAS_OF_DEVICE_DET_IDENTS   0xF050 //Module Ident list of detected Modules.Last index 0xF05F (16 objects)
-#define OBJ_AREAS_OF_DEVICE_STATUS       0xF100 //Device Status (TxPDO mappable).Last index 0xF10F (16 objects)
-#define OBJ_AREAS_OF_DEVICE_DIAGNOSIS    0xF110 //Device Diagnosis.Last index 0xF11F (16 objects)
-#define OBJ_AREAS_OF_DEVICE_STATISTICS   0xF120 //Device Statistics.Last index 0xF12F (16 objects)
-#define OBJ_AREAS_OF_DEVICE_CONTROL      0xF200 //Device Control (RxPDO mappable).Last index 0xF20F (16 objects)
-#define OBJ_AREAS_OF_DEVICE_INPUT        0xF600 //Input Area of device itself (TxPDO mappable).Last index 0xF6FF (256 objects)
-#define OBJ_AREAS_OF_DEVICE_OUTPUT       0xF700 //Output Area of device itself (RxPDO mappable).Last index 0xF7FF (256 objects)
-#define OBJ_AREAS_OF_DEVICE_CONFIG       0xF800 //Device Configuration Parameter Area.Last index 0xF8FF (256 objects)
-#define OBJ_AREAS_OF_DEVICE_CMD          0xFB00 //Device Command.Last index 0xFBFF (256 objects)
-
 // Глобальный массив слотов
 extern mdp_module_t mdp_slots[MAX_MDP_SLOTS];
 extern uint8_t mdp_active_modules_count;
