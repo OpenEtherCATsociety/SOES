@@ -113,6 +113,72 @@ typedef struct {
     uint32_t (*rxpdo_write_callback)(uint8_t slot, uint8_t pdo_number, void *data, uint16_t size);
 } mdp_module_t;
 
+
+//// @brief Object Areas of the Modules (0x6000…0xBFFF)
+//// @param input_data Pointer to input data buffer (index range 0x6nn0 sub 1-255, TxPDO)
+//// @param output_data Pointer to output data buffer (index range 0x7nn0 sub 1-255, RxPDO)
+//// @param configuration_data Pointer to configuration data buffer (index range 0x8nn0)
+//// @param information_data Pointer to information data buffer (index range 0x9nn0). Only exists for fieldbus gateways and modular devices (devices with dynamic object dictionary)
+//// @param diagnosis_data Pointer to diagnosis data buffer (index range 0xAnnn)
+//// @param service_transfer Pointer to service transfer buffer (index range 0xBnnn)
+
+//// @param input_size Input data size in bits
+//// @param output_size Output data size in bits
+//// @param configuration_size Configuration data size in bits
+//// @param information_size Information data size in bits
+//// @param diagnosis_size Diagnosis data size in bits
+//// @param service_size Service transfer size in bits
+
+//// @param config_read_callback Callback for reading configuration data
+//// @param config_write_callback Callback for writing configuration data
+//// @param diagnosis_read_callback Callback for reading diagnosis data
+//// @param service_read_callback Callback for reading service data
+//// @param service_write_callback Callback for writing service data
+//// @param txpdo_read_callback Callback for custom TxPDO access (subindex 1-255)
+//// @param rxpdo_write_callback Callback for custom RxPDO access (subindex 1-255)
+typedef struct {
+    void     *input_data;//each module may have up to 16 Input Data objects.
+    void     *output_data;//each module may have up to 16 Output Data objects.
+    void     *configuration_data;//each module may have up to 16 Configuration Data objects.
+    void     *information_data;// each module may have up to 16 Information Data objects.
+    void     *diagnosis_data;// each module may have up to 16 Diagnosis Data objects.
+    void     *service_transfer;
+
+    uint16_t input_size;
+    uint16_t output_size;
+    uint16_t configuration_size;
+    uint16_t information_size;
+    uint16_t diagnosis_size;
+    uint16_t service_size;
+
+    uint32_t (*config_read_callback)(uint8_t slot, uint8_t subindex, void *data, uint16_t *size);
+    uint32_t (*config_write_callback)(uint8_t slot, uint8_t subindex, void *data, uint16_t size);
+    uint32_t (*diagnosis_read_callback)(uint8_t slot, uint8_t subindex, void *data, uint16_t *size);
+    uint32_t (*service_read_callback)(uint8_t slot, uint8_t subindex, void *data, uint16_t *size);
+    uint32_t (*service_write_callback)(uint8_t slot, uint8_t subindex, void *data, uint16_t size);
+
+    uint32_t (*txpdo_read_callback)(uint8_t slot, uint8_t pdo_number, void *data, uint16_t *size);
+    uint32_t (*rxpdo_write_callback)(uint8_t slot, uint8_t pdo_number, void *data, uint16_t size);
+} obj_areas_of_the_modules;
+
+#define OBJ_AREAS_OF_DEVICE_MDP          0xF000 //Modular Device Profile
+#define OBJ_AREAS_OF_DEVICE_DETECT_CMD   0xF002 //Detect Modules Command
+#define OBJ_AREAS_OF_DEVICE_PDO_AL_NUM   0xF00E //Module PDO Group Mapping Alignment PDO Number
+#define OBJ_AREAS_OF_DEVICE_PDO_ALIGN    0xF00F //Module PDO Group Mapping Alignment
+#define OBJ_AREAS_OF_DEVICE_MOD_PROFILES 0xF010 //Module Profile List Profile information of the modules. Last index 0xF01F (16 objects)
+#define OBJ_AREAS_OF_DEVICE_CFG_ADDR     0xF020 //Address list of the configured Modules.Last index 0xF02F (16 objects)
+#define OBJ_AREAS_OF_DEVICE_CFG_IDENTS   0xF030 //Module Ident list of the configured Modules.Last index 0xF03F (16 objects)
+#define OBJ_AREAS_OF_DEVICE_DET_ADDR     0xF040 //Address list of detected Modules.Last index 0xF04F (16 objects)
+#define OBJ_AREAS_OF_DEVICE_DET_IDENTS   0xF050 //Module Ident list of detected Modules.Last index 0xF05F (16 objects)
+#define OBJ_AREAS_OF_DEVICE_STATUS       0xF100 //Device Status (TxPDO mappable).Last index 0xF10F (16 objects)
+#define OBJ_AREAS_OF_DEVICE_DIAGNOSIS    0xF110 //Device Diagnosis.Last index 0xF11F (16 objects)
+#define OBJ_AREAS_OF_DEVICE_STATISTICS   0xF120 //Device Statistics.Last index 0xF12F (16 objects)
+#define OBJ_AREAS_OF_DEVICE_CONTROL      0xF200 //Device Control (RxPDO mappable).Last index 0xF20F (16 objects)
+#define OBJ_AREAS_OF_DEVICE_INPUT        0xF600 //Input Area of device itself (TxPDO mappable).Last index 0xF6FF (256 objects)
+#define OBJ_AREAS_OF_DEVICE_OUTPUT       0xF700 //Output Area of device itself (RxPDO mappable).Last index 0xF7FF (256 objects)
+#define OBJ_AREAS_OF_DEVICE_CONFIG       0xF800 //Device Configuration Parameter Area.Last index 0xF8FF (256 objects)
+#define OBJ_AREAS_OF_DEVICE_CMD          0xFB00 //Device Command.Last index 0xFBFF (256 objects)
+
 // Глобальный массив слотов
 extern mdp_module_t mdp_slots[MAX_MDP_SLOTS];
 extern uint8_t mdp_active_modules_count;
