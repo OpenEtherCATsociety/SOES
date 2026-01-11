@@ -126,7 +126,7 @@ static uint16_t mdp_get_alignment_pdo_entry(uint8_t subindex);
 static uint16_t mdp_get_alignment_entry(uint8_t subindex);
 
 /* ============================================================================
- * ETG.5001.1 Clause 4.2.3.1: Modular Device Profile (0xF000)
+ * ETG.5001.1 Clause 4.2.3.2: Object 0xF000: Modular Device Profile
  * Contains device-level MDP parameters
  * ============================================================================ */
 const _objd SDOF000[] =
@@ -146,7 +146,7 @@ const _objd SDOF000[] =
 };
 
 /* ============================================================================
- * ETG.5001.1 Clause 4.2.3.2: Detect Modules Command (0xF002)
+ * ETG.5001.1 Clause 4.2.3.3: Object 0xF002: Detect Modules Command
  * Command object for module detection
  * ============================================================================ */
 const _objd SDOF002[] = {
@@ -157,7 +157,7 @@ const _objd SDOF002[] = {
 };
 
 /* ============================================================================
- * ETG.5001.1 Clause 4.2.3.3: Module PDO Group Mapping Alignment PDO Number (0xF00E)
+ * ETG.5001.1 Clause 4.2.3.4: Object 0xF00E: Module PDO Group Mapping Alignment PDO Number
  * Array of PDO numbers for alignment
  * Note: Subindexes 1-255 are accessed dynamically via callback
  * ============================================================================ */
@@ -168,7 +168,7 @@ const _objd SDOF00E[] = {
 };
 
 /* ============================================================================
- * ETG.5001.1 Clause 4.2.3.4: Module PDO Group Mapping Alignment (0xF00F)
+ * ETG.5001.1 Clause 4.2.3.5: Object 0xF00F: Module PDO Group Mapping Alignment
  * Array of alignment values
  * Note: Subindexes 1-255 are accessed dynamically via callback
  * ============================================================================ */
@@ -179,7 +179,7 @@ const _objd SDOF00F[] = {
 };
 
 /* ============================================================================
- * ETG.5001.1 Clause 4.2.3.5: Module Profile List (0xF010-0xF01F)
+ * ETG.5001.1 Clause 4.2.3.6: Module Profile List (0xF010...0xF01F)
  * Profile information of the modules
  * Note: Subindexes 1-255 are accessed dynamically via callback
  * ============================================================================ */
@@ -190,7 +190,7 @@ const _objd SDOF010[] = {
 };
 
 /* ============================================================================
- * ETG.5001.1 Clause 4.2.3.6: Address list of the configured Modules (0xF020-0xF02F)
+ * ETG.5001.1 Clause 4.2.3.7: Configured Address List (0xF020...0xF02F)
  * List of addresses for configured modules
  * Note: Subindexes 1-255 are accessed dynamically via callback
  * ============================================================================ */
@@ -201,7 +201,7 @@ const _objd SDOF020[] = {
 };
 
 /* ============================================================================
- * ETG.5001.1 Clause 4.2.3.7: Module Ident list of the configured Modules (0xF030-0xF03F)
+ * ETG.5001.1 Clause 4.2.3.8: Configured Module Ident List (0xF030...0xF03F)
  * List of module identifiers currently configured in slots
  * ============================================================================ */
 const _objd SDOF030[] =
@@ -212,7 +212,7 @@ const _objd SDOF030[] =
 };
 
 /* ============================================================================
- * ETG.5001.1 Clause 4.2.3.8: Address list of detected Modules (0xF040-0xF04F)
+ * ETG.5001.1 Clause 4.2.3.9: Detected Address List (0xF040...0xF04F)
  * List of addresses for detected modules
  * Note: Subindexes 1-255 are accessed dynamically via callback
  * ============================================================================ */
@@ -223,7 +223,7 @@ const _objd SDOF040[] = {
 };
 
 /* ============================================================================
- * ETG.5001.1 Clause 4.2.3.9: Module Ident list of detected Modules (0xF050-0xF05F)
+ * ETG.5001.1 Clause 4.2.3.10: Detected Module Ident List (0xF050...0xF05F)
  * List of module identifiers for detected modules
  * ============================================================================ */
 const _objd SDOF050[] =
@@ -234,7 +234,7 @@ const _objd SDOF050[] =
 };
 
 /* ============================================================================
- * ETG.5001.1 Clause 4.2.3.11: Device Status (0xF100-0xF10F)
+ * ETG.5001.1 Clause 4.2.3.11: Device Status (0xF100...0xF10F)
  * Device status information, TxPDO mappable
  * ============================================================================ */
 const _objd SDOF100[] =
@@ -246,7 +246,7 @@ const _objd SDOF100[] =
 };
 
 /* ============================================================================
- * ETG.5001.1 Clause 4.2.3.12: Device Diagnosis (0xF110-0xF11F)
+ * ETG.5001.1 Clause 4.2.3.12: Device Diagnosis (0xF110...0xF11F)
  * Device diagnosis information
  * ============================================================================ */
 const _objd SDOF110[] = {
@@ -257,7 +257,7 @@ const _objd SDOF110[] = {
 };
 
 /* ============================================================================
- * ETG.5001.1 Clause 4.2.3.13: Device Statistics (0xF120-0xF12F)
+ * ETG.5001.1 Clause 4.2.3.13: Device Statistics (0xF120...0xF12F)
  * Device statistics information
  * ============================================================================ */
 const _objd SDOF120[] = {
@@ -268,7 +268,7 @@ const _objd SDOF120[] = {
 };
 
 /* ============================================================================
- * ETG.5001.1 Clause 4.2.3.14: Device Control (0xF200-0xF20F)
+ * ETG.5001.1 Clause 4.2.3.14: Device Control (0xF200...0xF20F)
  * Device control information, RxPDO mappable
  * ============================================================================ */
 const _objd SDOF200[] =
@@ -280,7 +280,7 @@ const _objd SDOF200[] =
 };
 
 /* ============================================================================
- * ETG.5001.1 Clause 4.2.3.15: Device Input Data (0xF600-0xF6FF)
+ * ETG.5001.1 Clause 4.2.3.15: Device Input Data (0xF600...0xF6FF)
  * Input Area of device itself, TxPDO mappable
  * ============================================================================ */
 const _objd SDOF600[] = {
@@ -291,7 +291,7 @@ const _objd SDOF600[] = {
 };
 
 /* ============================================================================
- * ETG.5001.1 Clause 4.2.3.16: Device Output Data (0xF700-0xF7FF)
+ * ETG.5001.1 Clause 4.2.3.16: Device Output Data (0xF700...0xF7FF)
  * Output Area of device itself, RxPDO mappable
  * ============================================================================ */
 const _objd SDOF700[] = {
@@ -302,7 +302,7 @@ const _objd SDOF700[] = {
 };
 
 /* ============================================================================
- * ETG.5001.1 Clause 4.2.3.17: Device Configuration Data (0xF800-0xF8FF)
+ * ETG.5001.1 Clause 4.2.3.17: Device Configuration Data (0xF800...0xF8FF)
  * Device Configuration Parameter Area
  * ============================================================================ */
 const _objd SDOF800[] = {
@@ -313,7 +313,7 @@ const _objd SDOF800[] = {
 };
 
 /* ============================================================================
- * ETG.5001.1 Clause 4.2.3.18: Device Command (0xFB00-0xFBFF)
+ * ETG.5001.1 Clause 4.2.3.18: Device Command (0xFB00...0xFBFF)
  * Device Command area
  * ============================================================================ */
 const _objd SDOFB00[] =
