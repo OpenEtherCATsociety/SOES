@@ -139,6 +139,7 @@ int MDP_add_module_with_config(uint8_t slot, uint32_t module_id,
                                 uint32_t (*config_write_cb)(uint8_t slot, uint8_t subindex, void *data, uint16_t size)) {
     return MDP_add_module_full(slot, module_id, in, in_size, out, out_size,
                                 config, config_size, NULL, 0, NULL, 0,
+                                0, 0, 0, 0, 0, /* Information Area fields default to 0 */
                                 config_read_cb, config_write_cb, NULL, NULL, NULL);
 }
 
@@ -148,6 +149,8 @@ int MDP_add_module_full(uint8_t slot, uint32_t module_id,
                         void *config, uint16_t config_size,
                         void *diagnosis, uint16_t diagnosis_size,
                         void *service, uint16_t service_size,
+                        uint32_t device_type, uint32_t vendor_id, uint32_t product_code,
+                        uint32_t revision, uint32_t serial_number,
                         uint32_t (*config_read_cb)(uint8_t slot, uint8_t subindex, void *data, uint16_t *size),
                         uint32_t (*config_write_cb)(uint8_t slot, uint8_t subindex, void *data, uint16_t size),
                         uint32_t (*diagnosis_read_cb)(uint8_t slot, uint8_t subindex, void *data, uint16_t *size),
@@ -172,6 +175,11 @@ int MDP_add_module_full(uint8_t slot, uint32_t module_id,
     mdp_slots[slot].diagnosis_size = diagnosis_size;
     mdp_slots[slot].service_transfer = service;
     mdp_slots[slot].service_size = service_size;
+    mdp_slots[slot].device_type = device_type;
+    mdp_slots[slot].vendor_id = vendor_id;
+    mdp_slots[slot].product_code = product_code;
+    mdp_slots[slot].revision = revision;
+    mdp_slots[slot].serial_number = serial_number;
     mdp_slots[slot].configuration_read_callback = config_read_cb;
     mdp_slots[slot].configuration_write_callback = config_write_cb;
     mdp_slots[slot].diagnosis_read_callback = diagnosis_read_cb;
@@ -331,7 +339,8 @@ uint32_t MDP_read_access(uint16_t index, uint8_t subindex, uint16_t *size, void 
                 temp_u8 = 1; // At least subindex 1 exists
                 data_ptr = &temp_u8; data_len = 1;
             } else {
-                *abort_code = 0x06020000; return 0; // No configuration available
+                *abort_code = 0x06020000;
+                return 0; // No configuration available
             }
         }
         else if (subindex == 0x01) {
@@ -350,11 +359,13 @@ uint32_t MDP_read_access(uint16_t index, uint8_t subindex, uint16_t *size, void 
                 data_ptr = (uint8_t*)mdp_slots[slot].configuration_data;
                 data_len = (mdp_slots[slot].configuration_size + 7) / 8;
             } else {
-                *abort_code = 0x06020000; return 0;
+                *abort_code = 0x06020000;
+                return 0;
             }
         }
         else {
-            *abort_code = 0x06020000; return 0;
+            *abort_code = 0x06020000;
+            return 0;
         }
     }
     // --- MODULE INFO (0x9nn0) ---
@@ -376,18 +387,68 @@ uint32_t MDP_read_access(uint16_t index, uint8_t subindex, uint16_t *size, void 
         /* If device_subtype == 0xFF (not MDP) or device_subtype == 0 (AddInfo = 0),
          * Information Area is available (default behavior for non-Module Device types)
          */
-        // ETG.5001.1: 0x9nn0 Sub 1 = Module Profile / Ident
+        // ETG.5001.1: Information Area subindexes
+        // Subindex 0: Number of Entries (Max SubIndex)
+        // Subindex 1: Module Profile / Ident
+        // Subindex 4: Device Type
+        // Subindex 5: Vendor ID
+        // Subindex 6: Product Code
+        // Subindex 7: Revision
+        // Subindex 8: Serial Number
         if (subindex == 0x00) {
-            temp_u8 = 1; // Max subindex (at least subindex 1 exists)
+            // Calculate max subindex based on available fields
+            // At minimum, subindex 1 (module_ident) exists
+            uint8_t max_subindex = 1;
+            if (mdp_slots[slot].device_type != 0 ||
+                mdp_slots[slot].vendor_id != 0 ||
+                mdp_slots[slot].product_code != 0 ||
+                mdp_slots[slot].revision != 0 ||
+                mdp_slots[slot].serial_number != 0) {
+                max_subindex = 8; // All Information Area fields available
+            }
+            temp_u8 = max_subindex;
             data_ptr = &temp_u8; data_len = 1;
         }
         else if (subindex == 0x01) {
-             temp_u32 = mdp_slots[slot].module_ident;
-             data_ptr = (uint8_t*)&temp_u32;
-             data_len = 4;
+            // Subindex 1: Module Profile / Ident
+            temp_u32 = mdp_slots[slot].module_ident;
+            data_ptr = (uint8_t*)&temp_u32;
+            data_len = 4;
+        }
+        else if (subindex == 0x04) {
+            // Subindex 4: Device Type
+            temp_u32 = mdp_slots[slot].device_type;
+            data_ptr = (uint8_t*)&temp_u32;
+            data_len = 4;
+        }
+        else if (subindex == 0x05) {
+            // Subindex 5: Vendor ID
+            temp_u32 = mdp_slots[slot].vendor_id;
+            data_ptr = (uint8_t*)&temp_u32;
+            data_len = 4;
+        }
+        else if (subindex == 0x06) {
+            // Subindex 6: Product Code
+            temp_u32 = mdp_slots[slot].product_code;
+            data_ptr = (uint8_t*)&temp_u32;
+            data_len = 4;
+        }
+        else if (subindex == 0x07) {
+            // Subindex 7: Revision
+            temp_u32 = mdp_slots[slot].revision;
+            data_ptr = (uint8_t*)&temp_u32;
+            data_len = 4;
+        }
+        else if (subindex == 0x08) {
+            // Subindex 8: Serial Number
+            temp_u32 = mdp_slots[slot].serial_number;
+            data_ptr = (uint8_t*)&temp_u32;
+            data_len = 4;
         }
         else {
-             *abort_code = 0x06020000; return 0;
+            // Subindexes 2-3 are reserved, subindexes > 8 are not defined
+            *abort_code = 0x06020000;
+            return 0;
         }
     }
     // --- DIAGNOSIS (0xAnnn) ---
@@ -399,7 +460,8 @@ uint32_t MDP_read_access(uint16_t index, uint8_t subindex, uint16_t *size, void 
                 temp_u8 = 1; // At least subindex 1 exists
                 data_ptr = &temp_u8; data_len = 1;
             } else {
-                *abort_code = 0x06020000; return 0; // No diagnosis data available
+                *abort_code = 0x06020000;
+                return 0; // No diagnosis data available
             }
         }
         else if (subindex == 0x01) {
@@ -418,11 +480,13 @@ uint32_t MDP_read_access(uint16_t index, uint8_t subindex, uint16_t *size, void 
                 data_ptr = (uint8_t*)mdp_slots[slot].diagnosis_data;
                 data_len = (mdp_slots[slot].diagnosis_size + 7) / 8;
             } else {
-                *abort_code = 0x06020000; return 0;
+                *abort_code = 0x06020000;
+                return 0;
             }
         }
         else {
-            *abort_code = 0x06020000; return 0;
+            *abort_code = 0x06020000;
+            return 0;
         }
     }
     // --- SERVICE TRANSFER (0xBnnn) ---
@@ -434,7 +498,8 @@ uint32_t MDP_read_access(uint16_t index, uint8_t subindex, uint16_t *size, void 
                 temp_u8 = 1; // At least subindex 1 exists
                 data_ptr = &temp_u8; data_len = 1;
             } else {
-                *abort_code = 0x06020000; return 0; // No service data available
+                *abort_code = 0x06020000;
+                return 0; // No service data available
             }
         }
         else if (subindex == 0x01) {
@@ -453,11 +518,13 @@ uint32_t MDP_read_access(uint16_t index, uint8_t subindex, uint16_t *size, void 
                 data_ptr = (uint8_t*)mdp_slots[slot].service_transfer;
                 data_len = (mdp_slots[slot].service_size + 7) / 8;
             } else {
-                *abort_code = 0x06020000; return 0;
+                *abort_code = 0x06020000;
+                return 0;
             }
         }
         else {
-            *abort_code = 0x06020000; return 0;
+            *abort_code = 0x06020000;
+            return 0;
         }
     }
 
