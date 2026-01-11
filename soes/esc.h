@@ -69,6 +69,11 @@
 #define SYNCTYPE_SUPPORT_DCSYNC1    0x08
 #define SYNCTYPE_SUPPORT_SUBCYCLE   0x10
 
+/* Device Type definitions according to ETG.5001.1 Modular Device Profile */
+#define DEVICE_TYPE_FIELDBUS_GATEWAY    0x01    /**< Fieldbus Gateway - gateway to other fieldbuses */
+#define DEVICE_TYPE_MODULAR_DEVICE      0x02    /**< Modular Device - device with physical connectable modules and\or several function modules */
+#define DEVICE_TYPE_MODULE_DEVICE       0x03    /**< Module Device - module which is connected directly to EtherCAT and consists of several channels */
+
 #define ESCinit                  0x01
 #define ESCpreop                 0x02
 #define ESCboot                  0x03
