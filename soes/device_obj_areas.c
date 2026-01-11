@@ -136,11 +136,11 @@ const _objd SDOF000[] =
   /* Subindex 1: Index Distance - Distance between module indices */
   {0x01, DTYPE_UNSIGNED16, 16, ATYPE_RO, acNameF000_01, MDP_INDEX_STEP, NULL},
   /* Subindex 2: Maximum Number of Modules */
-  {0x02, DTYPE_UNSIGNED16, 32, ATYPE_RO, acNameF000_02, MAX_MDP_SLOTS, NULL},
+  {0x02, DTYPE_UNSIGNED16, 16, ATYPE_RO, acNameF000_02, MAX_MDP_SLOTS, NULL},
   /* Subindex 3: General configuration */
   {0x03, DTYPE_UNSIGNED32, 32, ATYPE_RO, acNameF000_03, 0, NULL},
   /* Subindex 4: General information */
-  {0x04, DTYPE_UNSIGNED32, 16, ATYPE_RO, acNameF000_04, 0, NULL},
+  {0x04, DTYPE_UNSIGNED32, 32, ATYPE_RO, acNameF000_04, 0, NULL},
   /* Subindex 5: Module PDO Group of device */
   {0x05, DTYPE_UNSIGNED16, 16, ATYPE_RO, acNameF000_05, 0, NULL},
 };
