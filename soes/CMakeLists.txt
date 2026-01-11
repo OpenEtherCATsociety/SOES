@@ -32,4 +32,5 @@ install (FILES
   esc_eoe.h
   esc_eep.h
   esc_mdp.h
+  device_obj_areas.h
   DESTINATION include)

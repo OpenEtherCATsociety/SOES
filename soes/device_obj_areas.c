@@ -328,7 +328,7 @@ const _objd SDOFB00[] =
  * Static Object Dictionary for Device Area (0xF000-0xFFFF)
  * According to ETG.5001.1 Table 3: Object Dictionary Structure
  * ============================================================================ */
-const _objectlist SDOobjects[] =
+const _objectlist DeviceAreaobjects[] =
 {
   /* 0xF000: Modular Device Profile - Mandatory for all MDP device types */
   {0xF000, OTYPE_RECORD, 5, 0, acNameF000, SDOF000},
@@ -751,12 +751,12 @@ uint16_t device_obj_areas_get_dynamic_count(void) {
 const _objectlist* device_obj_areas_find_object_extended(uint16_t index, int32_t *static_idx) {
     /* Search in static dictionary first */
     int32_t n = 0;
-    while (SDOobjects[n].index < index && SDOobjects[n].index != 0xffff) {
+    while (DeviceAreaobjects[n].index < index && DeviceAreaobjects[n].index != 0xffff) {
         n++;
     }
-    if (SDOobjects[n].index == index) {
+    if (DeviceAreaobjects[n].index == index) {
         if (static_idx) *static_idx = n;
-        return &SDOobjects[n];
+        return &DeviceAreaobjects[n];
     }
     
     /* If not found in static, search in dynamic */

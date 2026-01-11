@@ -57,8 +57,8 @@ int16_t SDO_findsubindex (int32_t nidx, uint8_t subindex)
    const _objd *objd;
    int16_t n = 0;
    uint8_t maxsub;
-   objd = SDOobjects[nidx].objdesc;
-   maxsub = SDOobjects[nidx].maxsub;
+   objd = DeviceAreaobjects[nidx].objdesc;
+   maxsub = DeviceAreaobjects[nidx].maxsub;
 
    /* Since most objects contain all subindexes (i.e. are not sparse),
     * check the most likely scenario first
@@ -128,11 +128,11 @@ static const _objd* SDO_findsubindex_extended(const _objectlist *objlist, uint8_
 int32_t SDO_findobject (uint16_t index)
 {
    int32_t n = 0;
-   while (SDOobjects[n].index < index)
+   while (DeviceAreaobjects[n].index < index)
    {
       n++;
    }
-   if (SDOobjects[n].index != index)
+   if (DeviceAreaobjects[n].index != index)
    {
       return -1;
    }
@@ -182,7 +182,7 @@ uint16_t sizeOfPDO (uint16_t index, int * nmappings, _SMmap * mappings,
       return 0;
    }
 
-   objd1c1x = SDOobjects[nidx].objdesc;
+   objd1c1x = DeviceAreaobjects[nidx].objdesc;
 
    si = OBJ_VALUE_FETCH (si, objd1c1x[0]);
    if (si)
@@ -206,7 +206,7 @@ uint16_t sizeOfPDO (uint16_t index, int * nmappings, _SMmap * mappings,
          {
             uint8_t maxsub;
 
-            objd = SDOobjects[nidx].objdesc;
+            objd = DeviceAreaobjects[nidx].objdesc;
             maxsub = OBJ_VALUE_FETCH (maxsub, objd[0]);
 #endif
 
@@ -281,8 +281,8 @@ uint16_t sizeOfPDO (uint16_t index, int * nmappings, _SMmap * mappings,
                            return 0;
                         }
 
-                        mapping = &SDOobjects[nidx].objdesc[nsub];
-                        mappings[mapIx].objectlistitem = &SDOobjects[nidx];
+                        mapping = &DeviceAreaobjects[nidx].objdesc[nsub];
+                        mappings[mapIx].objectlistitem = &DeviceAreaobjects[nidx];
                      }
                      else
                      {
@@ -471,7 +471,7 @@ static void SDO_upload (void)
       nsub = SDO_findsubindex (nidx, subindex);
       if (nsub >= 0)
       {
-         objd = SDOobjects[nidx].objdesc;
+         objd = DeviceAreaobjects[nidx].objdesc;
          uint8_t access = (objd + nsub)->flags & 0x3f;
          uint8_t state = ESCvar.ALstatus & 0x0f;
          if (!READ_ACCESS(access, state))
@@ -649,7 +649,7 @@ static uint32_t complete_access_subindex_loop(const _objd *objd,
       mbxdata[1] = 0;
    }
 
-   while (nsub <= SDOobjects[nidx].maxsub)
+   while (nsub <= DeviceAreaobjects[nidx].maxsub)
    {
       uint16_t bitlen = (objd + nsub)->bitlength;
       void *ul_source = ((objd + nsub)->data != NULL) ?
@@ -714,7 +714,7 @@ static uint32_t complete_access_subindex_loop(const _objd *objd,
        * For VARIABLE use true bitsize.
        */
       size +=
-      ((nsub == 0) && (SDOobjects[nidx].objtype != OTYPE_VAR)) ? 16 : bitlen;
+      ((nsub == 0) && (DeviceAreaobjects[nidx].objtype != OTYPE_VAR)) ? 16 : bitlen;
       nsub++;
 
       if ((max_bytes > 0) && (BITS2BYTES(size) >= max_bytes))
@@ -770,7 +770,7 @@ static void SDO_upload_complete_access (void)
       return;
    }
 
-   const _objd *objd = SDOobjects[nidx].objdesc;
+   const _objd *objd = DeviceAreaobjects[nidx].objdesc;
 
    /* loop through the subindexes to get the total size */
    uint32_t size = complete_access_subindex_loop(objd, nidx, nsub, NULL, UPLOAD, 0);
@@ -1001,7 +1001,7 @@ static void SDO_download (void)
       nsub = SDO_findsubindex (nidx, subindex);
       if (nsub >= 0)
       {
-         objd = SDOobjects[nidx].objdesc;
+         objd = DeviceAreaobjects[nidx].objdesc;
          uint8_t access = (objd + nsub)->flags & 0x3f;
          uint8_t state = ESCvar.ALstatus & 0x0f;
          if (WRITE_ACCESS(access, state))
@@ -1156,7 +1156,7 @@ static void SDO_download_complete_access (void)
       mbxdata++;
    }
 
-   const _objd *objd = SDOobjects[nidx].objdesc;
+   const _objd *objd = DeviceAreaobjects[nidx].objdesc;
 
    /* loop through the subindexes to get the total size */
    uint32_t size = complete_access_subindex_loop(objd, nidx, nsub, NULL, DOWNLOAD, 0);
@@ -1284,7 +1284,7 @@ static void SDO_downloadsegment (void)
             }
 
             /* copy download data to subindexes */
-            const _objd *objd = SDOobjects[nidx].objdesc;
+            const _objd *objd = DeviceAreaobjects[nidx].objdesc;
             complete_access_subindex_loop(objd,
                   nidx,
                   nsub,
@@ -1363,7 +1363,7 @@ static void SDO_getodlist (void)
    uint16_t *p;
    _COEobjdesc *coel, *coer;
 
-   while (SDOobjects[entries].index != 0xffff)
+   while (DeviceAreaobjects[entries].index != 0xffff)
    {
       entries++;
    }
@@ -1435,7 +1435,7 @@ static void SDO_getodlist (void)
          p = &(coel->datatype);
          for (i = 0; i < n; i++)
          {
-            *p = htoes (SDOobjects[i].index);
+            *p = htoes (DeviceAreaobjects[i].index);
             p++;
          }
 
@@ -1482,7 +1482,7 @@ static void SDO_getodlistcont (void)
       p = &(coel->index);
       for (i = s; i < n; i++)
       {
-         *p = htoes (SDOobjects[i].index);
+         *p = htoes (DeviceAreaobjects[i].index);
          p++;
       }
       coel->mbxheader.length = htoes (0x06 + ((n - s) << 1));
@@ -1520,27 +1520,27 @@ static void SDO_getod (void)
          coel->infoheader.reserved = 0x00;
          coel->infoheader.fragmentsleft = htoes (0);
          coel->index = htoes (index);
-         if (SDOobjects[nidx].objtype == OTYPE_VAR)
+         if (DeviceAreaobjects[nidx].objtype == OTYPE_VAR)
          {
             int32_t nsub = SDO_findsubindex (nidx, 0);
-            const _objd *objd = SDOobjects[nidx].objdesc;
+            const _objd *objd = DeviceAreaobjects[nidx].objdesc;
             coel->datatype = htoes ((objd + nsub)->datatype);
-            coel->maxsub = SDOobjects[nidx].maxsub;
+            coel->maxsub = DeviceAreaobjects[nidx].maxsub;
          }
-         else if (SDOobjects[nidx].objtype == OTYPE_ARRAY)
+         else if (DeviceAreaobjects[nidx].objtype == OTYPE_ARRAY)
          {
             int32_t nsub = SDO_findsubindex (nidx, 0);
-            const _objd *objd = SDOobjects[nidx].objdesc;
+            const _objd *objd = DeviceAreaobjects[nidx].objdesc;
             coel->datatype = htoes ((objd + nsub)->datatype);
-            coel->maxsub = (uint8_t)SDOobjects[nidx].objdesc->value;
+            coel->maxsub = (uint8_t)DeviceAreaobjects[nidx].objdesc->value;
          }
          else
          {
             coel->datatype = htoes (0);
-            coel->maxsub = (uint8_t)SDOobjects[nidx].objdesc->value;
+            coel->maxsub = (uint8_t)DeviceAreaobjects[nidx].objdesc->value;
          }
-         coel->objectcode = (uint8_t)SDOobjects[nidx].objtype;
-         s = (uint8_t *) SDOobjects[nidx].name;
+         coel->objectcode = (uint8_t)DeviceAreaobjects[nidx].objtype;
+         s = (uint8_t *) DeviceAreaobjects[nidx].name;
          d = (uint8_t *) &(coel->name);
          while (*s && (n < (ESC_MBXDSIZE - 0x0c)))
          {
@@ -1587,7 +1587,7 @@ static void SDO_geted (void)
       nsub = SDO_findsubindex (nidx, subindex);
       if (nsub >= 0)
       {
-         objd = SDOobjects[nidx].objdesc;
+         objd = DeviceAreaobjects[nidx].objdesc;
          MBXout = ESC_claimbuffer ();
          if (MBXout)
          {
@@ -1956,10 +1956,10 @@ void COE_initDefaultValues (void)
    }
 
    /* Set default values from object descriptor */
-   for (n = 0; SDOobjects[n].index != 0xffff; n++)
+   for (n = 0; DeviceAreaobjects[n].index != 0xffff; n++)
    {
-      objd = SDOobjects[n].objdesc;
-      maxsub = SDOobjects[n].maxsub;
+      objd = DeviceAreaobjects[n].objdesc;
+      maxsub = DeviceAreaobjects[n].maxsub;
 
       i = 0;
       do
@@ -2091,6 +2091,6 @@ uint8_t COE_maxSub (uint16_t index)
    if (nidx == -1)
       return 0;
 
-   maxsub = OBJ_VALUE_FETCH (maxsub, SDOobjects[nidx].objdesc[0]);
+   maxsub = OBJ_VALUE_FETCH (maxsub, DeviceAreaobjects[nidx].objdesc[0]);
    return maxsub;
 }

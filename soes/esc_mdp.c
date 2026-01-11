@@ -61,7 +61,7 @@ uint8_t MDP_get_device_subtype(void) {
         return 0xFF; /* Object 0x1000 not found */
     }
     
-    const _objectlist *objlist = &SDOobjects[nidx];
+    const _objectlist *objlist = &DeviceAreaobjects[nidx];
     if (objlist->objdesc == NULL) {
         return 0xFF; /* Object 0x1000 has no description */
     }
