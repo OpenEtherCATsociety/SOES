@@ -95,8 +95,7 @@ uint8_t MDP_get_device_subtype(void) {
     if (addinfo == 0) {
         return 0;
     }
-
-    //TODO
+    
     /* Other AddInfo values may be valid module profile numbers, but we only support
      * device subtype identifiers (0x01, 0x02, 0x03) for Information Area validation.
      * Return 0xFF to indicate unsupported device subtype for our validation purposes.

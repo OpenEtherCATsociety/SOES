@@ -77,10 +77,10 @@ int device_obj_areas_remove_module_all_entries(uint8_t slot);
  * This function registers:
  * - Input Area (0x6nn0) if input_data is available
  * - Output Area (0x7nn0) if output_data is available
- * - Configuration Area (0x8nn0) if config_data is available
- * - Information Area (0x9nn0) - always registered
+ * - Configuration Area (0x8nn0) if configuration_data is available
+ * - Information Area (0x9nn0) - registered based on device subtype (not for DEVICE_TYPE_MODULE_DEVICE)
  * - Diagnosis Area (0xAnnn) if diagnosis_data is available
- * - Service Area (0xBnnn) if service_data is available
+ * - Service Area (0xBnnn) if service_transfer is available
  * 
  * @param slot Module slot number
  * @return 0 on success, -1 on error
