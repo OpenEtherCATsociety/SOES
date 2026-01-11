@@ -69,10 +69,16 @@
 #define SYNCTYPE_SUPPORT_DCSYNC1    0x08
 #define SYNCTYPE_SUPPORT_SUBCYCLE   0x10
 
-/* Device Type definitions according to ETG.5001.1 Modular Device Profile */
-#define DEVICE_TYPE_FIELDBUS_GATEWAY    0x01    /**< Fieldbus Gateway - gateway to other fieldbuses */
-#define DEVICE_TYPE_MODULAR_DEVICE      0x02    /**< Modular Device - device with physical connectable modules and\or several function modules */
-#define DEVICE_TYPE_MODULE_DEVICE       0x03    /**< Module Device - module which is connected directly to EtherCAT and consists of several channels */
+#ifdef USE_MDP
+   /* Device subtype definitions for MDP devices
+    * These values may be used in AddInfo field (bits 16-31) of Object 0x1000: Device Type
+    * According to ETG.5001.1 Clause 4.2.1.2, AddInfo contains the module profile number.
+    * These constants represent device subtype classification for MDP devices.
+    */
+   #define DEVICE_TYPE_FIELDBUS_GATEWAY    0x01    /**< Fieldbus Gateway - gateway to other fieldbuses */
+   #define DEVICE_TYPE_MODULAR_DEVICE      0x02    /**< Modular Device - device with physical connectable modules and\or several function modules */
+   #define DEVICE_TYPE_MODULE_DEVICE       0x03    /**< Module Device - module which is connected directly to EtherCAT and consists of several channels */
+#endif
 
 #define ESCinit                  0x01
 #define ESCpreop                 0x02

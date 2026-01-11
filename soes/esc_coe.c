@@ -19,6 +19,7 @@
 #include "esc_coe.h"
 #ifdef USE_MDP
 #include "esc_mdp.h"
+#include "device_obj_areas.h"
 #endif
 
 #define BITS2BYTES(b) ((b + 7U) >> 3)
@@ -77,6 +78,47 @@ int16_t SDO_findsubindex (int32_t nidx, uint8_t subindex)
    }
    return n;
 }
+
+#ifdef USE_MDP
+/** Find subindex in object (static or dynamic).
+ *
+ * @param[in] objlist   = pointer to object list entry (static or dynamic)
+ * @param[in] subindex  = value on sub-index of object we want to locate
+ * @return pointer to _objd if found, NULL otherwise.
+ */
+static const _objd* SDO_findsubindex_extended(const _objectlist *objlist, uint8_t subindex)
+{
+   const _objd *objd;
+   int16_t n = 0;
+   uint8_t maxsub;
+   
+   if (objlist == NULL)
+   {
+      return NULL;
+   }
+   
+   objd = objlist->objdesc;
+   maxsub = objlist->maxsub;
+
+   /* Since most objects contain all subindexes (i.e. are not sparse),
+    * check the most likely scenario first
+    */
+   if ((subindex <= maxsub) && ((objd + subindex)->subindex == subindex))
+   {
+      return objd + subindex;
+   }
+
+   while (((objd + n)->subindex < subindex) && (n < maxsub))
+   {
+      n++;
+   }
+   if ((objd + n)->subindex != subindex)
+   {
+      return NULL;
+   }
+   return objd + n;
+}
+#endif
 
 /** Search for an object index matching the wanted value in the Object List.
  *
@@ -148,6 +190,17 @@ uint16_t sizeOfPDO (uint16_t index, int * nmappings, _SMmap * mappings,
       for (sic = 1; sic <= si; sic++)
       {
          hobj = OBJ_VALUE_FETCH (hobj, objd1c1x[sic]);
+#ifdef USE_MDP
+         /* Try extended search (static + dynamic) */
+         int32_t static_idx_hobj = -1;
+         const _objectlist *objlist_hobj = device_obj_areas_find_object_extended(hobj, &static_idx_hobj);
+         
+         if (objlist_hobj != NULL)
+         {
+            uint8_t maxsub;
+            objd = objlist_hobj->objdesc;
+            maxsub = OBJ_VALUE_FETCH (maxsub, objd[0]);
+#else
          nidx = SDO_findobject (hobj);
          if (nidx >= 0)
          {
@@ -155,6 +208,7 @@ uint16_t sizeOfPDO (uint16_t index, int * nmappings, _SMmap * mappings,
 
             objd = SDOobjects[nidx].objdesc;
             maxsub = OBJ_VALUE_FETCH (maxsub, objd[0]);
+#endif
 
             for (c = 1; c <= maxsub; c++)
             {
@@ -183,9 +237,37 @@ uint16_t sizeOfPDO (uint16_t index, int * nmappings, _SMmap * mappings,
                   {
                      /* Padding element */
                      mapping = NULL;
+                     mappings[mapIx].objectlistitem = NULL;
                   }
                   else
                   {
+#ifdef USE_MDP
+                     /* Try extended search (static + dynamic) */
+                     int32_t static_idx = -1;
+                     const _objectlist *objlist = device_obj_areas_find_object_extended(index, &static_idx);
+                     
+                     if (objlist != NULL)
+                     {
+                        const _objd *objd_found = SDO_findsubindex_extended(objlist, subindex);
+                        if (objd_found != NULL)
+                        {
+                           mapping = objd_found;
+                           mappings[mapIx].objectlistitem = objlist;
+                        }
+                        else
+                        {
+                           /* Mapped subindex does not exist */
+                           *nmappings = -1;
+                           return 0;
+                        }
+                     }
+                     else
+                     {
+                        /* Mapped index does not exist */
+                        *nmappings = -1;
+                        return 0;
+                     }
+#else
                      nidx = SDO_findobject (index);
                      if (nidx >= 0)
                      {
@@ -200,6 +282,7 @@ uint16_t sizeOfPDO (uint16_t index, int * nmappings, _SMmap * mappings,
                         }
 
                         mapping = &SDOobjects[nidx].objdesc[nsub];
+                        mappings[mapIx].objectlistitem = &SDOobjects[nidx];
                      }
                      else
                      {
@@ -207,24 +290,18 @@ uint16_t sizeOfPDO (uint16_t index, int * nmappings, _SMmap * mappings,
                         *nmappings = -1;
                         return 0;
                      }
+#endif
                   }
 
                   mappings[mapIx].obj = mapping;
-                  /* Save object list reference */
-                  if(mapping != NULL)
-                  {
-                     mappings[mapIx].objectlistitem = &SDOobjects[nidx];
-                  }
-                  else
-                  {
-                     mappings[mapIx].objectlistitem = NULL;
-                  }
                   mappings[mapIx++].offset = offset;
                }
 
                offset += bitlength;
             }
+#ifdef USE_MDP
          }
+#endif
       }
    }
 

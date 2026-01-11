@@ -675,14 +675,33 @@ int device_obj_areas_init_module_dict(uint8_t slot) {
     }
     
     /* Register Configuration Area (0x8nn0) */
-    if (module->config_data && module->config_size > 0) {
+    if (module->configuration_data && module->configuration_size > 0) {
         result |= device_obj_areas_add_module_entry(
-            slot, 2, module->config_data, module->config_size, ATYPE_RW);
+            slot, 2, module->configuration_data, module->configuration_size, ATYPE_RW);
     }
     
     /* Register Information Area (0x9nn0) */
-    result |= device_obj_areas_add_module_entry(
-        slot, 3, NULL, 0, ATYPE_RO); /* Information always available */
+    /* Validate Information Area registration based on device subtype
+     * According to ETG.5001.1, Information Area should only be registered for:
+     * - DEVICE_TYPE_FIELDBUS_GATEWAY (0x01)
+     * - DEVICE_TYPE_MODULAR_DEVICE (0x02)
+     * - AddInfo = 0 (device supports no standardized module profile or multiple profiles)
+     * Do NOT register Information Area for DEVICE_TYPE_MODULE_DEVICE (0x03)
+     */
+    uint8_t device_subtype = MDP_get_device_subtype();
+    if (device_subtype != DEVICE_TYPE_MODULE_DEVICE && device_subtype != 0xFF) {
+        /* Information Area is available for:
+         * - Fieldbus Gateway (0x01)
+         * - Modular Device (0x02)
+         * - AddInfo = 0 (0x00) - device supports no standardized module profile or multiple profiles
+         */
+        result |= device_obj_areas_add_module_entry(
+            slot, 3, NULL, 0, ATYPE_RO);
+    }
+    /* Information Area is NOT registered for:
+     * - Module Device (0x03)
+     * - Non-MDP devices (0xFF)
+     */
     
     /* Register Diagnosis Area (0xAnnn) */
     if (module->diagnosis_data && module->diagnosis_size > 0) {
@@ -691,9 +710,9 @@ int device_obj_areas_init_module_dict(uint8_t slot) {
     }
     
     /* Register Service Area (0xBnnn) */
-    if (module->service_data && module->service_size > 0) {
+    if (module->service_transfer && module->service_size > 0) {
         result |= device_obj_areas_add_module_entry(
-            slot, 5, module->service_data, module->service_size, ATYPE_RW);
+            slot, 5, module->service_transfer, module->service_size, ATYPE_RW);
     }
     
     return (result == 0) ? 0 : -1;

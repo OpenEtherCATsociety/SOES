@@ -13,6 +13,10 @@
 
 #include <cc.h>
 
+/* Fetch value from object dictionary */
+#define OBJ_VALUE_FETCH(v, o) \
+   ((o).data ? *(__typeof__ (v) *)(o).data : (__typeof__ (v))(o).value)
+
 
 typedef struct
 {

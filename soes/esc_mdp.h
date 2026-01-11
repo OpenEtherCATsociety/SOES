@@ -9,6 +9,18 @@
  *
  * Implementation according to ETG.5001.1 S (D) V0.9.0
  * Part 1: General MDP Device Model
+ *
+ * TODO: ETG.5001.3 - MDP Fieldbus Gateway Profile Specification
+ * - Add support for Fieldbus Gateway profiles (EtherCAT MainDevices, Profibus DP, CAN, CANopen, DeviceNet)
+ * - Implement protocol-specific objects for each fieldbus type
+ * - Add gateway-specific configuration and status objects
+ *
+ * TODO: ETG.5001.4 - MDP Safety Module Specification
+ * - Add support for FSoE (Fail Safe over EtherCAT) profiles
+ * - Implement FSoE Digital I/O connection profile
+ * - Implement FSoE Safety Drive Profile
+ * - Implement FSoE MainDevice profile
+ * - Add safety-related objects and validation
  */
 
 #ifndef SOES_MDP_H
@@ -16,6 +28,7 @@
 #include <stdint.h>
 #include "cc.h" // SOES compiler configuration
 #include "options.h" // For MDP configuration values (MDP_OBJECTS_PER_MODULE, MDP_INDEX_STEP, MAX_MDP_SLOTS)
+#include "esc.h" // For DEVICE_TYPE_* definitions
 
 /** \defgroup MDP_ADDRESSING MDP Addressing Offsets
  * @{
@@ -88,55 +101,12 @@
  */
 typedef struct {
     uint32_t module_ident;
-    void     *input_data;
-    uint16_t input_size;
-    void     *output_data;
-    uint16_t output_size;
-    void     *config_data;
-    uint16_t config_size;
     uint32_t device_type;
     uint32_t vendor_id;
     uint32_t product_code;
     uint32_t revision;
     uint32_t serial_number;
-    void     *diagnosis_data;
-    uint16_t diagnosis_size;
-    void     *service_data;
-    uint16_t service_size;
-    uint32_t (*config_read_callback)(uint8_t slot, uint8_t subindex, void *data, uint16_t *size);
-    uint32_t (*config_write_callback)(uint8_t slot, uint8_t subindex, void *data, uint16_t size);
-    uint32_t (*diagnosis_read_callback)(uint8_t slot, uint8_t subindex, void *data, uint16_t *size);
-    uint32_t (*service_read_callback)(uint8_t slot, uint8_t subindex, void *data, uint16_t *size);
-    uint32_t (*service_write_callback)(uint8_t slot, uint8_t subindex, void *data, uint16_t size);
 
-    uint32_t (*txpdo_read_callback)(uint8_t slot, uint8_t pdo_number, void *data, uint16_t *size);
-    uint32_t (*rxpdo_write_callback)(uint8_t slot, uint8_t pdo_number, void *data, uint16_t size);
-} mdp_module_t;
-
-
-//// @brief Object Areas of the Modules (0x6000…0xBFFF)
-//// @param input_data Pointer to input data buffer (index range 0x6nn0 sub 1-255, TxPDO)
-//// @param output_data Pointer to output data buffer (index range 0x7nn0 sub 1-255, RxPDO)
-//// @param configuration_data Pointer to configuration data buffer (index range 0x8nn0)
-//// @param information_data Pointer to information data buffer (index range 0x9nn0). Only exists for fieldbus gateways and modular devices (devices with dynamic object dictionary)
-//// @param diagnosis_data Pointer to diagnosis data buffer (index range 0xAnnn)
-//// @param service_transfer Pointer to service transfer buffer (index range 0xBnnn)
-
-//// @param input_size Input data size in bits
-//// @param output_size Output data size in bits
-//// @param configuration_size Configuration data size in bits
-//// @param information_size Information data size in bits
-//// @param diagnosis_size Diagnosis data size in bits
-//// @param service_size Service transfer size in bits
-
-//// @param config_read_callback Callback for reading configuration data
-//// @param config_write_callback Callback for writing configuration data
-//// @param diagnosis_read_callback Callback for reading diagnosis data
-//// @param service_read_callback Callback for reading service data
-//// @param service_write_callback Callback for writing service data
-//// @param txpdo_read_callback Callback for custom TxPDO access (subindex 1-255)
-//// @param rxpdo_write_callback Callback for custom RxPDO access (subindex 1-255)
-typedef struct {
     void     *input_data;//each module may have up to 16 Input Data objects.
     void     *output_data;//each module may have up to 16 Output Data objects.
     void     *configuration_data;//each module may have up to 16 Configuration Data objects.
@@ -151,21 +121,40 @@ typedef struct {
     uint16_t diagnosis_size;
     uint16_t service_size;
 
-    uint32_t (*config_read_callback)(uint8_t slot, uint8_t subindex, void *data, uint16_t *size);
-    uint32_t (*config_write_callback)(uint8_t slot, uint8_t subindex, void *data, uint16_t size);
+    uint32_t (*configuration_read_callback)(uint8_t slot, uint8_t subindex, void *data, uint16_t *size);
+    uint32_t (*configuration_write_callback)(uint8_t slot, uint8_t subindex, void *data, uint16_t size);
     uint32_t (*diagnosis_read_callback)(uint8_t slot, uint8_t subindex, void *data, uint16_t *size);
     uint32_t (*service_read_callback)(uint8_t slot, uint8_t subindex, void *data, uint16_t *size);
     uint32_t (*service_write_callback)(uint8_t slot, uint8_t subindex, void *data, uint16_t size);
 
     uint32_t (*txpdo_read_callback)(uint8_t slot, uint8_t pdo_number, void *data, uint16_t *size);
     uint32_t (*rxpdo_write_callback)(uint8_t slot, uint8_t pdo_number, void *data, uint16_t size);
-} obj_areas_of_the_modules;
+} mdp_module_t;
 
 // Глобальный массив слотов
 extern mdp_module_t mdp_slots[MAX_MDP_SLOTS];
 extern uint8_t mdp_active_modules_count;
 
 // API Functions
+
+//// @brief Get device subtype from Object Dictionary (Object 0x1000)
+////
+//// Reads the Device Type value from Object 0x1000 subindex 0x00 and extracts the AddInfo field.
+//// According to ETG.5001.1 Clause 4.2.1.2: Object 0x1000: Device Type
+//// - Bits 0-15: ProfileNo (shall be 5001 = 0x1389 for the modular device profile)
+//// - Bits 16-31: AddInfo (shall contain the module profile number defined by ETG)
+////   If the module profile number is 0, the device supports no standardized module profile
+////   or multiple module profiles.
+////
+//// This function validates that ProfileNo = 0x1389 (MDP) and returns the AddInfo value.
+////
+//// @return Device subtype:
+////   - 0x01, 0x02, 0x03: Device subtype identifiers (DEVICE_TYPE_FIELDBUS_GATEWAY, DEVICE_TYPE_MODULAR_DEVICE, DEVICE_TYPE_MODULE_DEVICE)
+////   - 0x00: AddInfo = 0 (valid MDP device, supports no standardized module profile or multiple profiles)
+////   - 0xFF: Not an MDP device (ProfileNo != 0x1389) or Object 0x1000 not found
+
+uint8_t MDP_get_device_subtype(void);
+
 void MDP_init(void);
 
 // Basic module addition (Input/Output areas only)
