@@ -76,42 +76,49 @@
  * Each module can have data in multiple object dictionary areas.
  *
 //// @param module_ident Module identifier (for 0x9nn0 sub 1)
-//// @param input_data Pointer to input data buffer (0x6nn0 sub 1-255, TxPDO)
-//// @param input_size Input data size in bits
-//// @param output_data Pointer to output data buffer (0x7nn0 sub 1-255, RxPDO)
-//// @param output_size Output data size in bits
-//// @param config_data Pointer to configuration data buffer (0x8nn0)
-//// @param config_size Configuration data size in bits
+
 //// @param device_type Device Type (0x9nn0 sub 4)
 //// @param vendor_id Vendor ID (0x9nn0 sub 5)
 //// @param product_code Product Code (0x9nn0 sub 6)
 //// @param revision Revision (0x9nn0 sub 7)
 //// @param serial_number Serial Number (0x9nn0 sub 8)
-//// @param diagnosis_data Pointer to diagnosis data buffer (0xAnnn)
+
+//// @param input_data Pointer to input data buffer (0x6nn0 sub 1-255, TxPDO). Each module may have up to 16 Input Data objects.
+//// @param output_data Pointer to output data buffer (0x7nn0 sub 1-255, RxPDO). Each module may have up to 16 Output Data objects.
+//// @param configuration_data Pointer to configuration data buffer (0x8nn0). Each module may have up to 16 Configuration Data objects.
+//// @param information_data Pointer to information data buffer (0x9nn0). Each module may have up to 16 Information Data objects.
+//// @param diagnosis_data Pointer to diagnosis data buffer (0xAnnn). Each module may have up to 16 Diagnosis Data objects.
+//// @param service_transfer Pointer to service data buffer (0xBnnn)
+
+//// @param input_size Input data size in bits
+//// @param output_size Output data size in bits
+//// @param configuration_size Configuration data size in bits
 //// @param diagnosis_size Diagnosis data size in bits
-//// @param service_data Pointer to service data buffer (0xBnnn)
 //// @param service_size Service data size in bits
+
 //// @param config_read_callback Callback for reading configuration data
 //// @param config_write_callback Callback for writing configuration data
 //// @param diagnosis_read_callback Callback for reading diagnosis data
 //// @param service_read_callback Callback for reading service data
 //// @param service_write_callback Callback for writing service data
+
 //// @param txpdo_read_callback Callback for custom TxPDO access (subindex 1-255)
 //// @param rxpdo_write_callback Callback for custom RxPDO access (subindex 1-255)
  */
 typedef struct {
     uint32_t module_ident;
+
     uint32_t device_type;
     uint32_t vendor_id;
     uint32_t product_code;
     uint32_t revision;
     uint32_t serial_number;
 
-    void     *input_data;//each module may have up to 16 Input Data objects.
-    void     *output_data;//each module may have up to 16 Output Data objects.
-    void     *configuration_data;//each module may have up to 16 Configuration Data objects.
-    void     *information_data;// each module may have up to 16 Information Data objects.
-    void     *diagnosis_data;// each module may have up to 16 Diagnosis Data objects.
+    void     *input_data;
+    void     *output_data;
+    void     *configuration_data;
+    void     *information_data;
+    void     *diagnosis_data;
     void     *service_transfer;
 
     uint16_t input_size;
