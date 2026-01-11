@@ -152,22 +152,23 @@
 #define MAX_TXPDO_SIZE   128
 #endif
 
-/* MDP (Modular Device Profile) configuration
- * ETG.5001.1: Each module can occupy several objects in the function specific areas.
- * The standard defines 16 objects per module in a specific area, but this number
- * may be adapted to the device requirements. Up to 255 modules available.
- */
-#ifndef MDP_OBJECTS_PER_MODULE
-#define MDP_OBJECTS_PER_MODULE   16      /* Number of objects per module, may be adapted */
-#endif
+#ifdef USE_MDP
+   /* MDP (Modular Device Profile) configuration
+    * ETG.5001.1: Each module can occupy several objects in the function specific areas.
+    * The standard defines 16 objects per module in a specific area, but this number
+    * may be adapted to the device requirements. Up to 255 modules available.
+    */
+   #ifndef MDP_OBJECTS_PER_MODULE
+   #define MDP_OBJECTS_PER_MODULE   16      /* Number of objects per module, may be adapted */
+   #endif
 
-#ifndef MDP_INDEX_STEP
-#define MDP_INDEX_STEP           MDP_OBJECTS_PER_MODULE  /* Index distance between modules */
-#endif
+   #ifndef MDP_INDEX_STEP
+   #define MDP_INDEX_STEP           MDP_OBJECTS_PER_MODULE  /* Index distance between modules */
+   #endif
 
-#ifndef MAX_MDP_SLOTS
-#define MAX_MDP_SLOTS            255     /* Maximum number of module slots (ETG.5001.1 allows up to 255) */
+   #ifndef MAX_MDP_SLOTS
+   #define MAX_MDP_SLOTS            255     /* Maximum number of module slots (ETG.5001.1 allows up to 255) */
+   #endif
 #endif
-
 
 #endif /* __options__ */
