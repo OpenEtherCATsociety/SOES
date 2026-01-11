@@ -232,7 +232,7 @@ uint32_t MDP_read_access(uint16_t index, uint8_t subindex, uint16_t *size, void 
             if (mdp_slots[slot].config_read_callback) {
                 // Use callback if available
                 uint16_t callback_size = *size;
-                uint32_t callback_abort = mdp_slots[slot].config_read_callback(slot, subindex, ptr, &callback_size);
+                uint32_t callback_abort = mdp_slots[slot].config_read_callback((uint8_t)slot, subindex, ptr, &callback_size);
                 if (callback_abort != 0) {
                     *abort_code = callback_abort;
                     return 0;
@@ -284,7 +284,7 @@ uint32_t MDP_read_access(uint16_t index, uint8_t subindex, uint16_t *size, void 
             if (mdp_slots[slot].diagnosis_read_callback) {
                 // Use callback if available
                 uint16_t callback_size = *size;
-                uint32_t callback_abort = mdp_slots[slot].diagnosis_read_callback(slot, subindex, ptr, &callback_size);
+                uint32_t callback_abort = mdp_slots[slot].diagnosis_read_callback((uint8_t)slot, subindex, ptr, &callback_size);
                 if (callback_abort != 0) {
                     *abort_code = callback_abort;
                     return 0;
@@ -319,7 +319,7 @@ uint32_t MDP_read_access(uint16_t index, uint8_t subindex, uint16_t *size, void 
             if (mdp_slots[slot].service_read_callback) {
                 // Use callback if available
                 uint16_t callback_size = *size;
-                uint32_t callback_abort = mdp_slots[slot].service_read_callback(slot, subindex, ptr, &callback_size);
+                uint32_t callback_abort = mdp_slots[slot].service_read_callback((uint8_t)slot, subindex, ptr, &callback_size);
                 if (callback_abort != 0) {
                     *abort_code = callback_abort;
                     return 0;
@@ -379,7 +379,7 @@ uint32_t MDP_write_access(uint16_t index, uint8_t subindex, uint16_t size, void 
         if (subindex == 0x01) {
             if (mdp_slots[slot].config_write_callback) {
                 // Use callback if available
-                uint32_t callback_abort = mdp_slots[slot].config_write_callback(slot, subindex, ptr, size);
+                uint32_t callback_abort = mdp_slots[slot].config_write_callback((uint8_t)slot, subindex, ptr, size);
                 if (callback_abort != 0) {
                     *abort_code = callback_abort;
                     return 0;
@@ -410,7 +410,7 @@ uint32_t MDP_write_access(uint16_t index, uint8_t subindex, uint16_t size, void 
         if (subindex == 0x01) {
             if (mdp_slots[slot].service_write_callback) {
                 // Use callback if available
-                uint32_t callback_abort = mdp_slots[slot].service_write_callback(slot, subindex, ptr, size);
+                uint32_t callback_abort = mdp_slots[slot].service_write_callback((uint8_t)slot, subindex, ptr, size);
                 if (callback_abort != 0) {
                     *abort_code = callback_abort;
                     return 0;

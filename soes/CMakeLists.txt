@@ -13,6 +13,8 @@ add_library (soes
   esc_eep.h
   esc_mdp.c
   esc_mdp.h
+  device_obj_areas.h
+  device_obj_areas.c
   ecat_slv.c
   ecat_slv.h
   options.h

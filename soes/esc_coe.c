@@ -358,11 +358,11 @@ static void SDO_upload (void)
                {
                   /* segmented transfer needed */
                   ESCvar.frags = mdp_size;
-                  ESCvar.fragsleft = ESC_MBXDSIZE - COE_HEADERSIZE;
+                  ESCvar.fragsleft = (uint16_t)(ESC_MBXDSIZE - COE_HEADERSIZE);
                   ESCvar.segmented = MBXSEU;
                   ESCvar.data = mdp_buffer;
                   ESCvar.flags = 0;
-                  mdp_size = ESC_MBXDSIZE - COE_HEADERSIZE;
+                  mdp_size = (uint16_t)(ESC_MBXDSIZE - COE_HEADERSIZE);
                }
                else
                {
@@ -886,7 +886,7 @@ static void SDO_download (void)
          mbxdata = (&(coesdo->size)) + 1;
       }
       
-      if (MDP_write_access(index, subindex, size, mbxdata, &mdp_abort))
+      if (MDP_write_access(index, subindex, (uint16_t)size, mbxdata, &mdp_abort))
       {
          /* MDP handled the request */
          MBXout = ESC_claimbuffer ();
