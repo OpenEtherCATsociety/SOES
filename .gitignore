@@ -32,5 +32,6 @@
 *~
 
 /build
+build/
 soes/version.h
 applications/xmc4300_slavedemo/XMC_Peripheral_Library
