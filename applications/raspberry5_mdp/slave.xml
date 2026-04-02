@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<EtherCATInfo xsi:noNamespaceSchemaLocation="EtherCATInfo.xsd"
+              xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+    <Vendor>
+        <Id>0x00000001</Id>
+        <Name>RaspberryPi</Name>
+    </Vendor>
+
+    <Descriptions>
+        <!-- Описание модулей MDP -->
+        <Modules>
+            <!-- Module 0: Digital I/O (8 in, 8 out) -->
+            <Module Name="MDP Digital IO" Profile="0x00010001">
+                <Info>
+                    <Type>0x00010001</Type>
+                    <Name>Digital IO (8in / 8out)</Name>
+                </Info>
+                <RxPdo Name="RxPDO_DigOut" Fixed="1" Mandatory="0">
+                    <Entry Index="0x7000" SubIndex="0x01" BitLength="8" Name="DO_Byte"/>
+                </RxPdo>
+                <TxPdo Name="TxPDO_DigIn" Fixed="1" Mandatory="0">
+                    <Entry Index="0x6000" SubIndex="0x01" BitLength="8" Name="DI_Byte"/>
+                </TxPdo>
+            </Module>
+
+            <!-- Module 1: Analog Input (4 x 16-bit) -->
+            <Module Name="MDP Analog In" Profile="0x00010002">
+                <Info>
+                    <Type>0x00010002</Type>
+                    <Name>Analog Input (4x16)</Name>
+                </Info>
+                <TxPdo Name="TxPDO_AIN" Fixed="1" Mandatory="0">
+                    <Entry Index="0x6010" SubIndex="0x01" BitLength="16" Name="AIN_CH1"/>
+                    <Entry Index="0x6010" SubIndex="0x02" BitLength="16" Name="AIN_CH2"/>
+                    <Entry Index="0x6010" SubIndex="0x03" BitLength="16" Name="AIN_CH3"/>
+                    <Entry Index="0x6010" SubIndex="0x04" BitLength="16" Name="AIN_CH4"/>
+                </TxPdo>
+            </Module>
+
+            <!-- Module 2: Analog Output (4 x 16-bit) -->
+            <Module Name="MDP Analog Out" Profile="0x00010003">
+                <Info>
+                    <Type>0x00010003</Type>
+                    <Name>Analog Output (4x16)</Name>
+                </Info>
+                <RxPdo Name="RxPDO_AOUT" Fixed="1" Mandatory="0">
+                    <Entry Index="0x7020" SubIndex="0x01" BitLength="16" Name="AOUT_CH1"/>
+                    <Entry Index="0x7020" SubIndex="0x02" BitLength="16" Name="AOUT_CH2"/>
+                    <Entry Index="0x7020" SubIndex="0x03" BitLength="16" Name="AOUT_CH3"/>
+                    <Entry Index="0x7020" SubIndex="0x04" BitLength="16" Name="AOUT_CH4"/>
+                </RxPdo>
+            </Module>
+        </Modules>
+
+        <!-- Описание устройства -->
+        <Devices>
+            <Device>
+                <Type ProductCode="0x00001234" RevisionNo="0x00000001">raspberry5_mdp</Type>
+                <Name>Raspberry Pi 5 MDP EtherCAT Slave</Name>
+
+                <Sm Enable="1" StartAddress="0x1000" ControlByte="0x26" DefaultSize="128" Name="SM0_MBX0"/>
+                <Sm Enable="1" StartAddress="0x1100" ControlByte="0x22" DefaultSize="128" Name="SM1_MBX1"/>
+                <Sm Enable="1" StartAddress="0x1200" ControlByte="0x24" DefaultSize="0"   Name="SM2_PDO_OUT"/>
+                <Sm Enable="1" StartAddress="0x1300" ControlByte="0x20" DefaultSize="0"   Name="SM3_PDO_IN"/>
+
+                <Dc><OpMode Name="FreeRun"/></Dc>
+
+                <Fmmu><Sm>0</Sm><LogicalStartAddress>0x00010000</LogicalStartAddress><Length>128</Length><LogicalStartBit>0</LogicalStartBit><LogicalEndBit>7</LogicalEndBit></Fmmu>
+                <Fmmu><Sm>1</Sm><LogicalStartAddress>0x00010100</LogicalStartAddress><Length>128</Length><LogicalStartBit>0</LogicalStartBit><LogicalEndBit>7</LogicalEndBit></Fmmu>
+
+                <Mailbox>
+                    <SyncManager>0</SyncManager>
+                    <Pdo SyncManager="1"/>
+                    <CoE CompleteAccess="1" PdoConfiguration="1" PdoAssign="1" PdoUpload="1" SdoInfo="1"/>
+                </Mailbox>
+
+                <Eeprom>
+                    <ByteSize>2048</ByteSize>
+                    <ConfigData>
+                        <GroupType>0x01901389</GroupType>
+                        <VendorId>0x00000001</VendorId>
+                        <ProductCode>0x00001234</ProductCode>
+                        <RevisionNo>0x00000001</RevisionNo>
+                        <SerialNo>0x00000000</SerialNo>
+                    </ConfigData>
+                </Eeprom>
+
+                <DcSupport>1</DcSupport>
+                <Profile><CoE/></Profile>
+
+                <!-- Статичных PDO не задаём: мастер выберет из списка модулей выше -->
+                <RxPdos/>
+                <TxPdos/>
+
+                <SdoConfig>
+                    <Sdo Index="0x1000" Name="Device Type" Type="UINT32" Access="ro"><DefValue>0x01901389</DefValue></Sdo>
+                    <Sdo Index="0x1008" Name="Device Name" Type="VISIBLE_STRING" Access="ro"><DefValue>raspberry5_mdp</DefValue></Sdo>
+                    <Sdo Index="0x1009" Name="Hardware Version" Type="VISIBLE_STRING" Access="ro"><DefValue>1.0</DefValue></Sdo>
+                    <Sdo Index="0x100A" Name="Software Version" Type="VISIBLE_STRING" Access="ro"><DefValue>1.0</DefValue></Sdo>
+                    <Sdo Index="0x1018" Name="Identity Object" ObjFlags="ro">
+                        <Entry SubIndex="0" Type="UINT8"  Access="ro" DefaultValue="4"/>
+                        <Entry SubIndex="1" Type="UINT32" Access="ro" DefaultValue="0x00000001"/>
+                        <Entry SubIndex="2" Type="UINT32" Access="ro" DefaultValue="0x00001234"/>
+                        <Entry SubIndex="3" Type="UINT32" Access="ro" DefaultValue="0x00000001"/>
+                        <Entry SubIndex="4" Type="UINT32" Access="ro" DefaultValue="0x00000000"/>
+                    </Sdo>
+                    <Sdo Index="0x1C00" Name="SM Comm Type" ObjFlags="ro">
+                        <Entry SubIndex="0" Type="UINT8" Access="ro" DefaultValue="4"/>
+                        <Entry SubIndex="1" Type="UINT8" Access="ro" DefaultValue="1"/>
+                        <Entry SubIndex="2" Type="UINT8" Access="ro" DefaultValue="1"/>
+                        <Entry SubIndex="3" Type="UINT8" Access="ro" DefaultValue="3"/>
+                        <Entry SubIndex="4" Type="UINT8" Access="ro" DefaultValue="3"/>
+                    </Sdo>
+                    <Sdo Index="0x1C12" Name="SM2 PDO Assignment" ObjFlags="ro">
+                        <Entry SubIndex="0" Type="UINT8" Access="ro" DefaultValue="0"/>
+                    </Sdo>
+                    <Sdo Index="0x1C13" Name="SM3 PDO Assignment" ObjFlags="ro">
+                        <Entry SubIndex="0" Type="UINT8" Access="ro" DefaultValue="0"/>
+                    </Sdo>
+                </SdoConfig>
+            </Device>
+        </Devices>
+    </Descriptions>
+</EtherCATInfo>

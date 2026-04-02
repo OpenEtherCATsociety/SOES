@@ -11,6 +11,10 @@ add_library (soes
   esc_eoe.h
   esc_eep.c
   esc_eep.h
+  esc_mdp.c
+  esc_mdp.h
+  device_obj_areas.h
+  device_obj_areas.c
   ecat_slv.c
   ecat_slv.h
   options.h
@@ -18,6 +22,7 @@ add_library (soes
   )
 
 include_directories(${HAL_INCLUDES})
+target_include_directories(soes PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include/sys/gcc)
 
 install (TARGETS soes DESTINATION bin)
 install (FILES
@@ -26,4 +31,6 @@ install (FILES
   esc_foe.h
   esc_eoe.h
   esc_eep.h
+  esc_mdp.h
+  device_obj_areas.h
   DESTINATION include)
