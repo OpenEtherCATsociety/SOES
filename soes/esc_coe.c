@@ -861,6 +861,7 @@ static void SDO_download (void)
                   ESCvar.index = index;
                   ESCvar.subindex = subindex;
                   ESCvar.flags = (objd + nsub)->flags;
+                  ESCvar.fragsleft = size;
                }
                else
                {
@@ -1057,6 +1058,36 @@ static void SDO_downloadsegment (void)
       uint8_t command2 = (coesdo->command & COE_TOGGLEBIT);  /* copy toggle bit */
       command |= command2;
       init_coesdo(coeres, COE_SDORESPONSE, command, 0, 0);
+
+      uint32_t max_capacity = 0u;
+      if (ESCvar.flags == COMPLETE_ACCESS_FLAG)
+      {
+         max_capacity = ESCvar.frags;
+      }
+      else
+      {
+         int32_t nidx = SDO_findobject(ESCvar.index);
+         if (nidx < 0)
+         {
+            set_state_idle (0, ESCvar.index, ESCvar.subindex, ABORT_NOOBJECT);
+            return;
+         }
+         int16_t nsub = SDO_findsubindex(nidx, ESCvar.subindex);
+         if (nsub < 0)
+         {
+            set_state_idle (0, ESCvar.index, ESCvar.subindex, ABORT_NOSUBINDEX);
+            return;
+         }
+         const _objd *objd = SDOobjects[nidx].objdesc;
+         max_capacity = BITS2BYTES((objd + nsub)->bitlength);
+      }
+
+      /* Abort if cumulative size exceeds object capacity or declared complete access size */
+      if (ESCvar.fragsleft + size > max_capacity)
+      {
+         set_state_idle (0, ESCvar.index, ESCvar.subindex, ABORT_TYPEMISMATCH);
+         return;
+      }
 
       void *mbxdata = &(coesdo->index);  /* data pointer */
       copy2mbx (mbxdata, ESCvar.data, size);
