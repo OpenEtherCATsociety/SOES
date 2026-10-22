@@ -814,7 +814,12 @@ static void SDO_download (void)
                mbxdata = (&(coesdo->size)) + 1;
             }
             actsize = BITS2BYTES((objd + nsub)->bitlength);
-            if (actsize != size)
+            if (size > actsize)
+            {
+               set_state_idle (0, index, subindex, ABORT_TYPEMISMATCH);
+               return;
+            }
+            if (size < actsize)
             {
                /* entries with data types VISIBLE_STRING, OCTET_STRING,
                 * UNICODE_STRING, ARRAY_OF_INT, ARRAY_OF_SINT,
