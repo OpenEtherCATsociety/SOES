@@ -759,7 +759,11 @@ static void EOE_receive_fragment (void)
 
       if(EOEvar.rxebuf.payload != NULL)
       {
-         EOEvar.rxebuf.len = EOEvar.rxframesize;
+         /* Limit frame size to the real buffer capacity */
+         if (EOEvar.rxframesize > EOEvar.rxebuf.len)
+         {
+            EOEvar.rxframesize = EOEvar.rxebuf.len;
+         }
          EOEvar.rxframeoffset = 0;
          EOEvar.rxframeno = EOE_HDR_FRAME_NO_GET(frameinfo2);
       }
