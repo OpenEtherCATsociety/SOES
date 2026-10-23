@@ -812,6 +812,12 @@ static void EOE_receive_fragment (void)
       /* Remove time stamp, TODO support for time stamp? */
       if(EOE_HDR_TIME_APPEND_GET(frameinfo1))
       {
+         if (EOEvar.rxframeoffset < 4U)
+         {
+            DPRINT("Invalid EoE timestamp length\n");
+            EOE_init_rx();
+            return;
+         }
          EOEvar.rxframeoffset -= 4U;
       }
       EOEvar.rxebuf.len =  EOEvar.rxframeoffset;
