@@ -1537,7 +1537,8 @@ void ESC_coeprocess (void)
                SDO_download ();
             }
          }
-         else if (SDO_COMMAND(coesdo->command) == COE_COMMAND_DOWNLOADSEGREQ)
+         else if ((SDO_COMMAND(coesdo->command) == COE_COMMAND_DOWNLOADSEGREQ)
+               && (ESCvar.segmented == MBXSED))
          {
             /* SDO download segment request */
             SDO_downloadsegment ();
