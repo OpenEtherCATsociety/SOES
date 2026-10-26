@@ -87,7 +87,10 @@ int32_t SDO_findobject (uint16_t index)
    {
       n++;
    }
-   if (SDOobjects[n].index != index)
+   /* Reject if not found, or if the matched object is the 0xFFFF sentinel, or has no descriptor */
+   if ((SDOobjects[n].index != index) ||
+         (SDOobjects[n].index == 0xFFFF) ||
+         (SDOobjects[n].objdesc == NULL))
    {
       return -1;
    }
