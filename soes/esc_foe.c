@@ -449,6 +449,13 @@ static void FOE_data ()
    data_len = etohs(foembx->mbxheader.length) - ESC_FOEHSIZE;
    packet = etohl(foembx->foeheader.packetnumber);
 
+   if (data_len > ESC_FOE_DATA_SIZE)
+   {
+      DPRINT("FOE_data payload length exceeds mailbox capacity\n");
+      FOE_abort (FOE_ERR_PROGERROR);
+      return;
+   }
+
    if (packet != FOEvar.foepacket)
    {
       DPRINT("FOE_data packet error, packet: %"PRIu32", foeheader.packet: %"PRIu32"\n",
