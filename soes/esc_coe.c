@@ -143,6 +143,11 @@ uint16_t sizeOfPDO (uint16_t index, int * nmappings, _SMmap * mappings,
    objd1c1x = SDOobjects[nidx].objdesc;
 
    si = OBJ_VALUE_FETCH (si, objd1c1x[0]);
+   if (si > SDOobjects[nidx].maxsub)
+   {
+      si = SDOobjects[nidx].maxsub;
+   }
+
    if (si)
    {
       for (sic = 1; sic <= si; sic++)
@@ -155,6 +160,10 @@ uint16_t sizeOfPDO (uint16_t index, int * nmappings, _SMmap * mappings,
 
             objd = SDOobjects[nidx].objdesc;
             maxsub = OBJ_VALUE_FETCH (maxsub, objd[0]);
+            if (maxsub > SDOobjects[nidx].maxsub)
+            {
+               maxsub = SDOobjects[nidx].maxsub;
+            }
 
             for (c = 1; c <= maxsub; c++)
             {
