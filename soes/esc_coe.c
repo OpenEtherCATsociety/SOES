@@ -821,7 +821,14 @@ static void SDO_download (void)
             }
             else
             {
-               /* normal download */
+               /* normal download: reject frames too short to carry the full
+                * SDO header, which would cause copy2mbx to read past the
+                * actual mailbox payload */
+               if (etohs (coesdo->mbxheader.length) < COE_HEADERSIZE)
+               {
+                  set_state_idle (0, index, subindex, ABORT_TYPEMISMATCH);
+                  return;
+               }
                size = (etohl (coesdo->size) & 0xffff);
                mbxdata = (&(coesdo->size)) + 1;
             }
