@@ -50,7 +50,7 @@ static _FOEvar FOEvar;
  * @return 0= if we succeed, FOE_ERR_NOTFOUND something wrong with filename or
  * password
  */
-static uint32_t FOE_fopen (char *name, uint8_t num_chars, uint32_t pass, uint8_t op)
+static uint32_t FOE_fopen (char *name, uint32_t num_chars, uint32_t pass, uint8_t op)
 {
    uint32_t i;
 
@@ -318,7 +318,7 @@ static void FOE_read ()
    _FOE *foembx;
    uint32_t password;
    uint32_t res;
-   uint8_t data_len;
+   uint32_t data_len;
 
    if (FOEvar.foestate != FOE_READY)
    {
@@ -329,7 +329,7 @@ static void FOE_read ()
    FOE_init ();
    foembx = (_FOE *) &MBX[0];
    /* Get the length of the file name in octets. */
-   data_len = (uint8_t)(etohs (foembx->mbxheader.length) - ESC_FOEHSIZE);
+   data_len = etohs (foembx->mbxheader.length) - ESC_FOEHSIZE;
    password = etohl (foembx->foeheader.password);
 
    res = FOE_fopen (foembx->filename, data_len, password, FOE_OP_RRQ);
@@ -395,7 +395,7 @@ static void FOE_write ()
    _FOE *foembx;
    uint32_t password;
    uint32_t res;
-   uint8_t data_len;
+   uint32_t data_len;
 
    if (FOEvar.foestate != FOE_READY)
    {
@@ -405,7 +405,7 @@ static void FOE_write ()
 
    FOE_init ();
    foembx = (_FOE *) &MBX[0];
-   data_len = (uint8_t)(etohs (foembx->mbxheader.length) - ESC_FOEHSIZE);
+   data_len = etohs (foembx->mbxheader.length) - ESC_FOEHSIZE;
    password = etohl (foembx->foeheader.password);
 
    /* Get an address we can write the file to, if possible. */
