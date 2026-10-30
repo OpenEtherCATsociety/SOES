@@ -648,6 +648,11 @@ static void EOE_set_ip (void)
    port_ix = EOE_PORT_INDEX(port);
    if(flags & EOE_PARAM_MAC_INCLUDE)
    {
+      if ((data_offset + EOE_ETHADDR_LENGTH) > eoedatasize)
+      {
+         result = MBXERR_SIZETOOSHORT;
+         goto eoe_set_ip_respond;
+      }
       memcpy(&nic_ports[port_ix].mac.addr,
             &eoembx->data[data_offset],
             EOE_ETHADDR_LENGTH);
@@ -658,6 +663,11 @@ static void EOE_set_ip (void)
    /* ip included in set ip request? */
    if(flags & EOE_PARAM_IP_INCLUDE)
    {
+      if ((data_offset + EOE_IP4_LENGTH) > eoedatasize)
+      {
+         result = MBXERR_SIZETOOSHORT;
+         goto eoe_set_ip_respond;
+      }
       EOE_ip_byte_to_uint32(&eoembx->data[data_offset],
             &nic_ports[port_ix].ip);
       nic_ports[port_ix].ip_set = 1;
@@ -667,6 +677,11 @@ static void EOE_set_ip (void)
    /* subnet included in set ip request? */
    if(flags & EOE_PARAM_SUBNET_IP_INCLUDE)
    {
+      if ((data_offset + EOE_IP4_LENGTH) > eoedatasize)
+      {
+         result = MBXERR_SIZETOOSHORT;
+         goto eoe_set_ip_respond;
+      }
       EOE_ip_byte_to_uint32(&eoembx->data[data_offset],
             &nic_ports[port_ix].subnet);
       nic_ports[port_ix].subnet_set = 1;
@@ -676,6 +691,11 @@ static void EOE_set_ip (void)
    /* default gateway included in set ip request? */
    if(flags & EOE_PARAM_DEFAULT_GATEWAY_INCLUDE)
    {
+      if ((data_offset + EOE_IP4_LENGTH) > eoedatasize)
+      {
+         result = MBXERR_SIZETOOSHORT;
+         goto eoe_set_ip_respond;
+      }
       EOE_ip_byte_to_uint32(&eoembx->data[data_offset],
             &nic_ports[port_ix].default_gateway);
       nic_ports[port_ix].default_gateway_set = 1;
@@ -685,6 +705,11 @@ static void EOE_set_ip (void)
    /* dns ip included in set ip request? */
    if(flags & EOE_PARAM_DNS_IP_INCLUDE)
    {
+      if ((data_offset + EOE_IP4_LENGTH) > eoedatasize)
+      {
+         result = MBXERR_SIZETOOSHORT;
+         goto eoe_set_ip_respond;
+      }
       EOE_ip_byte_to_uint32(&eoembx->data[data_offset],
             &nic_ports[port_ix].dns_ip);
       nic_ports[port_ix].dns_ip_set = 1;
@@ -694,6 +719,11 @@ static void EOE_set_ip (void)
    /* dns name included in set ip request? */
    if(flags & EOE_PARAM_DNS_NAME_INCLUDE)
    {
+      if (data_offset >= eoedatasize)
+      {
+         result = MBXERR_SIZETOOSHORT;
+         goto eoe_set_ip_respond;
+      }
       uint32_t dns_len = MIN((eoedatasize - data_offset), EOE_DNS_NAME_LENGTH);
       memcpy(nic_ports[port_ix].dns_name,
             &eoembx->data[data_offset],
@@ -719,6 +749,7 @@ static void EOE_set_ip (void)
          result = EOE_RESULT_NO_IP_SUPPORT;
       }
    }
+eoe_set_ip_respond:
    frameinfo1 = EOE_HDR_FRAME_PORT_SET(port);
    frameinfo1 |= EOE_INIT_RESP;
    frameinfo1 |= EOE_HDR_LAST_FRAGMENT;
