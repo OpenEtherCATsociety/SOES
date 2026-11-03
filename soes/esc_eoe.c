@@ -856,10 +856,13 @@ static void EOE_receive_fragment (void)
          EOEvar.rxframeoffset -= 4U;
       }
       EOEvar.rxebuf.len =  EOEvar.rxframeoffset;
-      eoe_cfg->handle_recv_buffer(EOE_HDR_FRAME_PORT_GET(frameinfo1),
-            &EOEvar.rxebuf);
-      /* Pass ownership of buf to receive function */
-      EOEvar.rxebuf.payload = NULL;
+      if(eoe_cfg->handle_recv_buffer != NULL)
+      {
+         eoe_cfg->handle_recv_buffer(EOE_HDR_FRAME_PORT_GET(frameinfo1),
+               &EOEvar.rxebuf);
+         /* Pass ownership of buf to receive function */
+         EOEvar.rxebuf.payload = NULL;
+      }
       EOE_init_rx ();
    }
 }
@@ -879,6 +882,10 @@ static void EOE_send_fragment ()
    /* Do we have a current transfer on-going */
    if(EOEvar.txebuf.payload == NULL)
    {
+      if(eoe_cfg->fetch_send_buffer == NULL)
+      {
+         return;
+      }
       /* Fetch a buffer if available */
       len = eoe_cfg->fetch_send_buffer(0, &EOEvar.txebuf);
       if(len > 0)
