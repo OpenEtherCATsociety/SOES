@@ -54,6 +54,14 @@ static uint32_t FOE_fopen (char *name, uint32_t num_chars, uint32_t pass, uint8_
 {
    uint32_t i;
 
+   /* A request without a file name matches any registered file, because
+    * strncmp with a length of zero always reports equal.
+    */
+   if (num_chars == 0)
+   {
+      return FOE_ERR_NOTFOUND;
+   }
+
    /* Unpack the file name into characters we can look at. */
    if (num_chars > FOE_FN_MAX)
    {
