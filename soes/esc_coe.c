@@ -1424,7 +1424,7 @@ static void SDO_getod (void)
          coel->objectcode = (uint8_t)SDOobjects[nidx].objtype;
          s = (uint8_t *) SDOobjects[nidx].name;
          d = (uint8_t *) &(coel->name);
-         while (*s && (n < (ESC_MBXDSIZE - 0x0c)))
+         while (*s && (n < (ESC_MBXDSIZE - 0x0c - 1)))
          {
             *d = *s;
             n++;
@@ -1490,7 +1490,7 @@ static void SDO_geted (void)
             coel->access = htoes ((objd + nsub)->flags);
             s = (uint8_t *) (objd + nsub)->name;
             d = (uint8_t *) &(coel->name);
-            while (*s && (n < (ESC_MBXDSIZE - 0x10)))
+            while (*s && (n < (ESC_MBXDSIZE - 0x10 - 1)))
             {
                *d = *s;
                n++;
