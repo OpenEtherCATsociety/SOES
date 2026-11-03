@@ -402,6 +402,11 @@ static void SDO_upload (void)
             else
             {
                /* normal response i.e. length>4 bytes */
+               if ((objd + nsub)->data == NULL)
+               {
+                  set_state_idle (MBXout, index, subindex, ABORT_GENERALERROR);
+                  return;
+               }
                abort = ESC_upload_pre_objecthandler (index, subindex,
                      (objd + nsub)->data, (size_t *)&size, (objd + nsub)->flags);
                if (abort == 0)
