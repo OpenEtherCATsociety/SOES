@@ -813,6 +813,12 @@ static void SDO_download (void)
          uint8_t state = ESCvar.ALstatus & 0x0f;
          if (WRITE_ACCESS(access, state))
          {
+            if ((objd + nsub)->data == NULL)
+            {
+               /* an entry can be writable and still have no storage */
+               set_state_idle (0, index, subindex, ABORT_READONLY);
+               return;
+            }
             /* expedited? */
             if (coesdo->command & COE_EXPEDITED_INDICATOR)
             {
