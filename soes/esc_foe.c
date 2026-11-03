@@ -91,6 +91,13 @@ static uint32_t FOE_fopen (char *name, uint32_t num_chars, uint32_t pass, uint8_
             return FOE_ERR_NOTINBOOTSTRAP;
          }
 
+         /* write_function is optional, so the file can be read only */
+         if ((op == FOE_OP_WRQ) &&
+             (foe_cfg->files[i].write_function == NULL))
+         {
+            return FOE_ERR_ACCESS;
+         }
+
          foe_file = &foe_cfg->files[i];
          foe_file->address_offset = 0;
          foe_file->total_size = 0;
