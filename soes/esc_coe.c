@@ -209,6 +209,12 @@ uint16_t sizeOfPDO (uint16_t index, int * nmappings, _SMmap * mappings,
                         }
 
                         mapping = &SDOobjects[nidx].objdesc[nsub];
+
+                        if (mapping->data == NULL)
+                        {
+                           *nmappings = -1;
+                           return 0;
+                        }
                      }
                      else
                      {
