@@ -1047,6 +1047,13 @@ void ESC_eoeprocess (void)
    {
       return;
    }
+   if (eoe_cfg == NULL)
+   {
+      /* EoE is built in but the application never configured it. Leave
+       * the mailbox for ESC_xoeprocess to reject as unsupported.
+       */
+      return;
+   }
    if (!ESCvar.xoe && (MBXcontrol[0].state == MBXstate_inclaim))
    {
       mbh = (_MBXh *) &MBX[0];
@@ -1115,7 +1122,7 @@ void ESC_eoeprocess (void)
  */
 void ESC_eoeprocess_tx (void)
 {
-   if (ESCvar.MBXrun == 0)
+   if ((ESCvar.MBXrun == 0) || (eoe_cfg == NULL))
    {
       return;
    }
