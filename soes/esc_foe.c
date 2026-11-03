@@ -585,6 +585,13 @@ void ESC_foeprocess (void)
    {
       return;
    }
+   if ((foe_cfg == NULL) || (foe_cfg->fbuffer == NULL))
+   {
+      /* FoE is built in but the application never configured it. Leave
+       * the mailbox for ESC_xoeprocess to reject as unsupported.
+       */
+      return;
+   }
    if (!ESCvar.xoe && (MBXcontrol[0].state == MBXstate_inclaim))
    {
       mbh = (_MBXh *) &MBX[0];
