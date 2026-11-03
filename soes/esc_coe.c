@@ -539,8 +539,11 @@ static uint32_t complete_access_subindex_loop(const _objd *objd,
                   memset(&mbxdata[BITS2BYTES(size)], 0, BITS2BYTES(bitlen));
                }
             }
-            /* download of RO objects shall be ignored */
-            else if (WRITE_ACCESS(access, state))
+            /* download of RO objects, and of objects without storage,
+             * shall be ignored
+             */
+            else if (WRITE_ACCESS(access, state) &&
+                  ((objd + nsub)->data != NULL))
             {
                memcpy((objd + nsub)->data, &mbxdata[BITS2BYTES(size)],
                      BITS2BYTES(bitlen));
