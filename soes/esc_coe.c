@@ -1273,8 +1273,8 @@ static void SDO_getodlist (void)
          coel->infoheader.fragmentsleft = htoes (0);
          MBXcontrol[0].state = MBXstate_idle;
          ESCvar.xoe = 0;
-         ESCvar.frags = frags;
-         ESCvar.fragsleft = frags - 1;
+         ESCvar.odfrags = frags;
+         ESCvar.odfragsleft = frags - 1;
          p = &(coel->datatype);
          *p = htoes (entries);
          p++;
@@ -1304,9 +1304,9 @@ static void SDO_getodlist (void)
             n = entries;
          }
          coel->infoheader.reserved = 0x00;
-         ESCvar.frags = frags;
-         ESCvar.fragsleft = frags - 1;
-         coel->infoheader.fragmentsleft = htoes (ESCvar.fragsleft);
+         ESCvar.odfrags = frags;
+         ESCvar.odfragsleft = frags - 1;
+         coel->infoheader.fragmentsleft = htoes (ESCvar.odfragsleft);
          coel->index = htoes (0x01);
 
          p = &(coel->datatype);
@@ -1339,8 +1339,9 @@ static void SDO_getodlistcont (void)
       coel->coeheader.numberservice =
          htoes (COE_SDOINFORMATION << 12);
       coel->infoheader.opcode = COE_GETODLISTRESPONSE;
-      s = (uint16_t)((ESCvar.frags - ESCvar.fragsleft) * (ODLISTSIZE >> 1));
-      if (ESCvar.fragsleft > 1)
+      s = (uint16_t)((ESCvar.odfrags - ESCvar.odfragsleft) *
+            (ODLISTSIZE >> 1));
+      if (ESCvar.odfragsleft > 1)
       {
          coel->infoheader.incomplete = 1;
          n = (uint16_t)(s + (ODLISTSIZE >> 1));
@@ -1353,8 +1354,8 @@ static void SDO_getodlistcont (void)
          n = ESCvar.entries;
       }
       coel->infoheader.reserved = 0x00;
-      ESCvar.fragsleft--;
-      coel->infoheader.fragmentsleft = htoes ((uint16_t)ESCvar.fragsleft);
+      ESCvar.odfragsleft--;
+      coel->infoheader.fragmentsleft = htoes ((uint16_t)ESCvar.odfragsleft);
       /* pointer 2 bytes back to exclude index */
       p = &(coel->index);
       for (i = s; i < n; i++)

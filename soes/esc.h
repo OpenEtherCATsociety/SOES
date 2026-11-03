@@ -491,6 +491,8 @@ typedef struct
    uint16_t entries;
    uint32_t frags;
    uint32_t fragsleft;
+   uint32_t odfrags;
+   uint32_t odfragsleft;
    uint16_t index;
    uint8_t subindex;
    uint16_t flags;
