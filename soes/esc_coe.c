@@ -116,10 +116,11 @@ int32_t SDO_findobject (uint16_t index)
  *   mapping is invalid
  * @param[out] mappings = list of mapped objects in SM
  * @param[out] max_mappings = max number of mapped objects in SM
+ * @param[in] max_bytes = size of the process data buffer the SM fills
  * @return size of RxPDO or TxPDOs in Bytes.
  */
 uint16_t sizeOfPDO (uint16_t index, int * nmappings, _SMmap * mappings,
-                    int max_mappings)
+                    int max_mappings, uint16_t max_bytes)
 {
    uint32_t offset = 0;
    uint16_t hobj;
@@ -243,6 +244,12 @@ uint16_t sizeOfPDO (uint16_t index, int * nmappings, _SMmap * mappings,
       }
    }
 
+   if (BITS2BYTES (offset) > max_bytes)
+   {
+      *nmappings = -1;
+      return 0;
+   }
+
    if (max_mappings > 0)
    {
       *nmappings = mapIx;
@@ -252,7 +259,7 @@ uint16_t sizeOfPDO (uint16_t index, int * nmappings, _SMmap * mappings,
       *nmappings = 0;
    }
 
-   return BITS2BYTES (offset) & 0xFFFF;
+   return (uint16_t)BITS2BYTES (offset);
 }
 
 /** Copy to mailbox.

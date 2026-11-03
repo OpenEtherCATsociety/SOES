@@ -114,7 +114,8 @@ typedef struct
 void ESC_coeprocess (void);
 int16_t SDO_findsubindex (int32_t nidx, uint8_t subindex);
 int32_t SDO_findobject (uint16_t index);
-uint16_t sizeOfPDO (uint16_t index, int * nmappings, _SMmap * sm, int max_mappings);
+uint16_t sizeOfPDO (uint16_t index, int * nmappings, _SMmap * sm,
+                    int max_mappings, uint16_t max_bytes);
 void COE_initDefaultValues (void);
 
 void COE_pdoPack (uint8_t * buffer, int nmappings, _SMmap * sm);
