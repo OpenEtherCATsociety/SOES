@@ -68,7 +68,8 @@ void ESC_ALstatusgotoerror (uint8_t status, uint16_t errornumber)
    /* Call post state change hook case it have been configured  */
    if (ESCvar.pre_state_change_hook != NULL)
    {
-      ESCvar.pre_state_change_hook (&as, &an);
+      bool ack = true;
+      ESCvar.pre_state_change_hook (&as, &an, &ack);
    }
    /* Stop outputs if active */
    if ((CC_ATOMIC_GET(ESCvar.App.state) & APPSTATE_OUTPUT) > 0)
@@ -1095,10 +1096,12 @@ static char * ESC_state_to_string (uint8_t ESC_state)
 void ESC_state (void)
 {
    uint8_t ac, an, as;
+   bool ack = true;
 
    /* Do we have a state change request pending */
-   if (ESCvar.ALevent & ESCREG_ALEVENT_CONTROL)
+   if ((ESCvar.ALevent & ESCREG_ALEVENT_CONTROL) || ESCvar.ALcontrol_pending)
    {
+      ESCvar.ALcontrol_pending = true;
       ESC_read (ESCREG_ALCONTROL, (void *) &ESCvar.ALcontrol,
                 sizeof (ESCvar.ALcontrol));
       ESCvar.ALcontrol = etohs (ESCvar.ALcontrol);
@@ -1131,7 +1134,7 @@ void ESC_state (void)
    /* Call post state change hook case it have been configured  */
    if (ESCvar.pre_state_change_hook != NULL)
    {
-      ESCvar.pre_state_change_hook (&as, &an);
+      ESCvar.pre_state_change_hook (&as, &an, &ack);
    }
 
    /* Switch through the state change requested via AlControl from
@@ -1301,6 +1304,13 @@ void ESC_state (void)
       }
    }
 
+   /* Set AL-status according to rejected state-change */
+   if (!ack)
+   {
+       ESC_ALstatus (an);
+       return;
+   }
+
    /* Call post state change hook case it have been configured  */
    if (ESCvar.post_state_change_hook != NULL)
    {
@@ -1319,6 +1329,7 @@ void ESC_state (void)
    }
 
    ESC_ALstatus (an);
+   ESCvar.ALcontrol_pending = false;
 
 #ifdef ESC_DEBUG
    DPRINT ("state %s\n", ESC_state_to_string (an & 0xF));
