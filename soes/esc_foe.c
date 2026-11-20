@@ -189,7 +189,7 @@ static uint32_t FOE_fclose (void)
    uint32_t failed = 0;
 
    DPRINT("FOE_fclose\n");
-   
+
    failed = foe_file->write_function (foe_file, foe_cfg->fbuffer, FOEvar.fbufposition);
    foe_file->address_offset += FOEvar.fbufposition;
    FOEvar.fbufposition = 0;
@@ -574,63 +574,103 @@ void ESC_foeprocess (void)
    if (ESCvar.xoe == MBXFOE)
    {
       foembx = (_FOE *) &MBX[0];
-      /* Verify the size of the file data. */
-      if (etohs (foembx->mbxheader.length) < ESC_FOEHSIZE)
+      switch (foembx->foeheader.opcode)
       {
-         FOE_abort (MBXERR_SIZETOOSHORT);
-      }
-      else
-      {
-         switch (foembx->foeheader.opcode)
+         case FOE_OP_WRQ:
          {
-            case FOE_OP_WRQ:
+            if (etohs (foembx->mbxheader.length) <= ESC_FOEHSIZE)
+            {
+               MBX_error (MBXERR_INVALIDSIZE);
+               FOE_init ();
+            }
+            else
             {
                DPRINT("FOE_OP_WRQ\n");
                FOE_write ();
-               break;
             }
-            case FOE_OP_DATA:
+            break;
+         }
+         case FOE_OP_DATA:
+         {
+            if (etohs (foembx->mbxheader.length) < ESC_FOEHSIZE)
+            {
+               MBX_error (MBXERR_INVALIDSIZE);
+               FOE_init ();
+            }
+            else
             {
                DPRINT("FOE_OP_DATA\n");
                FOE_data ();
-               break;
             }
+            break;
+         }
 #ifdef FOE_READ_SUPPORTED
-            case FOE_OP_RRQ:
+         case FOE_OP_RRQ:
+         {
+            if (etohs (foembx->mbxheader.length) <= ESC_FOEHSIZE)
+            {
+               MBX_error (MBXERR_INVALIDSIZE);
+               FOE_init ();
+            }
+            else
             {
                DPRINT("FOE_OP_RRQ\n");
                FOE_read ();
-               break;
             }
-            case FOE_OP_ACK:
+            break;
+         }
+         case FOE_OP_ACK:
+         {
+            if (etohs (foembx->mbxheader.length) != ESC_FOEHSIZE)
+            {
+               MBX_error (MBXERR_INVALIDSIZE);
+               FOE_init ();
+            }
+            else
             {
                DPRINT("FOE_OP_ACK\n");
                FOE_ack ();
-               break;
             }
+            break;
+         }
 
-            case FOE_OP_BUSY:
+         case FOE_OP_BUSY:
+         {
+            if (etohs (foembx->mbxheader.length) < ESC_FOEHSIZE)
+            {
+               MBX_error (MBXERR_INVALIDSIZE);
+               FOE_init ();
+            }
+            else
             {
                DPRINT("FOE_OP_BUSY\n");
                FOE_busy ();
-               break;
             }
+            break;
+         }
 #endif
-            case FOE_OP_ERR:
+         case FOE_OP_ERR:
+         {
+            if (etohs (foembx->mbxheader.length) < ESC_FOEHSIZE)
+            {
+               MBX_error (MBXERR_INVALIDSIZE);
+               FOE_init ();
+            }
+            else
             {
                DPRINT("FOE_OP_ERR\n");
                FOE_error ();
-               break;
             }
-            default:
-            {
-               DPRINT("FOE_ERR_NOTDEFINED\n");
-               FOE_abort (FOE_ERR_NOTDEFINED);
-               break;
-            }
+            break;
+         }
+         default:
+         {
+            DPRINT("FOE_ERR_NOTDEFINED\n");
+            FOE_abort (FOE_ERR_NOTDEFINED);
+            break;
          }
       }
-      MBXcontrol[0].state = MBXstate_idle;
-      ESCvar.xoe = 0;
    }
+   MBXcontrol[0].state = MBXstate_idle;
+   ESCvar.xoe = 0;
 }

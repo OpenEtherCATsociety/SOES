@@ -50,28 +50,23 @@ typedef enum { UPLOAD, DOWNLOAD } load_t;
  */
 int16_t SDO_findsubindex (int32_t nidx, uint8_t subindex)
 {
-   const _objd *objd;
-   int16_t n = 0;
-   uint8_t maxsub;
-   objd = SDOobjects[nidx].objdesc;
-   maxsub = SDOobjects[nidx].maxsub;
-
-   /* Since most objects contain all subindexes (i.e. are not sparse),
-    * check the most likely scenario first
-    */
-   if ((subindex <= maxsub) && ((objd + subindex)->subindex == subindex))
+   if (subindex > SDOobjects[nidx].maxsub)
    {
-      return subindex;
+      return -1;
    }
 
-   while (((objd + n)->subindex < subindex) && (n < maxsub))
+   const _objd * const objd = SDOobjects[nidx].objdesc;
+   int16_t n = 0;
+   while ((objd + n)->subindex < subindex)
    {
       n++;
    }
+
    if ((objd + n)->subindex != subindex)
    {
       return -1;
    }
+
    return n;
 }
 
@@ -286,6 +281,7 @@ static void set_state_idle (uint8_t reusembx,
    if (abortcode != 0)
    {
       SDO_abort (reusembx, index, subindex, abortcode);
+      ESCvar.segmented = 0U;
    }
 
    MBXcontrol[0].state = MBXstate_idle;
@@ -400,6 +396,7 @@ static void SDO_upload (void)
                      ESCvar.fragsleft = size;
                      /* signal segmented transfer */
                      ESCvar.segmented = MBXSEU;
+                     ESCvar.segmentedToggle = 0U;
                      ESCvar.data = (objd + nsub)->data;
                      ESCvar.flags = (objd + nsub)->flags;
                   }
@@ -429,19 +426,20 @@ static void SDO_upload (void)
                }
             }
             MBXcontrol[MBXout].state = MBXstate_outreq;
+            MBXcontrol[0].state = MBXstate_idle;
+            ESCvar.xoe = 0;
          }
       }
       else
       {
-         SDO_abort (0, index, subindex, ABORT_NOSUBINDEX);
+         set_state_idle (0, index, subindex, ABORT_NOSUBINDEX);
       }
    }
    else
    {
-      SDO_abort (0, index, subindex, ABORT_NOOBJECT);
+      set_state_idle (0, index, subindex, ABORT_NOOBJECT);
    }
-   MBXcontrol[0].state = MBXstate_idle;
-   ESCvar.xoe = 0;
+
 }
 
 static uint32_t complete_access_get_variables(_COEsdo *coesdo, uint16_t *index,
@@ -472,20 +470,28 @@ static uint32_t complete_access_get_variables(_COEsdo *coesdo, uint16_t *index,
    return 0;
 }
 
-static uint32_t complete_access_subindex_loop(const _objd *objd,
-                                              int32_t nidx,
+/**
+ * Iterate through a given object to handle a complete access.
+ *
+ * @param[in] nidx = Index within 'SDOobjects' of desired object
+ * @param[in] nsub = Offset of desired subindex of the object to start iteration
+ * @param[inout] mbxdata = Referenced buffer to SDO data of a mailbox frame.\n
+ *                         If NULL, no download or upload is performed and only the size in bits is determined.\n
+ *                         For download, this buffer contains received mailbox sdo data.\n
+ *                         For upload, this buffer will be written with sdo data for mailbox sdo response message.
+ * @param[in] load_type = Indicates 'DOWNLOAD' or 'UPLOAD' to be performed.
+ * @param[in] max_bytes = Maximum number of bytes when to interrupt the iteration.\n
+ *                        If 0, iteration is performed till the end of the desired object.
+ * @return Number of bits affected to this iteration.
+ */
+static uint32_t complete_access_subindex_loop(int32_t const nidx,
                                               int16_t nsub,
-                                              uint8_t *mbxdata,
-                                              load_t load_type,
-                                              uint32_t max_bytes)
+                                              uint8_t * const mbxdata,
+                                              load_t const load_type,
+                                              uint32_t const max_bytes)
 {
    /* Objects with dynamic entries cannot be accessed with Complete Access */
-   if ((objd->datatype == DTYPE_VISIBLE_STRING) ||
-       (objd->datatype == DTYPE_OCTET_STRING)   ||
-       (objd->datatype == DTYPE_UNICODE_STRING))
-   {
-      return ABORT_CA_NOT_SUPPORTED;
-   }
+   _objd const * const objd = SDOobjects[nidx].objdesc;
 
    uint32_t size = 0;
 
@@ -495,14 +501,35 @@ static uint32_t complete_access_subindex_loop(const _objd *objd,
       mbxdata[1] = 0;
    }
 
-   while (nsub <= SDOobjects[nidx].maxsub)
+   bool const isNumberOfSubindexesChanging =   ((objd + nsub)->subindex == 0U)
+                                            && (load_type == DOWNLOAD)
+                                            && (SDOobjects[nidx].objtype == OTYPE_ARRAY)
+                                            && (WRITE_ACCESS(objd->flags, (ESCvar.ALstatus & 0x0FU)))
+                                            && (mbxdata != NULL)
+                                            && (((uint8_t*)mbxdata)[0] <= SDOobjects[nidx].maxsub);
+
+   uint8_t const maxsub = (SDOobjects[nidx].maxsub == 0U)
+                         ? 0U
+                         : isNumberOfSubindexesChanging
+                         ? ((uint8_t*)mbxdata)[0]
+                         : (objd->data != NULL)
+                         ? *(uint8_t*)(objd->data)
+                         : (uint8_t)objd->value;
+
+   while (true)
    {
-      uint16_t bitlen = (objd + nsub)->bitlength;
-      void *ul_source = ((objd + nsub)->data != NULL) ?
-            (objd + nsub)->data : (void *)&((objd + nsub)->value);
-      uint8_t bitoffset = size % 8;
-      uint8_t access = (objd + nsub)->flags & 0x3f;
-      uint8_t state = ESCvar.ALstatus & 0x0f;
+      uint16_t const bitlen = (objd + nsub)->bitlength;
+      void const * const ul_source = ((objd + nsub)->data != NULL) ?
+                                     (objd + nsub)->data : (void *)&((objd + nsub)->value);
+      uint8_t const bitoffset = size % 8;
+      uint8_t const access = (objd + nsub)->flags & 0x3f;
+      uint8_t const state = ESCvar.ALstatus & 0x0f;
+
+      if ((max_bytes > 0U) && (   (((bitlen % 8U) == 0U) && ((BITS2BYTES(size) + BITS2BYTES(bitlen)) > max_bytes))
+                               || (((bitlen % 8U) != 0U) && (BITS2BYTES(size + bitlen) > max_bytes))))
+      {
+         break;
+      }
 
       if ((bitlen % 8) == 0)
       {
@@ -535,35 +562,41 @@ static uint32_t complete_access_subindex_loop(const _objd *objd,
             }
          }
       }
-      else if ((load_type == UPLOAD) && (mbxdata != NULL))
+      else if (mbxdata != NULL)
       {
-         /* copy a bit data type into correct position */
-         uint32_t bitmask = (1U << bitlen) - 1U;
-         uint32_t tempmask;
-         if (READ_ACCESS(access, state))
+         uint32_t const bitmask = (1U << bitlen) - 1U;
+         if (load_type == UPLOAD)
          {
+            /* copy a bit data type into correct position */
             if (bitoffset == 0)
             {
                mbxdata[BITSPOS2BYTESOFFSET(size)] = 0;
             }
-            tempmask = (*(uint8_t *)ul_source & bitmask) << bitoffset;
-            mbxdata[BITSPOS2BYTESOFFSET(size)] |= (uint8_t)tempmask;
+            uint32_t tempmask;
+            if (READ_ACCESS(access, state))
+            {
+               tempmask = (*(uint8_t const *)ul_source & bitmask) << bitoffset;
+               mbxdata[BITSPOS2BYTESOFFSET(size)] |= (uint8_t)tempmask;
+            }
+            else
+            {
+               tempmask = ~(bitmask << bitoffset);
+               mbxdata[BITSPOS2BYTESOFFSET(size)] &= (uint8_t)tempmask;
+            }
          }
-         else
+         /* download of RO objects shall be ignored */
+         else if (WRITE_ACCESS(access, state))
          {
-            tempmask = ~(bitmask << bitoffset);
-            mbxdata[BITSPOS2BYTESOFFSET(size)] &= (uint8_t)tempmask;
+            *(uint8_t*)(objd + nsub)->data = (mbxdata[BITSPOS2BYTESOFFSET(size)] >> bitoffset) & (uint8_t)bitmask;
          }
       }
 
       /* Subindex 0 is padded to 16 bit if not object type VARIABLE.
        * For VARIABLE use true bitsize.
        */
-      size +=
-      ((nsub == 0) && (SDOobjects[nidx].objtype != OTYPE_VAR)) ? 16 : bitlen;
-      nsub++;
-
-      if ((max_bytes > 0) && (BITS2BYTES(size) >= max_bytes))
+      size += (((objd + nsub)->subindex == 0U) && (SDOobjects[nidx].objtype != OTYPE_VAR)) ? 16U
+                                                                                           : bitlen;
+      if ((objd + nsub++)->subindex >= maxsub)
       {
          break;
       }
@@ -619,7 +652,7 @@ static void SDO_upload_complete_access (void)
    const _objd *objd = SDOobjects[nidx].objdesc;
 
    /* loop through the subindexes to get the total size */
-   uint32_t size = complete_access_subindex_loop(objd, nidx, nsub, NULL, UPLOAD, 0);
+   uint32_t size = complete_access_subindex_loop(nidx, nsub, NULL, UPLOAD, 0);
 
    /* expedited bits used calculation */
    uint8_t dss = (size > 24) ? 0 : (uint8_t)(4U * (3U - ((size - 1U) >> 3)));
@@ -627,15 +660,8 @@ static void SDO_upload_complete_access (void)
    /* convert bits to bytes */
    size = BITS2BYTES(size);
 
-   if (size > 0xffff)
-   {
-      /* 'size' is in this case actually an abort code */
-      set_state_idle (MBXout, index, subindex, size);
-      return;
-   }
-
    /* check that upload data fits in the preallocated buffer */
-   if ((size + PREALLOC_FACTOR * COE_HEADERSIZE) > PREALLOC_BUFFER_SIZE)
+   if (size > PREALLOC_BUFFER_SIZE)
    {
       set_state_idle (MBXout, index, subindex, ABORT_CA_NOT_SUPPORTED);
       return;
@@ -649,7 +675,7 @@ static void SDO_upload_complete_access (void)
    }
 
    /* copy subindex data into the preallocated buffer */
-   complete_access_subindex_loop(objd, nidx, nsub, ESCvar.mbxdata, UPLOAD, 0);
+   complete_access_subindex_loop(nidx, nsub, ESCvar.mbxdata, UPLOAD, 0);
 
    _COEsdo *coeres = (_COEsdo *) &MBX[MBXout * ESC_MBXSIZE];
    init_coesdo(coeres, COE_SDORESPONSE,
@@ -680,6 +706,7 @@ static void SDO_upload_complete_access (void)
          ESCvar.fragsleft = size;
          /* signal segmented transfer */
          ESCvar.segmented = MBXSEU;
+         ESCvar.segmentedToggle = 0U;
          ESCvar.data = ESCvar.mbxdata;
          ESCvar.flags = COMPLETE_ACCESS_FLAG;
       }
@@ -717,6 +744,13 @@ static void SDO_uploadsegment (void)
    MBXout = ESC_claimbuffer ();
    if (MBXout)
    {
+      if (((coesdo->command & COE_TOGGLEBIT) >> 4U) != ESCvar.segmentedToggle)
+      {
+         set_state_idle(MBXout, ESCvar.index, ESCvar.subindex, ABORT_NOTOGGLE);
+         return;
+      }
+
+      ESCvar.segmentedToggle = (ESCvar.segmentedToggle == 0U) ? 1U : 0U;
       coeres = (_COEsdo *) &MBX[MBXout * ESC_MBXSIZE];
       offset = ESCvar.fragsleft;
       size = ESCvar.frags - ESCvar.fragsleft;
@@ -814,7 +848,12 @@ static void SDO_download (void)
                mbxdata = (&(coesdo->size)) + 1;
             }
             actsize = BITS2BYTES((objd + nsub)->bitlength);
-            if (actsize != size)
+            if (actsize < size)
+            {
+               set_state_idle (0, index, subindex, ABORT_TYPEMISMATCH);
+               return;
+            }
+            if (actsize > size)
             {
                /* entries with data types VISIBLE_STRING, OCTET_STRING,
                 * UNICODE_STRING, ARRAY_OF_INT, ARRAY_OF_SINT,
@@ -846,12 +885,15 @@ static void SDO_download (void)
             );
             if (abort == 0)
             {
-               if ((size > 4) &&
-                     (size > (coesdo->mbxheader.length - COE_HEADERSIZE)))
+               if (   ((coesdo->command & COE_EXPEDITED_INDICATOR) == 0U)
+                   && (size > (etohs (coesdo->mbxheader.length) - COE_HEADERSIZE)))
                {
-                  size = coesdo->mbxheader.length - COE_HEADERSIZE;
+                  ESCvar.frags = size;
+                  size = etohs (coesdo->mbxheader.length) - COE_HEADERSIZE;
+                  ESCvar.fragsleft = size;
                   /* signal segmented transfer */
                   ESCvar.segmented = MBXSED;
+                  ESCvar.segmentedToggle = 0U;
                   ESCvar.data = (objd + nsub)->data + size;
                   ESCvar.index = index;
                   ESCvar.subindex = subindex;
@@ -875,6 +917,8 @@ static void SDO_download (void)
                   coeres->command = COE_COMMAND_DOWNLOADRESPONSE;
                   coeres->size = htoel (0);
                   MBXcontrol[MBXout].state = MBXstate_outreq;
+                  MBXcontrol[0].state = MBXstate_idle;
+                  ESCvar.xoe = 0;
                }
                if (ESCvar.segmented == 0)
                {
@@ -882,39 +926,37 @@ static void SDO_download (void)
                   abort = ESC_download_post_objecthandler (index, subindex, (objd + nsub)->flags);
                   if (abort != 0)
                   {
-                     SDO_abort (MBXout, index, subindex, abort);
+                     set_state_idle (MBXout, index, subindex, abort);
                   }
                }
             }
             else
             {
-               SDO_abort (0, index, subindex, abort);
+               set_state_idle (0, index, subindex, abort);
             }
          }
          else
          {
             if (access == ATYPE_RO)
             {
-               SDO_abort (0, index, subindex, ABORT_READONLY);
+               set_state_idle (0, index, subindex, ABORT_READONLY);
 
             }
             else
             {
-               SDO_abort (0, index, subindex, ABORT_NOTINTHISSTATE);
+               set_state_idle (0, index, subindex, ABORT_NOTINTHISSTATE);
             }
          }
       }
       else
       {
-         SDO_abort (0, index, subindex, ABORT_NOSUBINDEX);
+         set_state_idle (0, index, subindex, ABORT_NOSUBINDEX);
       }
    }
    else
    {
-      SDO_abort (0, index, subindex, ABORT_NOOBJECT);
+      set_state_idle (0, index, subindex, ABORT_NOOBJECT);
    }
-   MBXcontrol[0].state = MBXstate_idle;
-   ESCvar.xoe = 0;
 }
 
 /** Function for handling incoming requested SDO Download with Complete Access,
@@ -953,72 +995,71 @@ static void SDO_download_complete_access (void)
 
    const _objd *objd = SDOobjects[nidx].objdesc;
 
-   /* loop through the subindexes to get the total size */
-   uint32_t size = complete_access_subindex_loop(objd, nidx, nsub, NULL, DOWNLOAD, 0);
-   size = BITS2BYTES(size);
-   if (size > 0xffff)
+   uint32_t size;
+   if (   (subindex == 0U) && (SDOobjects[nidx].objtype == OTYPE_ARRAY) && (SDOobjects[nidx].maxsub > 0U)
+       && (WRITE_ACCESS(objd->flags, (ESCvar.ALstatus & 0x0FU))) && (((uint8_t*)mbxdata)[0] <= SDOobjects[nidx].maxsub))
    {
-      /* 'size' is in this case actually an abort code */
-      set_state_idle (0, index, subindex, size);
+      // Number of subindexes are overwritten for an array object. This has to be considered for size calculation
+      size = ((uint8_t*)mbxdata)[0] * BITS2BYTES((objd + 1U)->bitlength);
+   }
+   else
+   {
+      /* loop through the subindexes to get the total size */
+      size = complete_access_subindex_loop(nidx, nsub, NULL, DOWNLOAD, 0);
+      size = BITS2BYTES(size);
+   }
+
+   if (bytes != size)
+   {
+      set_state_idle (0, index, subindex, ABORT_TYPEMISMATCH);
       return;
    }
-   /* The document ETG.1020 S (R) V1.3.0, chapter 12.2, states that
-    * "The SDO Download Complete Access data length shall always match
-    * the full current object size (defined by SubIndex0)".
-    * But EtherCAT Conformance Test Tool doesn't follow this rule for some test
-    * cases, which is the reason to here only check for 'less than or equal'.
-    */
-   else if (bytes <= size)
+
+   abortcode = ESC_download_pre_objecthandler(index, subindex, mbxdata,
+         size, objd->flags | COMPLETE_ACCESS_FLAG);
+   if (abortcode != 0)
    {
-      abortcode = ESC_download_pre_objecthandler(index, subindex, mbxdata,
-            size, objd->flags | COMPLETE_ACCESS_FLAG);
+      set_state_idle (0, index, subindex, abortcode);
+      return;
+   }
+
+   if (   ((coesdo->command & COE_EXPEDITED_INDICATOR) == 0U)
+       && (bytes > (etohs (coesdo->mbxheader.length) - COE_HEADERSIZE)))
+   {
+      /* check that download data fits in the preallocated buffer */
+      if (bytes > PREALLOC_BUFFER_SIZE)
+      {
+         set_state_idle(0, index, subindex, ABORT_CA_NOT_SUPPORTED);
+         return;
+      }
+      /* set total size in bytes */
+      ESCvar.frags = bytes;
+      /* limit to actual transmitted data length */
+      size = etohs (coesdo->mbxheader.length) - COE_HEADERSIZE;
+      /* number of bytes done */
+      ESCvar.fragsleft = size;
+      ESCvar.segmented = MBXSED;
+      ESCvar.segmentedToggle = 0U;
+      ESCvar.data = ESCvar.mbxdata + size;
+      ESCvar.index = index;
+      ESCvar.subindex = subindex;
+      ESCvar.flags = COMPLETE_ACCESS_FLAG;
+      /* Store the data */
+      copy2mbx (mbxdata, ESCvar.mbxdata, size);
+   }
+   else
+   {
+      ESCvar.segmented = 0;
+      /* copy download data to subindexes */
+      complete_access_subindex_loop(nidx, nsub, (uint8_t *)mbxdata, DOWNLOAD, bytes);
+
+      abortcode = ESC_download_post_objecthandler(index, subindex,
+            objd->flags | COMPLETE_ACCESS_FLAG);
       if (abortcode != 0)
       {
          set_state_idle (0, index, subindex, abortcode);
          return;
       }
-
-      if ((bytes + COE_HEADERSIZE) > ESC_MBXDSIZE)
-      {
-         /* check that download data fits in the preallocated buffer */
-         if ((bytes + PREALLOC_FACTOR * COE_HEADERSIZE) > PREALLOC_BUFFER_SIZE)
-         {
-             set_state_idle(0, index, subindex, ABORT_CA_NOT_SUPPORTED);
-             return;
-         }
-         /* set total size in bytes */
-         ESCvar.frags = bytes;
-         /* limit to mailbox size */
-         size = ESC_MBXDSIZE - COE_HEADERSIZE;
-         /* number of bytes done */
-         ESCvar.fragsleft = size;
-         ESCvar.segmented = MBXSED;
-         ESCvar.data = ESCvar.mbxdata + size;
-         ESCvar.index = index;
-         ESCvar.subindex = subindex;
-         ESCvar.flags = COMPLETE_ACCESS_FLAG;
-         /* Store the data */
-         copy2mbx (mbxdata, ESCvar.mbxdata, size);
-      }
-      else
-      {
-         ESCvar.segmented = 0;
-         /* copy download data to subindexes */
-         complete_access_subindex_loop(objd, nidx, nsub, (uint8_t *)mbxdata, DOWNLOAD, bytes);
-
-         abortcode = ESC_download_post_objecthandler(index, subindex,
-               objd->flags | COMPLETE_ACCESS_FLAG);
-         if (abortcode != 0)
-         {
-            set_state_idle (0, index, subindex, abortcode);
-            return;
-         }
-      }
-   }
-   else
-   {
-      set_state_idle (0, index, subindex, ABORT_TYPEMISMATCH);
-      return;
    }
 
    uint8_t MBXout = ESC_claimbuffer ();
@@ -1042,12 +1083,26 @@ static void SDO_downloadsegment (void)
    uint8_t MBXout = ESC_claimbuffer ();
    if (MBXout)
    {
+      if (((coesdo->command & COE_TOGGLEBIT) >> 4U) != ESCvar.segmentedToggle)
+      {
+         set_state_idle(MBXout, ESCvar.index, ESCvar.subindex, ABORT_NOTOGGLE);
+         return;
+      }
+
+      ESCvar.segmentedToggle = (ESCvar.segmentedToggle == 0U) ? 1U : 0U;
       _COEsdo *coeres = (_COEsdo *) &MBX[MBXout * ESC_MBXSIZE];
       uint32_t size = coesdo->mbxheader.length - 3U;
       if (size == 7)
       {
          size = 7 - ((coesdo->command >> 1) & 7);
       }
+
+      if(size > (ESCvar.frags - ESCvar.fragsleft))
+      {
+         set_state_idle (MBXout, ESCvar.index, ESCvar.subindex, ABORT_TYPEMISMATCH);
+         return;
+      }
+
       uint8_t command = COE_COMMAND_DOWNLOADSEGRESP;
       uint8_t command2 = (coesdo->command & COE_TOGGLEBIT);  /* copy toggle bit */
       command |= command2;
@@ -1060,28 +1115,28 @@ static void SDO_downloadsegment (void)
       {
          if(ESCvar.flags == COMPLETE_ACCESS_FLAG)
          {
-            int32_t nidx;
-            int16_t nsub;
-
             if(ESCvar.frags > ESCvar.fragsleft + size)
             {
-               set_state_idle (0, ESCvar.index, ESCvar.subindex, ABORT_TYPEMISMATCH);
+               set_state_idle (MBXout, ESCvar.index, ESCvar.subindex, ABORT_TYPEMISMATCH);
                return;
             }
 
-            nidx = SDO_findobject(ESCvar.index);
-            nsub = SDO_findsubindex (nidx, ESCvar.subindex);
-
-            if ((nidx < 0) || (nsub < 0))
+            int32_t const nidx = SDO_findobject(ESCvar.index);
+            if (nidx < 0)
             {
-               set_state_idle (0, ESCvar.index, ESCvar.subindex, ABORT_NOOBJECT);
+               set_state_idle (MBXout, ESCvar.index, ESCvar.subindex, ABORT_NOOBJECT);
+               return;
+            }
+
+            int16_t const nsub = SDO_findsubindex (nidx, ESCvar.subindex);
+            if (nsub < 0)
+            {
+               set_state_idle (MBXout, ESCvar.index, ESCvar.subindex, ABORT_NOSUBINDEX);
                return;
             }
 
             /* copy download data to subindexes */
-            const _objd *objd = SDOobjects[nidx].objdesc;
-            complete_access_subindex_loop(objd,
-                  nidx,
+            complete_access_subindex_loop(nidx,
                   nsub,
                   (uint8_t *)ESCvar.mbxdata,
                   DOWNLOAD,
@@ -1317,16 +1372,15 @@ static void SDO_getod (void)
          coel->index = htoes (index);
          if (SDOobjects[nidx].objtype == OTYPE_VAR)
          {
-            int32_t nsub = SDO_findsubindex (nidx, 0);
             const _objd *objd = SDOobjects[nidx].objdesc;
-            coel->datatype = htoes ((objd + nsub)->datatype);
+            coel->datatype = htoes ((objd + 0U)->datatype);
             coel->maxsub = SDOobjects[nidx].maxsub;
          }
-         else if (SDOobjects[nidx].objtype == OTYPE_ARRAY)
+         else if (   (SDOobjects[nidx].objtype == OTYPE_ARRAY)
+                  && (SDOobjects[nidx].maxsub >= 1U))
          {
-            int32_t nsub = SDO_findsubindex (nidx, 0);
             const _objd *objd = SDOobjects[nidx].objdesc;
-            coel->datatype = htoes ((objd + nsub)->datatype);
+            coel->datatype = htoes ((objd + 1U)->datatype);
             coel->maxsub = (uint8_t)SDOobjects[nidx].objdesc->value;
          }
          else
@@ -1470,7 +1524,8 @@ void ESC_coeprocess (void)
       if (service == COE_SDOREQUEST)
       {
          if ((SDO_COMMAND(coesdo->command) == COE_COMMAND_UPLOADREQUEST)
-               && (etohs (coesdo->mbxheader.length) == COE_HEADERSIZE))
+               && (etohs (coesdo->mbxheader.length) == COE_HEADERSIZE)
+               && (ESCvar.segmented == 0U))
          {
             /* initiate SDO upload request */
             if (SDO_COMPLETE_ACCESS(coesdo->command))
@@ -1482,14 +1537,16 @@ void ESC_coeprocess (void)
                SDO_upload ();
             }
          }
-         else if (((coesdo->command & 0xef) == COE_COMMAND_UPLOADSEGREQ)
-               && (etohs (coesdo->mbxheader.length) == COE_HEADERSIZE)
-               && (ESCvar.segmented == MBXSEU))
+         else if (   (SDO_COMMAND(coesdo->command) == COE_COMMAND_UPLOADSEGREQ)
+                  && (etohs (coesdo->mbxheader.length) == COE_HEADERSIZE)
+                  && (ESCvar.segmented == MBXSEU))
          {
             /* SDO upload segment request */
             SDO_uploadsegment ();
          }
-         else if (SDO_COMMAND(coesdo->command) == COE_COMMAND_DOWNLOADREQUEST)
+         else if (   (SDO_COMMAND(coesdo->command) == COE_COMMAND_DOWNLOADREQUEST)
+                  && (etohs (coesdo->mbxheader.length) >= COE_HEADERSIZE)
+                  && (ESCvar.segmented == 0U))
          {
             /* initiate SDO download request */
             if (SDO_COMPLETE_ACCESS(coesdo->command))
@@ -1501,51 +1558,60 @@ void ESC_coeprocess (void)
                SDO_download ();
             }
          }
-         else if (SDO_COMMAND(coesdo->command) == COE_COMMAND_DOWNLOADSEGREQ)
+         else if (   (SDO_COMMAND(coesdo->command) == COE_COMMAND_DOWNLOADSEGREQ)
+                  && (etohs (coesdo->mbxheader.length) >= COE_HEADERSIZE)
+                  && (ESCvar.segmented == MBXSED))
          {
             /* SDO download segment request */
             SDO_downloadsegment ();
+         }
+         else
+         {
+            MBX_error (MBXERR_INVALIDHEADER);
+            ESCvar.segmented = 0U;
+            MBXcontrol[0].state = MBXstate_idle;
+            ESCvar.xoe = 0;
          }
       }
       /* initiate SDO get OD list */
       else
       {
-         if ((service == COE_SDOINFORMATION)
-               && (coeobjdesc->infoheader.opcode == 0x01))
+         if (     (service == COE_SDOINFORMATION)
+               && (coeobjdesc->infoheader.opcode == 0x01)
+               && (ESCvar.segmented == 0U))
          {
             SDO_getodlist ();
          }
          /* initiate SDO get OD */
          else
          {
-            if ((service == COE_SDOINFORMATION)
-                  && (coeobjdesc->infoheader.opcode == 0x03))
+            if (     (service == COE_SDOINFORMATION)
+                  && (coeobjdesc->infoheader.opcode == 0x03)
+                  && (ESCvar.segmented == 0U))
             {
                SDO_getod ();
             }
             /* initiate SDO get ED */
             else
             {
-               if ((service == COE_SDOINFORMATION)
-                     && (coeobjdesc->infoheader.opcode == 0x05))
+               if (     (service == COE_SDOINFORMATION)
+                     && (coeobjdesc->infoheader.opcode == 0x05)
+                     && (ESCvar.segmented == 0U))
                {
                   SDO_geted ();
                }
                else
                {
-                  /* COE not recognised above */
-                  if (ESCvar.xoe == MBXCOE)
+                  if (service == 0)
                   {
-                     if (service == 0)
-                     {
-                        MBX_error (MBXERR_INVALIDHEADER);
-                     }
-                     else
-                     {
-                        SDO_abort (0, etohs (coesdo->index), coesdo->subindex, ABORT_UNSUPPORTED);
-                     }
+                     MBX_error (MBXERR_INVALIDHEADER);
+                     ESCvar.segmented = 0U;
                      MBXcontrol[0].state = MBXstate_idle;
                      ESCvar.xoe = 0;
+                  }
+                  else
+                  {
+                     set_state_idle (0, etohs (coesdo->index), coesdo->subindex, ABORT_UNSUPPORTED);
                   }
                }
             }

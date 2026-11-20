@@ -12,6 +12,7 @@
 #define __esc_coe__
 
 #include <cc.h>
+#include "options.h"
 
 
 typedef struct
@@ -133,6 +134,11 @@ extern uint32_t ESC_upload_pre_objecthandler (uint16_t index,
       size_t *size,
       uint16_t flags);
 extern uint32_t ESC_upload_post_objecthandler (uint16_t index, uint8_t subindex, uint16_t flags);
+
+#if USE_CONST_OBJECTLIST
 extern const _objectlist SDOobjects[];
+#else
+extern _objectlist SDOobjects[];
+#endif
 
 #endif
