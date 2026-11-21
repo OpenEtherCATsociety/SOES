@@ -66,12 +66,6 @@ extern "C"
 #define etohs(x) htoes (x)
 #define etohl(x) htoel (x)
 
-#if BYTE_ORDER == LITTLE_ENDIAN
-#define EC_LITTLE_ENDIAN
-#else
-#define EC_BIG_ENDIAN
-#endif
-
 #ifdef ESC_DEBUG
 #ifdef __rtk__
 #include <kern/rprint.h>
@@ -89,3 +83,22 @@ extern "C"
 #endif
 
 #endif /* CC_H */
+
+/* SOES flags are also needed when OSAL provides the CC_* macros. */
+#if !defined(EC_LITTLE_ENDIAN) && !defined(EC_BIG_ENDIAN)
+#if defined(BYTE_ORDER) && defined(LITTLE_ENDIAN) && \
+    (BYTE_ORDER == LITTLE_ENDIAN)
+#define EC_LITTLE_ENDIAN
+#elif defined(BYTE_ORDER) && defined(BIG_ENDIAN) && \
+      (BYTE_ORDER == BIG_ENDIAN)
+#define EC_BIG_ENDIAN
+#elif defined(__BYTE_ORDER__) && defined(__ORDER_LITTLE_ENDIAN__) && \
+      (__BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__)
+#define EC_LITTLE_ENDIAN
+#elif defined(__BYTE_ORDER__) && defined(__ORDER_BIG_ENDIAN__) && \
+      (__BYTE_ORDER__ == __ORDER_BIG_ENDIAN__)
+#define EC_BIG_ENDIAN
+#else
+#error "Unable to determine SOES byte order"
+#endif
+#endif
