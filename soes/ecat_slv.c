@@ -7,6 +7,7 @@
 #include "esc_coe.h"
 #include "esc_foe.h"
 #include "esc_eoe.h"
+#include "esc_voe.h"
 #include "ecat_slv.h"
 
 #define IS_RXPDO(index) ((index) >= 0x1600 && (index) < 0x1800)
@@ -277,6 +278,9 @@ void ecat_slv_worker (uint32_t event_mask)
 #if USE_EOE
          ESC_eoeprocess();
 #endif
+#if USE_VOE
+         ESC_voeprocess();
+#endif
          ESC_xoeprocess();
       }
 #if USE_EOE
@@ -320,6 +324,9 @@ void ecat_slv_poll (void)
 #endif
 #if USE_EOE
       ESC_eoeprocess();
+#endif
+#if USE_VOE
+      ESC_voeprocess();
 #endif
       ESC_xoeprocess();
    }

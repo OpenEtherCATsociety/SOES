@@ -37,6 +37,8 @@ struct foe_file_cfg
    uint32_t       padding:24;
    /** Pointer to application foe write function */
    uint32_t       (*write_function) (foe_file_cfg_t * self, uint8_t * data, size_t length);
+   /* Optional RRQ length provider. NULL reads the legacy max_data bytes. */
+   uint32_t       (*read_size) (const foe_file_cfg_t * self);
 };
 
 typedef struct foe_cfg

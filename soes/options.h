@@ -14,9 +14,20 @@
 #define USE_FOE          1
 #endif
 
+/* FoE read (RRQ / upload) support. Opt-in: the application must provide
+ * readable file storage in foe_cfg_t::fbuffer. Writes are always available. */
+#ifndef FOE_READ_SUPPORTED
+#define FOE_READ_SUPPORTED 0
+#endif
+
 /* EoE support */
 #ifndef USE_EOE
 #define USE_EOE          1
+#endif
+
+/* VoE support. Opt-in and requires an application handler via VOE_config(). */
+#ifndef USE_VOE
+#define USE_VOE          0
 #endif
 
 #ifndef MBXSIZE

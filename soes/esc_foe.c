@@ -21,9 +21,6 @@
  * FOE read / write and FOE service functions
  */
 
-//define if FOE_read should be supported
-//#define FOE_READ_SUPPORTED
-
 /** Variable holding current filename read at FOE Open.
  */
 static char foe_file_name[FOE_FN_MAX + 1];
@@ -103,12 +100,20 @@ static uint32_t FOE_fopen (char *name, uint32_t num_chars, uint32_t pass, uint8_
          foe_file->total_size = 0;
          switch (op)
          {
+#if FOE_READ_SUPPORTED
             case FOE_OP_RRQ:
             {
                FOEvar.fposition = 0;
-               FOEvar.fend = foe_cfg->files[i].max_data;
+               FOEvar.fend = foe_file->read_size ?
+                  foe_file->read_size (foe_file) : foe_file->max_data;
+               if (FOEvar.fend > foe_file->max_data ||
+                   FOEvar.fend > foe_cfg->buffer_size)
+               {
+                  return FOE_ERR_PROGERROR;
+               }
                return 0;
             }
+#endif
             case FOE_OP_WRQ:
             {
                FOEvar.fposition = 0;
@@ -122,7 +127,7 @@ static uint32_t FOE_fopen (char *name, uint32_t num_chars, uint32_t pass, uint8_
    return FOE_ERR_NOTFOUND;
 }
 
-#ifdef FOE_READ_SUPPORTED
+#if FOE_READ_SUPPORTED
 /** Function writing local data to mailbox buffer to be sent as next FoE frame.
  * It will try to fill the Mailbox buffer available if there is enough data
  * left to read.
@@ -244,6 +249,7 @@ static void FOE_abort (uint32_t code)
          foembx->mbxheader.length = htoes (ESC_FOEHSIZE);   /* Don't bother with error text for now. */
          foembx->mbxheader.mbxtype = MBXFOE;
          foembx->foeheader.opcode = FOE_OP_ERR;
+         foembx->foeheader.reserved = 0;
          foembx->foeheader.errorcode = htoel (code);
          MBXcontrol[mbxhandle].state = MBXstate_outreq;
       }
@@ -253,7 +259,7 @@ static void FOE_abort (uint32_t code)
    FOE_init ();
 }
 
-#ifdef FOE_READ_SUPPORTED
+#if FOE_READ_SUPPORTED
 /** Sends an FoE data frame, returning the number of data bytes
  * written or an error number.
  * Error numbers will be greater than FOE_DATA_SIZE.
@@ -276,6 +282,7 @@ static uint32_t FOE_send_data_packet ()
       foembx = (_FOE *) &MBX[mbxhandle * ESC_MBXSIZE];
       data_len = FOE_fread (foembx->data, ESC_FOE_DATA_SIZE);
       foembx->foeheader.opcode = FOE_OP_DATA;
+      foembx->foeheader.reserved = 0;
       foembx->foeheader.packetnumber = htoel (FOEvar.foepacket);
       FOEvar.foepacket++;
       foembx->mbxheader.length = htoes (data_len + ESC_FOEHSIZE);
@@ -308,6 +315,7 @@ static uint32_t FOE_send_ack ()
       foembx->mbxheader.length = htoes (ESC_FOEHSIZE);
       foembx->mbxheader.mbxtype = MBXFOE;
       foembx->foeheader.opcode = FOE_OP_ACK;
+      foembx->foeheader.reserved = 0;
       foembx->foeheader.packetnumber = htoel (FOEvar.foepacket);
       FOEvar.foepacket++;
       MBXcontrol[mbxhandle].state = MBXstate_outreq;
@@ -322,7 +330,7 @@ static uint32_t FOE_send_ack ()
 
 /* Handlers for various FoE states. */
 
-#ifdef FOE_READ_SUPPORTED
+#if FOE_READ_SUPPORTED
 /** FoE read request handler. Starts with Initialize, Open and Sending one frame.
  * When first frame have been sent we will send data from Ack.
  * On error we will send FOE Abort.
@@ -529,7 +537,7 @@ static void FOE_data ()
    }
 }
 
-#ifdef FOE_READ_SUPPORTED
+#if FOE_READ_SUPPORTED
 /** FoE read request busy handler. Send an Ack of last frame again. On error
  * we will send FOE Abort.
  *
@@ -624,7 +632,7 @@ void ESC_foeprocess (void)
                FOE_data ();
                break;
             }
-#ifdef FOE_READ_SUPPORTED
+#if FOE_READ_SUPPORTED
             case FOE_OP_RRQ:
             {
                DPRINT("FOE_OP_RRQ\n");
