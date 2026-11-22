@@ -125,7 +125,7 @@ void ESC_read (uint16_t address, void *buf, uint16_t len)
             if(len > 5)
             {
                 uint8_t n = (address - ESC_ADDR_SYNCMAN) >> 3;
-                bsp_pdi_post_read_indication(escHwPruIcssHandle, ESCREG_SM0ACTIVATE + (n << 3));
+                bsp_pdi_post_read_indication(escHwPruIcssHandle, ESCREG_SM0ACTIVATE + (n << 3), sizeof(uint32_t));
             }
             break;
         }
@@ -154,7 +154,7 @@ void ESC_read (uint16_t address, void *buf, uint16_t len)
                 default:
                 {
                     bsp_read(escHwPruIcssHandle, buf, address, len);
-                    bsp_pdi_post_read_indication(escHwPruIcssHandle, address);
+                    bsp_pdi_post_read_indication(escHwPruIcssHandle, address, len);
                     break;
                 }
             }
@@ -212,27 +212,27 @@ void ESC_write (uint16_t address, void *buf, uint16_t len)
                 {
                     uint8_t * p = buf;
                     bsp_write_byte(escHwPruIcssHandle, *p, address);
-                    bsp_pdi_write_indication(escHwPruIcssHandle, address, *p);
+                    bsp_pdi_write_indication(escHwPruIcssHandle, address, sizeof(uint8_t), *p);
                     break;
                 }
                 case 2:
                 {
                     uint16_t * p = buf;
                     bsp_write_word(escHwPruIcssHandle, *p, address);
-                    bsp_pdi_write_indication(escHwPruIcssHandle, address, *p);
+                    bsp_pdi_write_indication(escHwPruIcssHandle, address, sizeof(uint16_t), *p);
                     break;
                 }
                 case 4:
                 {
                     uint32_t * p = buf;
                     bsp_write_dword(escHwPruIcssHandle, *p, address);
-                    bsp_pdi_write_indication(escHwPruIcssHandle, address, *p);
+                    bsp_pdi_write_indication(escHwPruIcssHandle, address, sizeof(uint32_t), *p);
                     break;
                 }
                 default:
                 {
                     bsp_write(escHwPruIcssHandle, buf, address, len);
-                    bsp_pdi_write_indication(escHwPruIcssHandle, address, 0);
+                    bsp_pdi_write_indication(escHwPruIcssHandle, address, len, 0);
                     break;
                 }
             }
@@ -301,7 +301,7 @@ void PDI_Isr(void)
     alevent = bsp_read_word_isr(escHwPruIcssHandle,ESCREG_ALEVENT);
     CC_ATOMIC_SET(ESCvar.ALevent, etohs(alevent));
 
-    if(ESCvar.ALevent & (ESCREG_ALEVENT_SM2 & ESCREG_ALEVENT_SM3))
+    if(ESCvar.ALevent & (ESCREG_ALEVENT_SM2 | ESCREG_ALEVENT_SM3))
     {
         DIG_process(DIG_PROCESS_OUTPUTS_FLAG |
                     DIG_PROCESS_APP_HOOK_FLAG |

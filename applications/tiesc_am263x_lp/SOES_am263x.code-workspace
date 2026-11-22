@@ -1,0 +1,130 @@
+{
+	"folders": [
+		{
+			"name": "example",
+			"path": "."
+		},
+		{
+			"name": "SOES",
+			"path": "../.."
+		},
+		{
+			"path": "../../../../../ti/ind_comms_sdk_am263x_09_01_00_03"
+		}
+	],
+	"extensions": {
+		"recommendations": [
+			"llvm-vs-code-extensions.vscode-clangd",
+			"ms-vscode.cpptools",
+			"marus25.cortex-debug",
+		],
+	},
+	"settings": {
+		"cortex-debug.openocdPath.windows": "${env:userprofile}/Downloads/openocd-20240916/OpenOCD-20240916-0.12.0/bin/openocd.exe",
+		"editor.inlayHints.enabled": "off",
+		"clangd.arguments": [
+			"-log=verbose", 
+			"--background-index", 
+			"--query-driver=**",
+			"--compile-commands-dir=${workspaceFolder}/build",
+		],
+	},
+	"tasks": {
+		"version": "2.0.0",
+		"tasks": [
+			{
+				"label": "Build",
+				"windows":{
+					"command": "C:\\Program Files\\CMake\\bin\\cmake.exe",
+				},
+				"linux":{
+					"command": "cmake",
+				},
+				"type": "shell",
+				"args": [
+					"--build","${workspaceFolder:example}/build",
+					"-v",
+				],
+				"problemMatcher": [
+					"$gcc"
+				],
+				"group": "build",
+				"dependsOn":["CMake configure"],
+			},
+			{
+				"label": "Clean",
+				"windows":{
+					"command": "C:\\Program Files\\CMake\\bin\\cmake.exe",
+				},
+				"linux":{
+					"command": "cmake",
+				},
+				"type": "shell",
+				"args": [
+					"--build","${workspaceFolder:example}/build",
+					"--target","clean",
+				],
+				"problemMatcher": [
+					"$gcc"
+				],
+				"group": "build",
+				"dependsOn":["CMake configure"],
+			},
+			{
+				"label": "CMake configure",
+				"windows":{
+					"command": "C:\\Program Files\\CMake\\bin\\cmake.exe",
+					"args": [
+						"-G","Ninja",
+						"-DCMAKE_MAKE_PROGRAM=\"\\\"C:\\Program Files (x86)\\Ninja\\ninja.exe\\\"\"",
+						"-DCMAKE_EXPORT_COMPILE_COMMANDS=ON",
+						"-S","${workspaceFolder:example}",
+						"-B","${workspaceFolder:example}/build",
+					],
+				},
+				"linux":{
+					"command": "cmake",
+					"args": [
+						"-DCMAKE_EXPORT_COMPILE_COMMANDS=ON",
+						"-S","${workspaceFolder:example}",
+						"-B","${workspaceFolder:example}/build",
+					],
+				},
+				"type": "shell",
+			}
+		]
+	},
+	"launch": {
+		"version": "0.2.0",
+		"configurations": [
+			{
+				"cwd": "${workspaceFolder:example}",
+				"executable": "./build/soes_am263x_lp_example.out",
+				"name": "Debug with OpenOCD",
+				"request": "launch",
+				"type": "cortex-debug",
+				"servertype": "openocd",
+				"numberOfProcessors": 5,
+				"targetProcessor": 1,
+				"windows": {
+					"gdbPath": "${workspaceFolder:SOES}/../gcc-arm-none-eabi-10.3-2021.10/bin/arm-none-eabi-gdb.exe",
+					"armToolchainPath": "${workspaceFolder:SOES}/../gcc-arm-none-eabi-10.3-2021.10/bin/",
+				},
+				"linux": {
+					"gdbPath": "${workspaceFolder:SOES}/../arm-gnu-toolchain-15.2.rel1-x86_64-arm-none-eabi/bin/arm-none-eabi-gdb",
+					"armToolchainPath": "${workspaceFolder:SOES}/../arm-gnu-toolchain-15.2.rel1-x86_64-arm-none-eabi/bin/",
+				},
+				"overrideLaunchCommands": [
+					"source GDB_Setup.txt",
+					"-target-download",
+					"-enable-pretty-printing",
+				],
+				"configFiles": [
+					"${workspaceFolder:example}/GDB_Config.cfg"
+				],
+				"searchDir": [],
+			}
+		],
+		"compounds": []
+	},
+}
