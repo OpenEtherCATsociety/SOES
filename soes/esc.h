@@ -248,6 +248,7 @@
 #define MBXEOE                         0x02
 #define MBXCOE                         0x03
 #define MBXFOE                         0x04
+#define MBXVOE                         0x0f
 #define MBXODL                         0x10
 #define MBXOD                          0x20
 #define MBXED                          0x30
