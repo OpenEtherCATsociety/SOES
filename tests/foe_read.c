@@ -139,7 +139,15 @@ static int test_disabled(void)
 #endif
 
 #if FOE_READ_SUPPORTED
-static int test_read(uint32_t size)
+static uint32_t readable_size;
+
+static uint32_t read_size(const foe_file_cfg_t *entry)
+{
+   (void)entry;
+   return readable_size;
+}
+
+static int test_read(uint32_t size, int dynamic)
 {
    uint8_t expected[FILE_CAPACITY];
    uint32_t offset = 0;
@@ -151,7 +159,9 @@ static int test_read(uint32_t size)
       file_data[i] = (uint8_t)(0xa7u ^ (i * 19u));
    }
    memcpy(expected, file_data, sizeof(expected));
-   file.max_data = size;
+   file.max_data = dynamic ? FILE_CAPACITY : size;
+   file.read_size = dynamic ? read_size : NULL;
+   readable_size = size;
    reset();
    request(FOE_OP_RRQ, 0, "demo.bin");
    ESC_foeprocess();
@@ -241,13 +251,13 @@ int main(void)
    {
       uint32_t block = MBX_SIZE - (uint32_t)(ESC_MBXHSIZE + ESC_FOEHSIZE);
       uint32_t sizes[] = {
-         0, 1, block - 1, block, block + 1, 2 * block, FILE_CAPACITY,
+         0, 1, block - 1, block, block + 1, 2 * block, 2 * block + 2, FILE_CAPACITY,
       };
       uint32_t i;
 
       for (i = 0; i < sizeof(sizes) / sizeof(sizes[0]); ++i)
       {
-         if (test_read(sizes[i]) != 0)
+         if (test_read(sizes[i], 0) != 0 || test_read(sizes[i], 1) != 0)
          {
             return 1;
          }

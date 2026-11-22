@@ -89,7 +89,13 @@ static uint32_t FOE_fopen (char *name, uint8_t num_chars, uint32_t pass, uint8_t
             case FOE_OP_RRQ:
             {
                FOEvar.fposition = 0;
-               FOEvar.fend = foe_cfg->files[i].max_data;
+               FOEvar.fend = foe_file->read_size ?
+                  foe_file->read_size (foe_file) : foe_file->max_data;
+               if (FOEvar.fend > foe_file->max_data ||
+                   FOEvar.fend > foe_cfg->buffer_size)
+               {
+                  return FOE_ERR_PROGERROR;
+               }
                return 0;
             }
 #endif
