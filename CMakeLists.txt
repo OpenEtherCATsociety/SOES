@@ -9,6 +9,10 @@ set (SOES_VERSION_MAJOR 3)
 set (SOES_VERSION_MINOR 0)
 set (SOES_VERSION_PATCH 0)
 
+# Optional protocol feature. Off by default so the build and behaviour are
+# unchanged unless explicitly requested.
+option (SOES_VOE "Enable Vendor over EtherCAT (VoE) support" OFF)
+
 # Generate version numbers
 configure_file (
   ${SOES_SOURCE_DIR}/version.h.in
