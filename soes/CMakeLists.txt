@@ -19,6 +19,10 @@ add_library (soes
 
 include_directories(${HAL_INCLUDES})
 
+if (SOES_FOE_READ)
+  target_compile_definitions (soes PRIVATE FOE_READ_SUPPORTED=1)
+endif ()
+
 install (TARGETS soes DESTINATION bin)
 install (FILES
   esc.h

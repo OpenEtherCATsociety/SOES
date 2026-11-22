@@ -21,9 +21,6 @@
  * FOE read / write and FOE service functions
  */
 
-//define if FOE_read should be supported
-//#define FOE_READ_SUPPORTED
-
 /** Variable holding current filename read at FOE Open.
  */
 static char foe_file_name[FOE_FN_MAX + 1];
@@ -88,12 +85,14 @@ static uint32_t FOE_fopen (char *name, uint8_t num_chars, uint32_t pass, uint8_t
          foe_file->total_size = 0;
          switch (op)
          {
+#if FOE_READ_SUPPORTED
             case FOE_OP_RRQ:
             {
                FOEvar.fposition = 0;
                FOEvar.fend = foe_cfg->files[i].max_data;
                return 0;
             }
+#endif
             case FOE_OP_WRQ:
             {
                FOEvar.fposition = 0;
@@ -107,7 +106,7 @@ static uint32_t FOE_fopen (char *name, uint8_t num_chars, uint32_t pass, uint8_t
    return FOE_ERR_NOTFOUND;
 }
 
-#ifdef FOE_READ_SUPPORTED
+#if FOE_READ_SUPPORTED
 /** Function writing local data to mailbox buffer to be sent as next FoE frame.
  * It will try to fill the Mailbox buffer available if there is enough data
  * left to read.
@@ -238,7 +237,7 @@ static void FOE_abort (uint32_t code)
    FOE_init ();
 }
 
-#ifdef FOE_READ_SUPPORTED
+#if FOE_READ_SUPPORTED
 /** Sends an FoE data frame, returning the number of data bytes
  * written or an error number.
  * Error numbers will be greater than FOE_DATA_SIZE.
@@ -307,7 +306,7 @@ static uint32_t FOE_send_ack ()
 
 /* Handlers for various FoE states. */
 
-#ifdef FOE_READ_SUPPORTED
+#if FOE_READ_SUPPORTED
 /** FoE read request handler. Starts with Initialize, Open and Sending one frame.
  * When first frame have been sent we will send data from Ack.
  * On error we will send FOE Abort.
@@ -507,7 +506,7 @@ static void FOE_data ()
    }
 }
 
-#ifdef FOE_READ_SUPPORTED
+#if FOE_READ_SUPPORTED
 /** FoE read request busy handler. Send an Ack of last frame again. On error
  * we will send FOE Abort.
  *
@@ -595,7 +594,7 @@ void ESC_foeprocess (void)
                FOE_data ();
                break;
             }
-#ifdef FOE_READ_SUPPORTED
+#if FOE_READ_SUPPORTED
             case FOE_OP_RRQ:
             {
                DPRINT("FOE_OP_RRQ\n");
