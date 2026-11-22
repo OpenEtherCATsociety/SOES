@@ -25,6 +25,11 @@
 #define USE_EOE          1
 #endif
 
+/* VoE support. Opt-in and requires an application handler via VOE_config(). */
+#ifndef USE_VOE
+#define USE_VOE          0
+#endif
+
 #ifndef MBXSIZE
 #define MBXSIZE          128
 #endif

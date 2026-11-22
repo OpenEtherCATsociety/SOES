@@ -7,6 +7,8 @@ add_library (soes
   esc_coe.h
   esc_foe.c
   esc_foe.h
+  esc_voe.c
+  esc_voe.h
   esc_eoe.c
   esc_eoe.h
   esc_eep.c
@@ -23,11 +25,16 @@ if (SOES_FOE_READ)
   target_compile_definitions (soes PRIVATE FOE_READ_SUPPORTED=1)
 endif ()
 
+if (SOES_VOE)
+  target_compile_definitions (soes PRIVATE USE_VOE=1)
+endif ()
+
 install (TARGETS soes DESTINATION bin)
 install (FILES
   esc.h
   esc_coe.h
   esc_foe.h
+  esc_voe.h
   esc_eoe.h
   esc_eep.h
   DESTINATION include)

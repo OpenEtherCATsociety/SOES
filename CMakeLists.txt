@@ -12,6 +12,7 @@ set (SOES_VERSION_PATCH 0)
 # Optional protocol feature. Off by default so the build and behaviour are
 # unchanged unless explicitly requested.
 option (SOES_FOE_READ "Enable FoE read (upload) support" OFF)
+option (SOES_VOE "Enable Vendor over EtherCAT (VoE) support" OFF)
 
 # Generate version numbers
 configure_file (
