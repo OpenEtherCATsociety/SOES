@@ -228,6 +228,7 @@ static void FOE_abort (uint32_t code)
          foembx->mbxheader.length = htoes (ESC_FOEHSIZE);   /* Don't bother with error text for now. */
          foembx->mbxheader.mbxtype = MBXFOE;
          foembx->foeheader.opcode = FOE_OP_ERR;
+         foembx->foeheader.reserved = 0;
          foembx->foeheader.errorcode = htoel (code);
          MBXcontrol[mbxhandle].state = MBXstate_outreq;
       }
@@ -260,6 +261,7 @@ static uint32_t FOE_send_data_packet ()
       foembx = (_FOE *) &MBX[mbxhandle * ESC_MBXSIZE];
       data_len = FOE_fread (foembx->data, ESC_FOE_DATA_SIZE);
       foembx->foeheader.opcode = FOE_OP_DATA;
+      foembx->foeheader.reserved = 0;
       foembx->foeheader.packetnumber = htoel (FOEvar.foepacket);
       FOEvar.foepacket++;
       foembx->mbxheader.length = htoes (data_len + ESC_FOEHSIZE);
@@ -292,6 +294,7 @@ static uint32_t FOE_send_ack ()
       foembx->mbxheader.length = htoes (ESC_FOEHSIZE);
       foembx->mbxheader.mbxtype = MBXFOE;
       foembx->foeheader.opcode = FOE_OP_ACK;
+      foembx->foeheader.reserved = 0;
       foembx->foeheader.packetnumber = htoel (FOEvar.foepacket);
       FOEvar.foepacket++;
       MBXcontrol[mbxhandle].state = MBXstate_outreq;

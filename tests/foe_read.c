@@ -49,7 +49,7 @@ static void reset(void)
 {
    int n;
 
-   memset(MBX, 0, sizeof(MBX));
+   memset(MBX, 0xa5, sizeof(MBX));
    for (n = 0; n < MBXBUFFERS; ++n)
    {
       MBXcontrol[n].state = MBXstate_idle;
@@ -67,7 +67,7 @@ static void request(uint8_t opcode, uint32_t number, const char *name)
    _FOE *mbx = (_FOE *)MBX;
    size_t name_len = (name != NULL) ? strlen(name) : 0;
 
-   memset(MBX, 0, sizeof(MBX));
+   memset(MBX, 0, MBX_SIZE);
    mbx->mbxheader.length = htoes((uint16_t)(ESC_FOEHSIZE + name_len));
    mbx->mbxheader.mbxtype = MBXFOE;
    mbx->foeheader.opcode = opcode;
@@ -167,7 +167,7 @@ static int test_read(uint32_t size)
          break;
       }
       length = etohs(reply->mbxheader.length);
-      if (reply->foeheader.opcode != FOE_OP_DATA ||
+      if (reply->foeheader.opcode != FOE_OP_DATA || reply->foeheader.reserved != 0 ||
           etohl(reply->foeheader.packetnumber) != packet ||
           length < ESC_FOEHSIZE)
       {
