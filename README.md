@@ -30,6 +30,18 @@ Feature list:
    "stack"_init
  - EoE
 
+BUILDING
+========
+
+Windows (Visual Studio)
+-----------------------
+
+ * Start a Visual Studio command prompt then:
+   * `mkdir build`
+   * `cd build`
+   * `cmake .. -G "NMake Makefiles"`
+   * `nmake`
+   
 TODO
  - Update documentation
  - Add EoE sample application
